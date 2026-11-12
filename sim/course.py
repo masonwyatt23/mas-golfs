@@ -218,18 +218,64 @@ def build_wyatt_national():
     ]
 
 
+def compute_rating_slope(holes, par):
+    """USGA-style course rating and slope, computed from the design.
+
+    A transparent, simplified model — not the USGA's proprietary tables —
+    with components an architect would recognise:
+
+    - **Effective length**: yardage, plus 1.5 yd per foot of net uphill
+      (uphill holes play longer, downhill shorter), plus 40 yd for a
+      prevailing wind.
+    - **Obstacle strokes**: bunkers 0.02 each, water hazards 0.15 each,
+      tree clusters 0.05 each, tight out-of-bounds 0.10, narrow fairways
+      (< 30 yd) 0.10, small greens (< 40 ft radius) 0.05.
+    - **Rating** = 68.0 + effective_length * 0.0008 + obstacle * 0.4.
+    - **Slope** = 113 + (rating - par) * 7.2 + obstacle * 4.0.
+
+    The constants are calibrated so Wyatt National lands on the spec's
+    stated 74.6 / 138 (it computes 74.6 / 138). Harder designs — longer,
+    narrower, more hazards — rate higher automatically, so difficulty
+    becomes a variable the engine can play with.
+    """
+    yardage = sum(h.yardage for h in holes)
+    uphill = sum(max(0.0, h.elev_green_ft - h.elev_tee_ft) for h in holes)
+    downhill = sum(max(0.0, h.elev_tee_ft - h.elev_green_ft) for h in holes)
+    effective_length = yardage + 1.5 * (uphill - downhill) + 40.0
+    obstacle = 0.0
+    for h in holes:
+        obstacle += 0.02 * len(h.bunkers)
+        obstacle += 0.15 * len(h.water)
+        obstacle += 0.05 * len(h.trees)
+        if h.ob_right_yd < 60:
+            obstacle += 0.10
+        if h.fairway_width_yd < 30:
+            obstacle += 0.10
+        if h.green_radius_ft < 40:
+            obstacle += 0.05
+    rating = 68.0 + effective_length * 0.0008 + obstacle * 0.4
+    slope = 113.0 + (rating - par) * 7.2 + obstacle * 4.0
+    return round(rating, 1), int(round(slope)), dict(
+        effective_length_yd=round(effective_length),
+        obstacle_strokes=round(obstacle, 2),
+        uphill_ft=round(uphill), downhill_ft=round(downhill))
+
+
 class Course:
     """A course: holes, par, rating/slope, and lie determination."""
 
     def __init__(self, course_id="wyatt_national", name="Wyatt National",
-                 rating=74.6, slope=138, holes=None):
+                 rating=None, slope=None, holes=None):
         self.id = course_id
         self.name = name
-        self.rating = rating
-        self.slope = slope
         self.holes = holes if holes is not None else build_wyatt_national()
         self.par = sum(h.par for h in self.holes)
         self.yardage = sum(h.yardage for h in self.holes)
+        if rating is None or slope is None:
+            rating, slope, self.rating_detail = compute_rating_slope(
+                self.holes, self.par)
+        self.rating = rating
+        self.slope = slope
 
     def hole(self, n: int) -> Hole:
         return self.holes[n - 1]
@@ -386,6 +432,29 @@ class Course:
         straight = math.hypot(gx - x, gy - y)
         along = max(0.0, hole.yardage - s) + abs(lateral) * 0.3
         return along, straight
+
+
+def championship_variant():
+    """Wyatt National (Black Tees) — the same routing, played harder.
+
+    +350 yards, 26-yard fairways, 36-foot greens, and an extra fairway
+    bunker at 300 yards on every par 4 and par 5. The rating/slope are
+    computed from the design, so the difficulty is real, not a label.
+    """
+    import copy
+    holes = []
+    for h in build_wyatt_national():
+        h2 = copy.deepcopy(h)
+        extra = 8 if h.par == 3 else 22
+        h2.yardage += extra
+        h2.fairway_width_yd = 26.0
+        h2.green_radius_ft = 36.0
+        if h.par in (4, 5):
+            h2.bunkers = list(h2.bunkers) + [
+                Bunker(300, -18 if h.hole % 2 else 18, 24, 14)]
+        holes.append(h2)
+    return Course(course_id="wyatt_national_black",
+                  name="Wyatt National (Black Tees)", holes=holes)
 
 
 WYATT_NATIONAL = Course()
