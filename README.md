@@ -34,6 +34,11 @@ YouTube golf now out-subscribes the PGA Tour. Creator golf averages 4–5x the v
 - **Broadcast stack guide:** see [docs/broadcast-stack.md](docs/broadcast-stack.md) — the OBS scene collection, autonomous director state machine, NodeCG graphics, event-driven commentary pipeline, ambient audio, and 24/7 reliability. Free-tier only.
 - **90-day launch playbook:** see [docs/launch-playbook.md](docs/launch-playbook.md) — the auto-clip system, winning clip formats, the Instagram → YouTube → Twitch funnel, and the day-by-day 90-day plan with weekly checklists.
 - **Brand identity:** see [docs/brand-identity.md](docs/brand-identity.md) — the Mas Golfs logo concept, color palette, typography, on-screen identity rules, social templates, and naming conventions.
+- **Sim engine spec:** see [docs/sim-engine.md](docs/sim-engine.md) — the JSON event schema, launch-condition physics, +3 calibration truth tables, lie/wind gating, the local decision engine, and the strokes-gained learning loop.
+- **Course design v2:** see [docs/course-design-v2.md](docs/course-design-v2.md) — Wyatt National refined with MacKenzie/Doak principles, template holes, wind rotation, stroke index, and the strategic question on every hole.
+- **Clubhouse Coins economy:** see [docs/coins-economy.md](docs/coins-economy.md) — the full prediction economy: odds model, skins/Nassau/props markets, payout math, leaderboards, anti-abuse, and the legal boundary.
+- **Unreal vertical slice:** see [docs/unreal-vertical-slice.md](docs/unreal-vertical-slice.md) — the one-hole UE 5.8 plan: Hole 12 "The Picture," software list and costs, LiDAR pipeline, MetaHuman + swing mocap options, and go/no-go criteria.
+- **Creator growth playbook:** see [docs/creator-growth.md](docs/creator-growth.md) — what's working for small golf creators in 2026: hooks, conversion math, collabs, community, thumbnails, and realistic timelines.
 
 ## Contributing
 
