@@ -591,7 +591,18 @@ Clubhouse Coins are free, earned by watching and predicting, never purchasable, 
 
 ---
 
-## 9. Build order (the checklist)
+## 9. 59 Watch
+
+The broadcast's signature feature: a live, always-on chase for the sub-60 round.
+
+- **The trigger.** 59 Watch turns on automatically the moment Mas goes under the 59-pace line (score vs. par through the holes played, against the pace a 59 requires). It turns off if he falls off pace, and back on if he recovers.
+- **The bug.** A pulsing gold bug, top-right, showing current score vs. the 59 pace (e.g. "−8 thru 12 · 59 PACE"), the strokes he can still afford to drop, and a live probability of breaking 60 derived from the remaining holes and his current form.
+- **The escalation.** The deeper the round, the louder it gets: subtle bug early, a lower-third at the turn when on pace, a full-screen moment on the 18th when 59 is on the line — with the crowd/ambient audio swelling to match.
+- **The record book.** Every round logs its 59-watch story: on pace at the turn, best 59-watch moments, closest calls, and the all-time "closest to 59" board. A round that ends 60 or 61 is a near-miss story, not a failure.
+- **The sim side.** The sim engine emits pace state on every hole (`fifty_nine_watch` events: on pace / off pace / back on pace / 59 on the line) so graphics, commentary, and the clip pipeline all react to the same truth.
+- **The clip angle.** Any 59-watch moment at drama 90+ is an automatic second clip of the day, and a completed 59 is the biggest clip the show will ever make.
+
+## 10. Build order (the checklist)
 
 Build in this order. Each step is independently testable; do not start the next until the current one works end-to-end.
 
