@@ -69,14 +69,32 @@ CLUBS = {
                    speed_mean=85.0, sig_speed=1.2, sig_face=0.60,
                    sig_path=0.75, sig_sx=3.8, sig_sy=3.0, cls="wedge"),
     "GW":     dict(loft=50.0, carry=122, smash=1.30, base_spin=8500,
-                   speed_mean=83.0, sig_speed=1.1, sig_face=0.55,
+                   speed_mean=78.0, sig_speed=1.1, sig_face=0.55,
                    sig_path=0.70, sig_sx=3.5, sig_sy=2.8, cls="wedge"),
     "SW":     dict(loft=54.0, carry=108, smash=1.30, base_spin=9000,
-                   speed_mean=81.0, sig_speed=1.0, sig_face=0.50,
+                   speed_mean=73.0, sig_speed=1.0, sig_face=0.50,
                    sig_path=0.65, sig_sx=3.2, sig_sy=2.6, cls="wedge"),
     "LW":     dict(loft=58.0, carry=92,  smash=1.30, base_spin=9500,
-                   speed_mean=79.0, sig_speed=1.0, sig_face=0.50,
+                   speed_mean=68.0, sig_speed=1.0, sig_face=0.50,
                    sig_path=0.65, sig_sx=3.2, sig_sy=2.6, cls="wedge"),
+}
+# NOTE (§3.7): the wedge speed means above are lower than the spec's first
+# draft (83/81/79 mph). A full sand/lob wedge is a control swing, not a
+# max-effort one; at the draft speeds the wedges carried 20-35% long under
+# the calibrated flight model. 78/73/68 mph reproduces the gapping table.
+
+# Base launch angle per club (degrees), Trackman-style means for a +3 on a
+# full shot. CORRECTION to §2.2: the spec's single-factor formula
+# (loft x 0.72) cannot fit driver and wedges at once — it launches the
+# driver at 8 deg (real: ~12 deg) and the lob wedge at 38 deg (real: ~31
+# deg). The launch is therefore a per-club calibrated constant; the drawn
+# angle of attack moves it only by its deviation from the club's typical
+# AoA (driver +3 deg, fairway woods +1, hybrid 0, irons/wedges -4).
+LAUNCH_DEG = {
+    "driver": 12.0, "3-wood": 13.0, "5-wood": 14.0, "hybrid": 15.0,
+    "4-iron": 16.0, "5-iron": 17.0, "6-iron": 18.0, "7-iron": 18.0,
+    "8-iron": 20.0, "9-iron": 22.0, "PW": 25.0, "GW": 27.0,
+    "SW": 29.0, "LW": 31.0,
 }
 
 # Smash factor by club class and contact quality (§2.2).

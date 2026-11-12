@@ -375,15 +375,19 @@ def _launch_batch(speeds, faces, paths, sxs, sys, aoas, qualities, club, lie,
     spin_map = C.SPIN_FACTOR_BY_QUALITY
     spin_f = np.array([spin_map[q] for q in qualities])
     ball_speed = speeds * smash * math.sqrt(C.LIE_EFFECTS[lie]["dist"])
+    # Launch: per-club base angle plus the drawn AoA's deviation from the
+    # club's typical AoA — mirrors physics.delivery_to_launch exactly.
+    typical_aoa = {"driver": 3.0, "3-wood": 1.0, "5-wood": 1.0,
+                   "hybrid": 0.0}.get(club, -4.0)
     if club == "driver":
-        aoa_effect = aoas * 0.5
+        aoa_effect = (aoas - typical_aoa) * 0.5
     else:
-        aoa_effect = aoas * 0.25
+        aoa_effect = (aoas - typical_aoa) * 0.25
     strike_effect = np.zeros(len(speeds))
     strike_effect = np.where(qualities == "thin", -2.0, strike_effect)
     strike_effect = np.where(qualities == "chunk", 1.5, strike_effect)
     strike_effect = np.where((sys > 6) & (qualities == "pure"), 1.0, strike_effect)
-    launch_deg = spec["loft"] * 0.72 + aoa_effect + strike_effect
+    launch_deg = C.LAUNCH_DEG[club] + aoa_effect + strike_effect
     spin = spec["base_spin"] * spin_f
     lie_spin = C.LIE_EFFECTS[lie]["spin"]
     if lie_spin is None:

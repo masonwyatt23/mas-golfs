@@ -108,10 +108,16 @@ def delivery_to_launch(d: Delivery, club: str, quality: str, lie: str,
     # Lie distance factor: distance ~ v^2, so scale speed by sqrt(factor).
     ball_speed *= math.sqrt(C.LIE_EFFECTS[lie]["dist"])
 
+    # Launch: per-club base angle (C.LAUNCH_DEG) plus the drawn AoA's
+    # deviation from the club's typical AoA. See constants.py for why the
+    # spec's loft x 0.72 formula was replaced (it cannot fit driver and
+    # wedges simultaneously).
+    typical_aoa = {"driver": 3.0, "3-wood": 1.0, "5-wood": 1.0,
+                   "hybrid": 0.0}.get(club, -4.0)
     if club == "driver":
-        aoa_effect = d.aoa_deg * 0.5
+        aoa_effect = (d.aoa_deg - typical_aoa) * 0.5
     else:
-        aoa_effect = d.aoa_deg * 0.25
+        aoa_effect = (d.aoa_deg - typical_aoa) * 0.25
     if quality == "thin":
         strike_effect = -2.0
     elif quality == "chunk":
@@ -120,7 +126,7 @@ def delivery_to_launch(d: Delivery, club: str, quality: str, lie: str,
         strike_effect = 1.0
     else:
         strike_effect = 0.0
-    launch_deg = spec["loft"] * 0.72 + aoa_effect + strike_effect
+    launch_deg = C.LAUNCH_DEG[club] + aoa_effect + strike_effect
 
     spin = spec["base_spin"] * C.SPIN_FACTOR_BY_QUALITY[quality]
     lie_spin = C.LIE_EFFECTS[lie]["spin"]
@@ -200,11 +206,22 @@ def fly(ball_speed_mph, launch_deg, spin_rpm, spin_axis_deg, start_dir_deg,
     spin = np.atleast_1d(spin)
 
     rho = air_density(temp_f)
-    # Column vectors: cd/cl are (n, 1) so they broadcast correctly against
-    # the (n, 3) velocity arrays in the Monte Carlo path.
+    # Drag coefficient, per the spec (§2.3). Column vector so it broadcasts
+    # correctly against the (n, 3) velocity arrays in the Monte Carlo path.
     cd = (0.24 + 0.000012 * spin)[:, None]
-    cl = np.clip(spin / 145000.0, 0.02, 0.35)[:, None]
+    # Lift coefficient: CORRECTION to §2.3. The spec's linear formula
+    # (Cl = spin / 145000, clamped 0.02-0.35) gives Cl = 0.02 at driver spin
+    # — about one tenth of the lift a real ball produces — and simulation
+    # shows no launch angle can then reach the spec's own §3.1 carry
+    # targets (driver maxes out at ~228 yd). The replacement is the
+    # published spin-ratio model (Smits & Smith): Cl is a quadratic in the
+    # dimensionless spin ratio S = omega * R / |v|, peaking near S = 0.3
+    # and falling off at very high spin, which is also what keeps wedge
+    # shots from floating forever. S is recomputed every step because the
+    # ball slows in flight.
     omega = _spin_vector(spin, spin_axis_deg)
+    omega_mag = np.linalg.norm(omega, axis=1, keepdims=True)
+    ball_radius_m = C.BALL_DIAMETER_M / 2.0
     wind = np.array([float(wind_along_ms), 0.0, float(wind_lateral_ms)])
 
     p = np.zeros((n, 3))
@@ -232,7 +249,11 @@ def fly(ball_speed_mph, launch_deg, spin_rpm, spin_axis_deg, start_dir_deg,
             np.linalg.norm(omega, axis=1, keepdims=True), 1e-9)
         drag = (-0.5 * rho * cd * C.BALL_AREA_M2 * speed_rel * v_rel)
         magnus_dir = np.cross(omega_hat, v_rel_hat)
+        # Lift from the spin ratio at the current speed (see note above).
         # speed_rel is already (n, 1); it broadcasts against (n, 3) directly.
+        spin_ratio = omega_mag * ball_radius_m / speed_rel
+        cl = np.clip(-3.25 * spin_ratio ** 2 + 1.99 * spin_ratio,
+                     0.02, 0.35)
         magnus = (0.5 * rho * cl * C.BALL_AREA_M2 * speed_rel ** 2) * magnus_dir
         a = (drag + magnus) / C.BALL_MASS_KG
         a[:, 1] -= C.GRAVITY
