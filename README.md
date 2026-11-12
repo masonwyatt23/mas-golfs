@@ -22,10 +22,15 @@
 
 YouTube golf now out-subscribes the PGA Tour. Creator golf averages 4–5x the views of a Sunday TV broadcast. But nobody has shipped a consumer golf digital twin — a persistent virtual model of *yourself*, playing on loop, learning, livestreamed. That's this.
 
+## The course
+
+**Wyatt National** — par 72, 7,214 yards. Four par 3s, four par 5s, ten par 4s, two of each short/long hole per nine. Full hole-by-hole design: [docs/course-design.md](docs/course-design.md).
+
 ## Project status
 
 - **Web prototype (this repo):** the always-on show. `index.html` is a self-contained build — open it and it plays.
 - **Roadmap:** see [docs/architecture.md](docs/architecture.md) — the Unreal Engine 5.8 path to true 4K broadcast realism (one-hole vertical slice first), the OBS + NodeCG director stack, and the event-driven AI commentary booth.
+- **Livestream & growth plan:** see [docs/livestream-plan.md](docs/livestream-plan.md) — platforms, the technical stack in build order, the clip machine, the coin economy, the Unreal leap, and the 30/60/90-day growth timeline.
 
 ## Contributing
 
