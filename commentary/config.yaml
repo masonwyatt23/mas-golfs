@@ -1,0 +1,72 @@
+# Mas Golfs — Commentary Service configuration
+#
+# Single source of truth for the commentary pipeline.
+# The service reads this file at boot. Nothing about models, voices,
+# or rate limits lives in code.
+#
+# See docs/commentary-prompts.md (prompts, voices, hard rules),
+# docs/local-models.md §3.5 (models.yaml — this file is the commentary
+# service's view of it) and docs/voice-options.md (TTS setup).
+
+# --- Event bus ---------------------------------------------------------
+bus:
+  url: ws://localhost:4456
+  reconnect_initial_seconds: 1
+  reconnect_max_seconds: 30
+
+# --- LLM ---------------------------------------------------------------
+# Primary backend is MLX (mlx-lm server, OpenAI-compatible API).
+# Fallback is Ollama (llama.cpp). The service tries the primary first,
+# falls back automatically, and logs the switch. Never a paid API.
+llm:
+  backend: mlx
+  mlx:
+    model: mlx-community/Qwen3-1.7B-4bit
+    base_url: http://localhost:8080/v1
+    max_kv_size: 2048
+  ollama:
+    model: qwen3:1.7b
+    base_url: http://localhost:11434/v1
+    num_ctx: 2048
+  generation:
+    temperature: 0.7
+    max_tokens: 120
+    timeout_seconds: 10
+
+# --- TTS ---------------------------------------------------------------
+# Kokoro-FastAPI, OpenAI-compatible endpoint. Default port 8880.
+tts:
+  engine: kokoro
+  base_url: http://localhost:8880/v1
+  host:
+    voice: am_michael
+    speed: 1.0
+  color:
+    voice: af_sky
+    speed: 1.05
+  cache_dir: ~/.masgolfs/tts-cache
+
+# --- Rate limits (commentary-prompts.md §5 rule 11) --------------------
+limits:
+  min_seconds_between_lines: 15
+  max_lines_per_hole: 4
+  max_line_chars: 280
+
+# --- Paths -------------------------------------------------------------
+paths:
+  # One JSON object per decision (event, line, voice, latency, cache hit).
+  decision_log: ~/.masgolfs/commentary-decisions.jsonl
+  # One JSON object per line actually played (voice, text, audio path).
+  output_log: ~/.masgolfs/commentary-output.jsonl
+  # Rendered audio for lines that played.
+  audio_dir: ~/.masgolfs/commentary-audio
+
+# --- Behaviour ---------------------------------------------------------
+# dry_run: true = never call the LLM or TTS. Lines are rendered from the
+# cached standard lines (or the stub LLM in demo mode) and logged only.
+# Use this for testing the pipeline without the model stack running.
+dry_run: false
+
+# stub_llm: true = use the built-in deterministic stub LLM instead of
+# calling the MLX/Ollama servers. Only for demo/tests — never in production.
+stub_llm: false
