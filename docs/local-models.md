@@ -20,8 +20,10 @@
 |---|---|---|
 | LLM runtime | **MLX (mlx-lm)** | Fastest on Apple Silicon (20–87% over llama.cpp under 14B) and lightest on memory (5.24 GB vs 15 GB for the same 9B model under Ollama) |
 | LLM runtime fallback | **llama.cpp via Ollama** | Most battle-tested; one-command install; the fallback is a config change, not a rebuild |
-| Commentary LLM (default) | **Qwen3-1.7B-Instruct, 4-bit MLX** | Fits the 8GB budget with headroom; strong instruction-following for its size; Apache 2.0 |
-| Commentary LLM (stretch) | **Qwen3-4B-Instruct, 4-bit MLX** | Only if the memory audit (§4) passes on the real box; otherwise it stays off the box |
+| Commentary LLM (default) | **Qwen3.5-4B-4bit MLX** (`mlx-community/Qwen3.5-4B-4bit`) | Best quality-per-GB measured in research (IFEval 89.8 vendor-reported); fits the 8GB budget; Apache 2.0 |
+| Commentary LLM (fallback) | **Qwen3-4B-Instruct-2507, 4-bit MLX** | If Qwen3.5-4B misbehaves on the box; IFEval 83.4, Apache 2.0 |
+| Commentary LLM (emergency) | **Qwen3-1.7B-Instruct, 4-bit MLX** | Only if neither 4B fits; weak as a live voice |
+| Commentary LLM (does NOT fit) | **Qwen3-8B, Qwen3.5-9B, Qwen3.8-27B** | 8B needs ~10.3–10.8 GB total with the stack on an 8GB box; 27B needs ~16–19 GB. Both belong on the GPU box only |
 | TTS engine | **Kokoro-82M, FP16** | Free, Apache 2.0, CPU-capable, ~6× real time on Apple Silicon; see `voice-options.md` §2 |
 | Decision engine | **No model at all** | Monte Carlo over real physics (see §1.2) — a model would be slower, costlier, and worse |
 | Clip selection | **Deterministic drama scoring, no model** | Rules + thresholds (see §1.4) — a model adds nothing a table cannot do |
@@ -40,7 +42,7 @@ Every job the broadcast needs, what runs it, and whether it needs a model at all
 - **What:** one LLM call per commentary event, using the prompt templates in `docs/commentary-prompts.md` §2 and §4. Two system prompts (Nantz-inspired host, Gruden-inspired color), one call per event, no conversation history, temperature 0.7, max 120 tokens, output 1–2 sentences / 280 characters maximum.
 - **Load:** rate-limited to 1 line per 15 seconds, max 4 lines per hole (commentary-prompts §5, rule 11). A round is ~18 holes × ~6–8 events ≈ 120–150 LLM calls, each generating ~70 tokens. That is roughly one 70-token generation every 60–90 seconds of broadcast time — a trivial load for any small model, and the reason a 1.7B model is more than enough.
 - **Latency budget:** lines are pre-generated during the walk, the swing, and the ball flight (commentary-prompts §6.3), so the LLM has seconds of headroom, not milliseconds. At an estimated 30–60 tok/s for a 1.7B 4-bit model under MLX on a base Apple Silicon chip (see §2.4), a 70-token line takes ~1.5–2.5 seconds. That is effectively zero perceived latency. The pipeline never waits on the model.
-- **Model:** Qwen3-1.7B-Instruct, 4-bit MLX (default). See §2.
+- **Model:** Qwen3.5-4B-4bit MLX (default). See §2. Verdict from the Nov 12 research (`docs/research/qwen3-family.md`, `docs/research/small-llm-broadcast.md`, `docs/research/qwen-27b-fit.md`): 4B is the practical ceiling on the 8GB box; 8B does not fit alongside the stack; 27B needs 24 GB+. The naming trap: Qwen3-8B is an 8B model from the Qwen3 generation; Qwen3.8-27B is a 27B model from the Qwen3.8 generation (Aug 2026).
 
 ### 1.2 The decision engine — no model, by design
 
@@ -86,14 +88,14 @@ All sizes are the Ollama/GGUF download size at Q4_K_M unless noted; MLX 4-bit we
 | Model | Params | License | Download (Q4_K_M) | Memory at 2K ctx | Speed (M3 Pro) | Verdict for this box |
 |---|---|---|---|---|---|---|
 | **Qwen3-0.6B-Instruct** | 0.6B | Apache 2.0 | ~0.5 GB | ~1.0 GB | ~150+ tok/s (est.) | The emergency fallback. Runs anywhere, but its instruction-following is thin — lines get generic. Only if the 1.7B will not fit. |
-| **Qwen3-1.7B-Instruct** | 1.7B | Apache 2.0 | ~1.4 GB | ~2.0 GB | ~80–100 tok/s (est.) | **The default.** Fits with headroom, strong instruction-following for its size, Apache 2.0, MLX 4-bit quants available from mlx-community. |
+| **Qwen3-1.7B-Instruct** | 1.7B | Apache 2.0 | ~1.4 GB | ~2.0 GB | ~80–100 tok/s (est.) | **The emergency fallback.** Fits with headroom, but weak as a live voice — superseded by the 4B picks (Nov 12 research). |
 | **Llama 3.2 3B Instruct** | 3B | Llama 3.2 Community | ~2.0 GB | ~3.5 GB | 55.6 tok/s (measured) | The alternative default. Best instruction-following in the 3B class, most-downloaded small model. Costs ~1.5 GB more than the 1.7B for a quality gain the prompts mostly do not need — the prompts do the work, not the model size (commentary-prompts §2.3). |
 | **Phi-4-mini-instruct** | 3.8B | MIT | ~2.5 GB | ~4.0 GB at 2K (4.5 GB at 8K) | 43.7 tok/s (measured) | The reasoning pick. Leads its class on reasoning benchmarks, MIT license. But its KV cache is heavy (128 KB per token — a 32K context would add 4.3 GB alone), so it lives or dies on the 2K context cap. A credible second choice if the 1.7B disappoints on decision lines. |
 | **Gemma 3 4B IT** | 4B | Gemma (Google) | ~3.4 GB | ~4.5 GB (est.) | ~40 tok/s (est.) | The quality pick at 4B. Good instruction-following, but the largest file of the candidates and no clear edge over Qwen3-4B for 280-character lines. |
-| **Qwen3-4B-Instruct** | 4B | Apache 2.0 | ~2.5 GB | ~3.5–4.0 GB | ~50–60 tok/s (est.) | **The stretch goal.** The best quality-per-GB in the family. Only if the memory audit (§4) shows ≥1 GB of true headroom after a full round on the real box. Otherwise it stays off the box. |
+| **Qwen3-4B-Instruct-2507** | 4B | Apache 2.0 | ~2.5 GB | ~3.5–4.0 GB | ~50–60 tok/s (est.) | **The fallback.** IFEval 83.4, MMLU-Pro 69.6 — effectively closes the 4B→8B gap. Used if Qwen3.5-4B misbehaves on the box. |
 | Qwen3-8B / Llama 3.1 8B | 8B | Apache 2.0 / Llama | ~5.2 GB / ~4.7 GB | ~6.5 GB+ | ~30–50 tok/s | **Do not run on the 8GB box.** Weights alone leave nothing for OBS, the browser, and TTS. These are GPU-box models (§7). |
 
-**Why Qwen3-1.7B is the default, in one paragraph:** the commentary job is 120–150 short generations per round, each ~70 tokens, from a tight prompt with all the numbers supplied. The model is not reasoning from scratch — it is turning structured event data into one or two warm sentences. A 1.7B instruct model does that well; a 4B model does it slightly better; an 8B model does it no better in any way a viewer could hear. The binding constraint is memory, and the 1.7B leaves ~1 GB of headroom the 4B does not. Pick the model that fits, not the model that impresses.
+**Why Qwen3.5-4B is the default, in one paragraph (updated Nov 12, 2026):** the commentary job is 120–150 short generations per round, each ~70 tokens, from a tight prompt with all the numbers supplied. The model is not reasoning from scratch — it is turning structured event data into one or two warm sentences. The Nov 12 research measured the gap: in non-thinking mode (the mode commentary uses), Qwen3-4B is only +1.8 IFEval points behind Qwen3-8B, and Qwen3.5-4B (IFEval 89.8 vendor-reported) beats Qwen3-8B outright at half the size. The 4B generates ~2× as fast as the 8B on this box and is the largest model that fits alongside the stack. Pick the model that fits, not the model that impresses.
 
 **Licenses, read once:** Qwen3 (all sizes) is Apache 2.0 — commercially clean, no restrictions. Phi-4-mini is MIT. Gemma 3 is under Google's Gemma license (permissive, but read it before commercial use). Llama 3.2 is under Meta's Llama 3.2 Community License — commercial use allowed, with a separate license required only above 700M monthly active users. None of these is a problem for this broadcast; all are noted here so nobody has to re-check them later.
 
@@ -164,7 +166,7 @@ pip install mlx-lm
 
 # 3. Pull the default model (4-bit MLX quant from mlx-community)
 #    First run downloads the weights (~1.4 GB) and caches them locally.
-python -m mlx_lm.server --model mlx-community/Qwen3-1.7B-4bit --port 8080
+python -m mlx_lm.server --model mlx-community/Qwen3.5-4B-4bit --port 8080
 #    Verify it answers:
 curl http://localhost:8080/v1/models
 
@@ -172,7 +174,7 @@ curl http://localhost:8080/v1/models
 #    The commentary prompts are ~300-500 tokens; 2,048 is generous.
 #    Set it explicitly — never rely on a runtime default, which can be
 #    32K or larger and will eat the KV cache (and the box) alive.
-python -m mlx_lm.server --model mlx-community/Qwen3-1.7B-4bit \
+python -m mlx_lm.server --model mlx-community/Qwen3.5-4B-4bit \
   --port 8080 --max-kv-size 2048
 ```
 
@@ -225,7 +227,7 @@ Either way, Kokoro is memory-capped, and the watchdog (§8) restarts it if it st
 llm:
   backend: mlx                 # mlx | ollama (fallback, automatic on MLX failure)
   mlx:
-    model: mlx-community/Qwen3-1.7B-4bit
+    model: mlx-community/Qwen3.5-4B-4bit
     base_url: http://localhost:8080/v1
     max_kv_size: 2048
   ollama:
@@ -262,7 +264,7 @@ This is the table the whole architecture stands or falls on. Numbers are budgets
 | Browser (web build) | One Chromium tab, the 3D broadcast, Balanced tier | ~900 MB | One tab only. No other tabs, no extensions. Balanced tier (not High) on 8GB — see deployment-runbook §3.2. |
 | NodeCG | Graphics server + bundle | ~250 MB | Node.js; small and steady. |
 | Commentary service | Python: event bus client, prompt templates, cache, audio chain | ~150 MB | The orchestrator. Small by design — it holds no model weights. |
-| **MLX server (Qwen3-1.7B 4-bit)** | **The commentary LLM** | **~2,000 MB** | Weights ~1.4 GB + KV cache at 2K ctx ~0.3 GB + runtime/buffers ~0.3 GB. The single largest line. |
+| **MLX server (Qwen3.5-4B 4-bit)** | **The commentary LLM** | **~2,500 MB** | Weights ~2.3 GB + KV cache at 2K ctx ~0.3 GB + runtime/buffers ~0.3 GB. The single largest line. |
 | **Kokoro (native)** | **TTS** | **~400 MB** | FP16 weights 169 MB + server + buffers. Native install (preferred, §3.4). |
 | Kokoro (Docker) | TTS, if native fails | ~1,000 MB | Model + Docker Desktop VM overhead. Only if native is impossible. |
 | Watchdog + misc | launchd agents, logging, ops tools | ~100 MB | |
@@ -291,7 +293,7 @@ In order, when memory or CPU runs short:
 4. **The browser drops a quality tier.** Balanced → Lite (shadows off, lower DPR). The broadcast gets plainer, not broken.
 5. **The stream never degrades.** OBS is the last thing to lose resources. If the box is in genuine trouble, everything else is killed before the encoder is touched. A silent, plain-looking live stream beats a dead stream.
 
-### 4.4 The Qwen3-4B question — the stretch goal, decided by measurement
+### 4.4 The Qwen3-4B question — settled by research (Nov 12, 2026)
 
 Qwen3-4B 4-bit MLX costs ~3.5–4.0 GB resident (weights ~2.5 GB + KV + buffers) against the 1.7B's ~2.0 GB. Swapping it in would take the native-Kokoro total from ~5.9 GB to ~7.4–7.9 GB — leaving ~100–600 MB of headroom, which is not headroom at all. **The rule:** the 4B runs on the box only if, after a full 24-hour soak on the real box with the 1.7B, measured peak memory (all processes, worst minute) stays under 6.5 GB *and* swap stays at zero for the whole soak. If either condition fails, the 4B stays off the box and the 1.7B is the model. This is a measurement decision, not a preference decision, and it is made once, in §10, not debated weekly.
 
@@ -308,7 +310,7 @@ sim emits `decision` event
   → commentary service builds the user prompt from the template
     (commentary-prompts §4.1, placeholders filled from the event JSON)
   → POST to the MLX server (OpenAI-compatible /v1/chat/completions)
-      model: mlx-community/Qwen3-1.7B-4bit
+      model: mlx-community/Qwen3.5-4B-4bit
       messages: [system prompt (host or color, verbatim), user prompt]
       temperature 0.7, max_tokens 120, no history
   → line returned (~70 tokens, ~1.5-2.5 s at 30-60 tok/s)
@@ -393,7 +395,7 @@ The GPU box (own RTX 4090 box ~$2,500–3,000 + ~$35–52/mo power, or a rented 
 | What changes | On the 8GB MBP (now) | On the GPU box (later) |
 |---|---|---|
 | LLM runtime | MLX (mlx-lm), Apple Silicon only | **vLLM or Ollama** (CUDA). MLX does not run on NVIDIA. The OpenAI-compatible interface (§3.1) means the commentary service does not change — only `llm.backend` and `base_url` change. |
-| Commentary LLM | Qwen3-1.7B 4-bit (default), 4B stretch | **Qwen3-8B Q4_K_M** (~5.2 GB) or **Qwen3-14B Q4_K_M** (~9.3 GB). The 8B is the sensible step; the 14B only if the quality gap is demonstrated. The 1.7B stays as the fallback. |
+| Commentary LLM | Qwen3.5-4B 4-bit (default), Qwen3-4B-Instruct-2507 fallback, 1.7B emergency | **Qwen3.5-9B Q4_K_M** (~5.5–6 GB) on the GPU box, then **Qwen3.8-27B Q4_K_M** (~16–19 GB). Qwen3-8B is a dead end as a target (best of its generation, two generations behind). The 1.7B stays as the emergency fallback. |
 | TTS | Kokoro-82M on CPU | Kokoro on GPU (35–100× real time, ~300 ms to first audio) — same engine, same voices, same cache. Optionally Chatterbox for locked-in cloned voices (voice-options §4). |
 | Qwen3-TTS | Not on the box | Re-evaluate: 0.6B/1.7B with a vLLM streaming server, cloning from 3-second clips. Only if it beats Kokoro on a real audition. |
 | Video-derived swing work | Not attempted | **This is the GPU-box job.** Pose estimation from Mason's swing video for the MetaHuman swing (unreal-vertical-slice.md). It needs a GPU and it gets one. |
@@ -482,7 +484,7 @@ Build in this order. Each step is independently testable, and a step that fails 
 | # | Step | Pass criteria |
 |---|---|---|
 | 1 | Measure the box at idle | macOS + system resident memory recorded. If it is over 2 GB, find out why before anything else starts. |
-| 2 | Install mlx-lm, pull Qwen3-1.7B-4bit | `mlx_lm.server` answers on localhost:8080; a test prompt returns a completion. |
+| 2 | Install mlx-lm, pull Qwen3.5-4B-4bit | `mlx_lm.server` answers on localhost:8080; a test prompt returns a completion. |
 | 3 | Verify the 2K context cap | The server runs with `--max-kv-size 2048` (or the current equivalent flag — confirm on the installed version). Memory with the model loaded is recorded. |
 | 4 | Run the 20 audition lines | The 10 host + 10 color lines from commentary-prompts §8, through the MLX server, temperature 0.7, max 120 tokens. Every line ≤280 chars, no invented numbers, no banned words. |
 | 5 | Wire the commentary service to MLX | One full round, headless, events → prompts → MLX → validation → normalizer → cache. Drop rate < 5%, P99 generation < 5 s. |

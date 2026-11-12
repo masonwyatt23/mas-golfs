@@ -1,0 +1,14 @@
+# Mas Golfs — commentary service dependencies
+#
+# The service itself is stdlib-only (Python 3.10+): urllib for the
+# OpenAI-compatible HTTP calls, socket for the WebSocket bus client,
+# unittest for the tests. Nothing in this file is required to run it.
+#
+# The model servers it talks to are separate processes, installed once
+# on the broadcast box (docs/local-models.md §3, docs/voice-options.md §8):
+#
+#   mlx-lm   — pip install mlx-lm            (MLX LLM server, port 8080)
+#   ollama   — ollama.com installer          (fallback LLM, port 11434)
+#   kokoro   — Kokoro-FastAPI container      (TTS, port 8880)
+#
+# No paid APIs. No other Python packages.

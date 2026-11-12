@@ -49,17 +49,8 @@ _TENS = {
 }
 
 
-def words_to_number(text: str) -> int | None:
-    """Parse a golf-style number phrase to an int.
-
-    Handles "twelve", "fifty-nine", "one eighty-seven" (187),
-    "two hundred seventy-eight" (278) and "one sixty-four" (164).
-    Returns None when the phrase is not a number.
-    """
-    text = text.strip().lower().replace("-", " ").replace(",", "")
-    tokens = text.split()
-    if not tokens:
-        return None
+def _parse_simple(tokens: list[str]) -> int | None:
+    """Parse a plain number phrase ("fifty-nine", "two hundred seventy-eight")."""
     total = 0
     current = 0
     seen = False
@@ -71,9 +62,15 @@ def words_to_number(text: str) -> int | None:
             current += _TENS[token]
             seen = True
         elif token == "hundred":
-            if current == 0:
-                current = 1
-            current *= 100
+            current = (current or 1) * 100
+            total += current
+            current = 0
+            seen = True
+        elif token in ("thousand", "million"):
+            scale = 1_000 if token == "thousand" else 1_000_000
+            current = (current or 1) * scale
+            total += current
+            current = 0
             seen = True
         else:
             return None
@@ -82,23 +79,66 @@ def words_to_number(text: str) -> int | None:
     return total + current
 
 
-def _number_words_in_line(line: str) -> list[int]:
-    """Find number words in a line and return their values.
+def words_to_number(text: str) -> int | None:
+    """Parse a golf-style number phrase to an int.
 
-    Matches runs of number words (with hyphens) — e.g. "one eighty-seven"
-    and "fifty-nine" — and converts each run to a digit.
+    Handles "twelve", "fifty-nine", "two hundred seventy-eight", and
+    the golf convention where a leading ones digit plus a tens word
+    means hundreds: "one eighty-seven" (187), "one sixty-four" (164).
+    Returns None when the phrase is not a number.
     """
-    words = set(_ONES) | set(_TENS) | {"hundred"}
+    text = text.strip().lower().replace("-", " ").replace(",", "")
+    tokens = text.split()
+    if not tokens:
+        return None
+    if (
+        len(tokens) >= 2
+        and tokens[0] in _ONES
+        and tokens[1] in _TENS
+    ):
+        # Golf hundreds: "one eighty-seven" = 1*100 + 87.
+        rest = _parse_simple(tokens[1:])
+        if rest is not None:
+            return _ONES[tokens[0]] * 100 + rest
+    return _parse_simple(tokens)
+
+
+# A number word only counts as a number when it sits in a numeric
+# phrase. The prose word "one" in "the next one" or "one thing" is not
+# a number — treating it as one drops good lines (and, worse, teaches
+# the validator to cry wolf). A run of number words counts when it is
+# a compound ("fifty-nine", "one eighty-seven"), when it follows
+# "through"/"hole"/"putt"/"number", or when a unit follows it
+# ("twelve feet", "one under par").
+_UNITS_AFTER = {
+    "yards", "yard", "feet", "foot", "under", "over", "strokes",
+    "stroke", "putts", "putt", "holes", "hole", "par", "iron", "irons",
+}
+_WORDS_BEFORE = {"through", "hole", "putt", "number", "on"}
+
+
+def _number_words_in_line(line: str) -> list[int]:
+    """Find number words used as numbers in a line, and return values."""
+    words = set(_ONES) | set(_TENS) | {"hundred", "thousand", "million"}
     pattern = re.compile(
         r"\b(?:(?:" + "|".join(sorted(words, key=len, reverse=True)) + r")"
         r"(?:[ -](?:(?:" + "|".join(sorted(words, key=len, reverse=True)) + r")))*)\b",
         re.IGNORECASE,
     )
+    flat = line.lower().replace("-", " ")
+    flat_tokens = flat.split()
     found = []
     for match in pattern.finditer(line):
-        value = words_to_number(match.group(0))
-        if value is not None:
-            found.append(value)
+        phrase = match.group(0)
+        word_count = len(phrase.replace("-", " ").split())
+        start = len(line[: match.start()].replace("-", " ").split())
+        before = flat_tokens[start - 1] if start > 0 else ""
+        end = start + word_count
+        after = flat_tokens[end] if end < len(flat_tokens) else ""
+        if word_count >= 2 or before in _WORDS_BEFORE or after in _UNITS_AFTER:
+            value = words_to_number(phrase)
+            if value is not None:
+                found.append(value)
     return found
 
 

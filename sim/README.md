@@ -77,6 +77,34 @@ Tees (longer, narrower, smaller greens, extra bunkers) and its rating/slope
 come out harder automatically, so difficulty is a variable: the handicap
 differential uses the course being played.
 
+## Flight-model corrections (deviations from the spec, documented)
+
+The spec is the authority, but two of its §2 formulas are internally
+inconsistent with its own §3.1/§3.7 calibration targets, and simulation
+proved it — so they were corrected, with the evidence in the code:
+
+1. **Lift coefficient (§2.3).** The spec's `Cl = spin / 145000` gives
+   Cl = 0.02 at driver spin — about one tenth of the lift a real ball
+   produces. With it, no launch angle can reach the 268-yard driver carry
+   (the ball maxes out at ~228 yd). Replaced with the published
+   spin-ratio model (Smits & Smith): `Cl = -3.25·S² + 1.99·S`, where
+   `S = ωR/|v|` is recomputed every integration step. Drag stays the
+   spec's formula (`Cd = 0.24 + 0.000012·spin`). Result: the gapping
+   table reproduces to ~6% mean error across all 14 clubs.
+2. **Launch angle (§2.2).** The spec's single-factor formula
+   (`loft × 0.72`) launches the driver at 8° (real: ~12°) and the lob
+   wedge at 38° (real: ~31°) — no single factor fits both. Replaced with
+   a per-club calibrated launch table (`LAUNCH_DEG` in `constants.py`),
+   with the drawn angle of attack moving it only by its deviation from
+   the club's typical AoA.
+3. **Wedge club speeds (§3.2).** The spec's wedge speed means (83/81/79
+   mph) made the wedges carry 20–35% long under the calibrated flight
+   model — a full sand/lob wedge is a control swing. Lowered to 78/73/68
+   mph; the gapping table now reproduces.
+
+Everything else follows the spec exactly, and `calibrate.py` re-checks
+the §3.1 targets on every run.
+
 ## Honest performance note
 
 The spec's budgets (< 5 ms per decision, < 50 ms per round) assume a

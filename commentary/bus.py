@@ -48,7 +48,13 @@ def normalize_event(raw: dict) -> dict:
     event = dict(raw)
     if "data" in event and isinstance(event["data"], dict):
         data = event.pop("data")
-        event.update(data)
+        # The envelope's event type wins: a nested data dict may carry
+        # its own "type" (e.g. a milestone's kind, "birdie_streak"),
+        # which must never overwrite the event type itself.
+        envelope_type = event.get("type") or event.get("event")
+        event.update({k: v for k, v in data.items() if k not in ("type", "event")})
+        if envelope_type is not None:
+            event["type"] = envelope_type
     if "event" in event and "type" not in event:
         event["type"] = event.pop("event")
     event.setdefault("seq", 0)

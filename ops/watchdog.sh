@@ -142,7 +142,9 @@ trap 'rmdir "$LOCK_DIR" 2>/dev/null || true' EXIT
 # interval (state files under $STATE_DIR). The watchdog itself runs
 # every 30 s; checks with longer intervals are gated through this.
 due() {
-    local interval="$1" name="$2" stamp_file="$STATE_DIR/last_$name"
+    local interval="$1"
+    local name="$2"
+    local stamp_file="$STATE_DIR/last_$name"
     local now last
     now="$(date +%s)"
     if [ -f "$stamp_file" ]; then
@@ -513,7 +515,8 @@ check_kokoro() {
         "$KOKORO_URL/v1/audio/speech" \
         -H 'Content-Type: application/json' \
         -d '{"model":"kokoro","voice":"am_michael","input":"Watchdog test.","response_format":"mp3"}' \
-        2>/dev/null || echo 000)"
+        2>/dev/null)"
+    code="${code:-000}"
     if [ "$code" = "200" ]; then
         return 0
     fi
@@ -545,8 +548,13 @@ check_gpu_memory() {
         return 0
     fi
     mark_done gpu_memory
-    local browser_rss baseline_file baseline growth_pct
-    browser_rss="$(ps -ax -o rss= -c -p "$(pgrep -x 'Google Chrome' 2>/dev/null | tr '\n' ',' | sed 's/,$//')" 2>/dev/null | awk '{s+=$1} END {print s+0}')"
+    local browser_rss baseline_file baseline growth_pct chrome_pids
+    chrome_pids="$(pgrep -x 'Google Chrome' 2>/dev/null | tr '\n' ',' | sed 's/,$//')"
+    if [ -z "$chrome_pids" ]; then
+        log INFO "check 6: no Chrome process found — skipping GPU-memory proxy"
+        return 0
+    fi
+    browser_rss="$(ps -ax -o rss= -c -p "$chrome_pids" 2>/dev/null | awk '{s+=$1} END {print s+0}')"
     if [ -z "$browser_rss" ] || [ "$browser_rss" = "0" ]; then
         log INFO "check 6: no Chrome process found — skipping GPU-memory proxy"
         return 0
@@ -626,7 +634,8 @@ check_disk() {
     fi
     mark_done disk
     local free_gb
-    free_gb="$(df -g / 2>/dev/null | awk 'NR==2 {print $4}')"
+    # df -k (1K blocks) works on macOS and GNU alike; -g is BSD-only.
+    free_gb="$(df -k / 2>/dev/null | awk 'NR==2 {print int($4 / 1048576)}')"
     if [ -z "$free_gb" ]; then
         return 0
     fi
@@ -638,7 +647,7 @@ check_disk() {
     if [ -x "$OPS_DIR/cleanup.sh" ]; then
         "$OPS_DIR/cleanup.sh" >> "$LOG_FILE" 2>&1 || true
     fi
-    free_gb="$(df -g / 2>/dev/null | awk 'NR==2 {print $4}')"
+    free_gb="$(df -k / 2>/dev/null | awk 'NR==2 {print int($4 / 1048576)}')"
     if [ -n "$free_gb" ] && [ "$free_gb" -ge "$DISK_FREE_MIN_GB" ]; then
         log OK "check 7: disk back above floor after cleanup (${free_gb} GB)"
         ops_log "Disk cleanup recovered space (${free_gb} GB free)"
@@ -665,8 +674,18 @@ check_network() {
             return 1
         fi
     fi
-    if ! curl -fsS -o /dev/null -m 5 -I https://ingest.restream.io >/dev/null 2>&1; then
-        log WARN "check 8: Restream ingest host unreachable"
+    # Any HTTP response (even a 404) proves the network path works; only
+    # a total failure (curl code 000) means unreachable. Restream's
+    # ingest host answers 404 to a bare HEAD — that still counts as up.
+    # A second probe guards against one host being down while the
+    # network itself is fine.
+    local code
+    code="$(curl -s -o /dev/null -w '%{http_code}' -m 5 -I https://ingest.restream.io 2>/dev/null)"
+    if [ -z "$code" ] || [ "$code" = "000" ]; then
+        code="$(curl -s -o /dev/null -w '%{http_code}' -m 5 -I https://www.google.com 2>/dev/null)"
+    fi
+    if [ -z "$code" ] || [ "$code" = "000" ]; then
+        log WARN "check 8: Restream ingest and fallback host both unreachable"
         alert network_down "Network down — Restream ingest unreachable"
         return 1
     fi
