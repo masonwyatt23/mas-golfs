@@ -31,6 +31,8 @@ YouTube golf now out-subscribes the PGA Tour. Creator golf averages 4–5x the v
 - **Web prototype (this repo):** the always-on show. `index.html` is a self-contained build — open it and it plays.
 - **Roadmap:** see [docs/architecture.md](docs/architecture.md) — the Unreal Engine 5.8 path to true 4K broadcast realism (one-hole vertical slice first), the OBS + NodeCG director stack, and the event-driven AI commentary booth.
 - **Livestream & growth plan:** see [docs/livestream-plan.md](docs/livestream-plan.md) — platforms, the technical stack in build order, the clip machine, the coin economy, the Unreal leap, and the 30/60/90-day growth timeline.
+- **Broadcast stack guide:** see [docs/broadcast-stack.md](docs/broadcast-stack.md) — the OBS scene collection, autonomous director state machine, NodeCG graphics, event-driven commentary pipeline, ambient audio, and 24/7 reliability. Free-tier only.
+- **90-day launch playbook:** see [docs/launch-playbook.md](docs/launch-playbook.md) — the auto-clip system, winning clip formats, the Instagram → YouTube → Twitch funnel, and the day-by-day 90-day plan with weekly checklists.
 
 ## Contributing
 
