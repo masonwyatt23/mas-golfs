@@ -285,7 +285,10 @@ class RoundEngine:
         sg_total["total"] = sum(sg_total[k] for k in ("ott", "app", "arg", "putt"))
         back9 = score_so_far - front9
         stats = self._round_stats(hole_results)
-        diff = differential(score_so_far)
+        # Handicap differential uses this course's computed rating/slope,
+        # so harder courses change the number (§7.1).
+        diff = differential(score_so_far, self.course.rating,
+                            self.course.slope)
         self.differentials.append(diff)
         new_index = whs_index(self.differentials)
         handicap_after = handicap_before
@@ -482,6 +485,9 @@ class RoundEngine:
             wind_into = max(0.0, -w_along)
             launch = delivery_to_launch(delivery, chosen.club, quality,
                                         lie, wind_into, rng)
+            # Rain adds a little spin (wet ball, soft turf grab).
+            if cond["sky"] == "light_rain":
+                launch.spin_rpm *= 1.05
             # Wind carry adjustments (§4.3): a full ball into the wind
             # balloons (carry -8%); downwind it runs out (+7%). Applied
             # to ball speed before flight (distance ~ v^2) so the reported
@@ -503,18 +509,16 @@ class RoundEngine:
             by = pos[1] + flight.bounce_x_m[0] * C.M_TO_YARD * math.sin(aim_ang) \
                 + flight.bounce_z_m[0] * C.M_TO_YARD * math.cos(aim_ang)
             lie_b, _, _ = self.course.determine_lie(hole, bx, by)
-            mu = {"green": C.ROLL_MU["green"], "fairway": C.ROLL_MU["fairway"],
-                  "rough_light": C.ROLL_MU["rough"],
-                  "rough_heavy": C.ROLL_MU["rough"],
-                  "bunker_fairway": C.ROLL_MU["sand"],
-                  "bunker_green": C.ROLL_MU["sand"],
-                  "trees": C.ROLL_MU["rough"],
-                  "fringe": C.ROLL_MU["fairway"],
-                  "water": C.ROLL_MU["fairway"],
-                  "ob": C.ROLL_MU["fairway"]}.get(lie_b, C.ROLL_MU["fairway"])
+            # Roll friction follows the live conditions: firm fairways and
+            # fast greens roll further; soft/rainy days stop the ball.
+            surface = {"fringe": "fairway", "water": "fairway",
+                       "ob": "fairway"}.get(lie_b, lie_b)
+            mu = roll_mu(surface, cond["firmness"], cond["green_speed"])
             fx, fz, _ = apply_roll(flight.bounce_x_m, flight.bounce_z_m,
                                    flight.hvel_x_ms, flight.hvel_z_ms, mu,
-                                   launch.spin_rpm, on_green=(lie_b == "green"))
+                                   launch.spin_rpm, on_green=(lie_b == "green"),
+                                   spin_factor=green_spin_factor(
+                                       cond["firmness"]))
             fx_yd = pos[0] + fx[0] * C.M_TO_YARD * math.cos(aim_ang) \
                 - fz[0] * C.M_TO_YARD * math.sin(aim_ang)
             fy_yd = pos[1] + fx[0] * C.M_TO_YARD * math.sin(aim_ang) \

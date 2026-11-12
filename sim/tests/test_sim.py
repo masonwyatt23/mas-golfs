@@ -9,7 +9,10 @@ import unittest
 import numpy as np
 
 from sim import constants as C
-from sim.course import WYATT_NATIONAL, Course
+from sim.conditions import (ConditionsEngine, firmness_label,
+                           green_spin_factor, roll_mu)
+from sim.course import (WYATT_NATIONAL, Course, championship_variant,
+                        compute_rating_slope)
 from sim.decisions import (allowed_shot_types, decide, generate_candidates,
                            risk_threshold, Situation)
 from sim.engine import RoundEngine
@@ -353,6 +356,112 @@ class TestFiftyNineWatch(unittest.TestCase):
         self.assertTrue(c1)
         self.assertTrue(c2)
         self.assertFalse(c3)
+
+
+class TestConditions(unittest.TestCase):
+    def test_opening_draw_in_ranges(self):
+        rng = Rng(9)
+        eng = ConditionsEngine(rng)
+        c = eng.conditions
+        self.assertGreaterEqual(c.wind_mph, 0)
+        self.assertLessEqual(c.wind_mph, 18)
+        self.assertIn(c.sky, ("clear", "partly_cloudy", "overcast", "light_rain"))
+        self.assertGreaterEqual(c.firmness, 0.25)
+        self.assertLessEqual(c.firmness, 0.9)
+        self.assertGreaterEqual(c.green_speed, 9.5)
+        self.assertLessEqual(c.green_speed, 12.5)
+
+    def test_update_deterministic(self):
+        a = ConditionsEngine(Rng(4))
+        b = ConditionsEngine(Rng(4))
+        for hole in range(2, 19):
+            self.assertEqual(a.update(hole, Rng(100 + hole)),
+                             b.update(hole, Rng(100 + hole)))
+            self.assertEqual(a.conditions.to_dict(), b.conditions.to_dict())
+
+    def test_firmness_labels(self):
+        self.assertEqual(firmness_label(0.3), "soft")
+        self.assertEqual(firmness_label(0.6), "normal")
+        self.assertEqual(firmness_label(0.8), "firm")
+
+    def test_roll_mu_ordering(self):
+        # Firm fairways roll further (lower mu); fast greens roll further.
+        self.assertLess(roll_mu("fairway", 0.85, 11.0),
+                        roll_mu("fairway", 0.30, 11.0))
+        self.assertLess(roll_mu("green", 0.6, 12.5),
+                        roll_mu("green", 0.6, 9.5))
+
+    def test_green_spin_factor_ordering(self):
+        self.assertLess(green_spin_factor(0.85), green_spin_factor(0.30))
+
+    def test_conditions_change_events_occur(self):
+        eng = RoundEngine(fast_mode=True)
+        seen = 0
+        for _ in range(5):
+            res = eng.play_round()
+            seen += sum(1 for e in res.events
+                        if e["type"] == "conditions_change")
+        self.assertGreater(seen, 0)
+
+
+class TestRatingSlope(unittest.TestCase):
+    def test_wyatt_rating_slope_match_spec(self):
+        rating, slope, detail = compute_rating_slope(
+            WYATT_NATIONAL.holes, WYATT_NATIONAL.par)
+        self.assertAlmostEqual(rating, 74.6, delta=0.3)
+        self.assertAlmostEqual(slope, 138, delta=3)
+        self.assertEqual(WYATT_NATIONAL.rating, rating)
+        self.assertEqual(WYATT_NATIONAL.slope, slope)
+
+    def test_championship_variant_is_harder(self):
+        black = championship_variant()
+        self.assertEqual(black.par, 72)
+        self.assertGreater(black.yardage, WYATT_NATIONAL.yardage)
+        self.assertGreater(black.rating, WYATT_NATIONAL.rating)
+        self.assertGreater(black.slope, WYATT_NATIONAL.slope)
+
+    def test_differential_uses_course_rating(self):
+        # Same score, harder course -> more negative (better) differential.
+        d_easy = differential(72, WYATT_NATIONAL.rating, WYATT_NATIONAL.slope)
+        black = championship_variant()
+        d_hard = differential(72, black.rating, black.slope)
+        self.assertLess(d_hard, d_easy)
+
+    def test_black_tees_round_plays(self):
+        eng = RoundEngine(course=championship_variant(), fast_mode=True)
+        res = eng.play_round()
+        self.assertEqual(sum(res.hole_scores), res.score)
+        self.assertEqual(res.events[0]["course"]["rating"],
+                         championship_variant().rating)
+
+
+class TestConditionsEffects(unittest.TestCase):
+    def test_fast_greens_harder_from_distance(self):
+        p_slow = make_probability(20, 0.5, 9.5)
+        p_fast = make_probability(20, 0.5, 12.5)
+        self.assertLess(p_fast, p_slow)
+        # No adjustment inside 10 ft.
+        self.assertAlmostEqual(make_probability(5, 0.5, 9.5),
+                               make_probability(5, 0.5, 12.5), delta=0.01)
+
+    def test_firm_fast_day_aims_safer(self):
+        rng = Rng(2)
+        sit_soft = make_situation(wind_lateral_mph=12.0,
+                                  wind_effect="cross_right",
+                                  wind_mph=12.0, firmness=0.3,
+                                  green_speed=10.0)
+        sit_firm = make_situation(wind_lateral_mph=12.0,
+                                  wind_effect="cross_right",
+                                  wind_mph=12.0, firmness=0.85,
+                                  green_speed=12.4)
+        c_soft = generate_candidates(sit_soft, GolferModel())
+        c_firm = generate_candidates(sit_firm, GolferModel())
+        full_soft = [c for c in c_soft if c.shot_type == "full"]
+        full_firm = [c for c in c_firm if c.shot_type == "full"]
+        self.assertTrue(full_soft and full_firm)
+        # The firm/fast aim offset is pulled halfway toward the pin.
+        self.assertLess(abs(full_firm[0].aim_offset_ft),
+                        abs(full_soft[0].aim_offset_ft) + 1e-9)
 
 
 class TestEngine(unittest.TestCase):
