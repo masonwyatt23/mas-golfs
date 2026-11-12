@@ -31,7 +31,7 @@ The web build runs fine on 8GB — OBS + a browser + NodeCG + Kokoro TTS are lig
 
 - **Swap pressure is the failure mode to watch.** On 8GB, the browser and OBS will fight for memory during long runs. A swap-thrashed encoder drops frames first, so the watchdog watches swap, not just RAM (§4.1), and the box runs with the memory discipline in §3.2: nothing else open, browser tab discipline, Kokoro Docker memory-limited, Balanced quality tier as the default.
 - **The first upgrade trigger is sustained swap or dropped frames.** If the 8GB MBP shows sustained swap pressure or drops > 1% of frames for two consecutive weeks, that is the signal to accelerate the Unreal GPU-box plan (§7.1) — there is no bigger Mac to move the broadcast to. Do not wait for a dead stream to make that call.
-- **There is no spare, so recovery is different.** If the 8GB MBP dies, there is no second machine to fail over to. The recovery paths are: repair/restart the box, or fall back to a rented cloud GPU / the web build hosted elsewhere (§8.5). The watchdog, the daily restart, and the auto-recovery exist precisely because this box is the only box.
+- **There is no spare, so recovery is different.** If the 8GB MBP dies, there is no second machine to fail over to. The recovery paths are: repair/restart the box, or fall back to a rented cloud GPU / the web build hosted elsewhere (§8.5). The watchdog and the auto-recovery exist precisely because this box is the only box.
 - **Nothing else changes.** The multistream architecture, the TikTok plan, the Unreal path, and the failure modes are all the same. 8GB is a constraint on the box, not on the show.
 
 **Why not the 128GB MBP:** it is the most powerful machine and therefore the worst choice. It runs Phantom agents, builds, and Mason's actual work. A 24/7 encoder on it means: thermal throttling during builds, fan noise during calls, a stream that dies the day Mason takes the laptop to a meeting, and a stream that competes with the thing that pays for everything. Separation is the whole point.
@@ -198,7 +198,7 @@ Sources: Restream's pricing page and help center, as reported by third-party pri
 - **Branding:** Restream branding appears on streams. Note the important detail: the watermark shows on streams from Restream *Studio* (the browser studio). When streaming from OBS, the logo shows only in the Restream preview, not on the stream viewers see. We stream from OBS, so this is a non-issue in practice.
 - **Recording:** effectively none on Free (a 15-minute recording trial in the first 7 days only). **Do not rely on Restream for recordings.** The replay buffer and OBS's own recording (§3.5) are the recording path.
 - **Quality:** Restream passes through your original resolution and frame rate with no bitrate limits of its own. 1080p60 from OBS arrives as 1080p60.
-- **Stream duration:** Restream does not cap how long a live encoder stream runs, but its help center suggests restarting every 24 hours because its servers can be restarted for maintenance. **We restart daily anyway** (§4.3) — and YouTube's own archive truncates live streams at 12 hours, so the daily restart also gives us clean 12-hour VOD boundaries.
+- **Stream duration:** Restream does not cap how long a live encoder stream runs, but its help center suggests restarting every 24 hours because its servers can be restarted for maintenance. **We deliberately do not restart daily** (§4.4) — a clean, leak-free encoder holds a stream indefinitely. YouTube's own archive truncates live streams at 12 hours, so the archive simply rolls; the show does not restart for it.
 
 **When to pay:** Standard ($19/mo) buys the third channel (TikTok) and removes branding. That is a decision for the day TikTok goes live (§3.4), not before. Until then, Free is the correct plan.
 
@@ -262,7 +262,7 @@ A small shell script + `launchd` agent on the 8GB MBP (free, built into macOS �
 
 ### 4.3 Restart order (the only order that works)
 
-When anything restarts — crash, reboot, power cut, or the daily restart — the order is always:
+When anything restarts — crash, reboot, power cut, or an update — the order is always:
 
 1. **Local web server** (the picture). Wait for `http://localhost:8080` to respond.
 2. **NodeCG** (the graphics). Wait for the graphics URLs to return 200.
@@ -271,21 +271,17 @@ When anything restarts — crash, reboot, power cut, or the daily restart — th
 
 Starting OBS before the web build is up means streaming a black screen or a browser error page to two platforms. The watchdog enforces the order with health checks between steps, not with fixed sleeps.
 
-### 4.4 The daily restart (03:00 local)
+### 4.4 No scheduled restart — the stream just runs
 
-Every day at 03:00, the watchdog performs a clean, ordered restart of the whole stack:
+There is **no daily restart and no scheduled restart of any kind**. The stream runs continuously and restarts only when there is a reason: a software update, a real fault, or watchdog-detected drift (memory climbing, event bus silent, encoder failing). A system that needs a daily restart to stay healthy is a system with a leak that should be fixed, not scheduled around.
 
-- Stop OBS streaming → stop OBS → stop NodeCG → stop Kokoro → stop the web server.
-- Start everything again in the §4.3 order.
-- Verify the stream is live on both YouTube and Twitch before declaring success.
-
-**Why daily:** Restream suggests restarting every 24 hours for maintenance; YouTube's archive truncates at 12 hours, so a daily restart gives clean VOD boundaries; and a daily restart bounds the blast radius of any slow leak or drift to one day. 03:00 is the lowest-viewership hour. The restart takes ~2–3 minutes. Viewers see the **intermission card** in OBS during the gap (an OBS scene, not a dead stream) — see §4.5.
+What this means in practice: the watchdog's job is to *prove* the stack is healthy, not to restart it on a clock. The P0 memory-leak fix (shared asset registry, hole-scene caching, full disposal — see `docs/performance-audit.md`) is what makes continuous running possible; the 3-round soak in the QA plan is the evidence. Restream's 24-hour restart suggestion is noted and deliberately not followed — a clean, leak-free encoder holds a stream indefinitely, and YouTube's 12-hour VOD truncation is handled by letting the archive roll, not by restarting the show. When a restart *is* needed, it follows the §4.3 order and shows the intermission card (§4.5).
 
 ### 4.5 The "pee break" intermission
 
-The stream never just goes dark. Every planned break — the daily restart, a Sunday update, a model swap — cuts to a branded intermission card: Mas taking a quick break, "back in a moment" energy, a tasteful pee-break joke, the scorebug still visible, and a countdown. The round state is persisted before the break, so the stream resumes exactly where it left off — same hole, same score, same 59 Watch state.
+The stream never just goes dark. Every planned break — a Sunday update, a model swap, a fault recovery — cuts to a branded intermission card: Mas taking a quick break, "back in a moment" energy, a tasteful pee-break joke, the scorebug still visible, and a countdown. The round state is persisted before the break, so the stream resumes exactly where it left off — same hole, same score, same 59 Watch state.
 
-Rules: intermissions are planned, never accidental (a crash shows the same card, but the watchdog logs it as an incident, not a break); the card always says when the show returns; the longest planned intermission is the Sunday macOS update at ~30 minutes, announced in advance; the daily restart intermission is ~2–3 minutes. An intermission is a feature of the show — it makes the stream feel like a live broadcast with a host who takes breaks, not a server that went down.
+Rules: intermissions are planned, never accidental (a crash shows the same card, but the watchdog logs it as an incident, not a break); the card always says when the show returns; the longest planned intermission is the Sunday macOS update at ~30 minutes, announced in advance; a fault-recovery intermission is ~2–3 minutes. An intermission is a feature of the show — it makes the stream feel like a live broadcast with a host who takes breaks, not a server that went down.
 
 ---
 
@@ -356,7 +352,7 @@ From `docs/analytics.md` §5:
 `~/mas-golfs/ops/ops-log.md` on the 8GB MBP (and committed to the repo monthly). One line per incident:
 
 ```
-2026-11-14 03:02 — Daily restart took 4 min (Kokoro slow to start). No viewer impact.
+2026-11-14 03:02 — Watchdog restarted Kokoro after drift detected (memory climbing). Intermission 3 min. No viewer impact.
 2026-11-16 14:22 — Stream down 6 min. Cause: Wi-Fi dropout. Fix: moved the 8GB MBP to Ethernet.
 ```
 
@@ -432,7 +428,7 @@ STREAM:   OBS → Restream Free → YouTube Live + Twitch (1080p60, 8,000 Kbps)
 TIKTOK:   Later — 1,000 followers first, then check RTMP access. Windows LIVE
           Studio does not exist on Mac; OBS + RTMP key is the Mac route.
 
-RESTART:  Daily 03:00, ordered: web server → NodeCG → Kokoro → OBS.
+RESTART:  Only on update, fault, or watchdog-detected drift. Ordered: web server → NodeCG → Kokoro → OBS.
 WATCHDOG: launchd keeps processes alive; watchdog.sh checks every 30 s.
 ALERTS:   Only 5 things page Mason (§5.3). Everything else waits for Sunday.
 FAILOVER: No spare. Box dies → repair/restart, or cloud GPU (~30–60 min if
