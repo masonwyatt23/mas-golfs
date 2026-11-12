@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from . import constants as C
+from .conditions import green_spin_factor, roll_mu
 from .course import Course, Hole
 from .physics import (Delivery, Launch, apply_roll, classify_contact,
                       delivery_to_launch, draw_delivery, fly)
@@ -244,6 +245,10 @@ def generate_candidates(sit: Situation, golfer) -> list:
         aim_off = -sit.wind_lateral_mph * sit.distance_yd * 0.011
     # Golfer-model aim bias (§6.4) for the distance bucket.
     aim_off += golfer.aim_bias_for(sit.distance_yd, sit.lie)
+    # Firm/fast days: safer targets — aim at the fat of the green, not the
+    # pin. Firm greens don't hold, fast greens punish the short side.
+    if sit.firmness >= 0.70 or sit.green_speed >= 12.0:
+        aim_off *= 0.5
 
     def add(shot_type, club, carry, shape="straight", traj="normal",
             frac=1.0, power=False, aim=None):
@@ -423,17 +428,12 @@ def evaluate_candidate(course: Course, sit: Situation, cand: Candidate,
     by = sit.ball_y + result.bounce_x_m * C.M_TO_YARD * math.sin(aim_ang) \
         + result.bounce_z_m * C.M_TO_YARD * math.cos(aim_ang)
     lies_b, _, _ = course.determine_lie_batch(sit.hole, bx, by)
-    mu = np.array([{"green": C.ROLL_MU["green"], "fairway": C.ROLL_MU["fairway"],
-                    "rough_light": C.ROLL_MU["rough"], "rough_heavy": C.ROLL_MU["rough"],
-                    "bunker_fairway": C.ROLL_MU["sand"],
-                    "bunker_green": C.ROLL_MU["sand"],
-                    "trees": C.ROLL_MU["rough"], "fringe": C.ROLL_MU["fairway"],
-                    "water": C.ROLL_MU["fairway"], "ob": C.ROLL_MU["fairway"]}
-                   .get(l, C.ROLL_MU["fairway"]) for l in lies_b])
+    mu = np.array([roll_mu(l, sit.firmness, sit.green_speed) for l in lies_b])
     on_green = lies_b == "green"
     fx, fz, _ = apply_roll(result.bounce_x_m, result.bounce_z_m,
                            result.hvel_x_ms, result.hvel_z_ms, mu, spin,
-                           on_green=on_green)
+                           on_green=on_green,
+                           spin_factor=green_spin_factor(sit.firmness))
     fx_yd = sit.ball_x + fx * C.M_TO_YARD * math.cos(aim_ang) \
         - fz * C.M_TO_YARD * math.sin(aim_ang)
     fy_yd = sit.ball_y + fx * C.M_TO_YARD * math.sin(aim_ang) \
@@ -546,6 +546,12 @@ def decide(course: Course, sit: Situation, golfer, rng: Rng,
                 golfer.baseline_adjustments)
     within_record = sit.strokes_vs_59_pace >= -2
     limit = risk_threshold(sit, within_record)
+    # Conditions move the risk dial: firm/fast days play safer, soft/slow
+    # days let him press. (Conditions engine: firm >= 0.70, fast >= 12 ft.)
+    if sit.firmness >= 0.70 or sit.green_speed >= 12.0:
+        limit -= 0.03
+    elif sit.firmness < 0.45 and sit.green_speed < 10.5:
+        limit += 0.02
     limit += golfer.risk_threshold_delta
     chosen, rejected = select_decision(cands, limit)
     # Confidence: high when one option dominates on EV (§1.2).

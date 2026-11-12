@@ -284,18 +284,20 @@ def fly(ball_speed_mph, launch_deg, spin_rpm, spin_axis_deg, start_dir_deg,
 
 
 def apply_roll(bounce_x_m, bounce_z_m, hvel_x_ms, hvel_z_ms, mu,
-               spin_rpm=None, on_green=False):
+               spin_rpm=None, on_green=False, spin_factor=1.0):
     """Analytic roll after the bounce phase (§2.5).
 
     ``mu`` is the roll friction of the surface the ball actually landed on.
     Backspin > 5,000 rpm on a green checks the ball (roll < 3 yd);
-    backspin < 3,000 rpm releases (roll 5-12 yd).
+    backspin < 3,000 rpm releases (roll 5-12 yd). ``spin_factor`` scales
+    the effective spin on the green — firm greens hold less, so the ball
+    releases further (conditions.py).
     Returns (final_x_m, final_z_m, roll_yd) — scalars or arrays.
     """
     vh = np.hypot(hvel_x_ms, hvel_z_ms)
     roll_m = np.where(vh > 0.3, vh ** 2 / (2.0 * C.GRAVITY * mu), 0.0)
     if on_green and spin_rpm is not None:
-        spin = np.asarray(spin_rpm, dtype=float)
+        spin = np.asarray(spin_rpm, dtype=float) * spin_factor
         roll_m = np.where(spin > 5000, np.minimum(roll_m, 3.0 / C.M_TO_YARD), roll_m)
         roll_m = np.where(spin < 3000,
                           np.clip(roll_m, 5.0 / C.M_TO_YARD, 12.0 / C.M_TO_YARD),

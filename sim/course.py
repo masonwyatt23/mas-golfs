@@ -271,11 +271,10 @@ class Course:
         self.holes = holes if holes is not None else build_wyatt_national()
         self.par = sum(h.par for h in self.holes)
         self.yardage = sum(h.yardage for h in self.holes)
-        if rating is None or slope is None:
-            rating, slope, self.rating_detail = compute_rating_slope(
-                self.holes, self.par)
-        self.rating = rating
-        self.slope = slope
+        rating_c, slope_c, self.rating_detail = compute_rating_slope(
+            self.holes, self.par)
+        self.rating = rating if rating is not None else rating_c
+        self.slope = slope if slope is not None else slope_c
 
     def hole(self, n: int) -> Hole:
         return self.holes[n - 1]

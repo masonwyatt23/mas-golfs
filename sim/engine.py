@@ -18,6 +18,7 @@ import time
 from dataclasses import dataclass, field
 
 from . import constants as C
+from .conditions import (ConditionsEngine, green_spin_factor, roll_mu)
 from .course import Course, WYATT_NATIONAL
 from .decisions import (Candidate, Situation, decide, resolve_hole_wind,
                         wind_in_shot_frame)
@@ -45,8 +46,6 @@ PIN_DIFFICULTY = {  # 0-1, combines pin depth, tier, nearby hazards
     "mid_left": 0.50, "mid_center": 0.40, "mid_right": 0.60,
     "back_left": 0.65, "back_center": 0.55, "back_right": 0.71,
 }
-SKY_WEIGHTS = [("clear", 0.40), ("partly_cloudy", 0.35),
-               ("overcast", 0.15), ("light_rain", 0.10)]
 
 def score_name(score: int, par: int) -> str:
     d = score - par
@@ -127,23 +126,6 @@ class RoundEngine:
         self.total_decisions_ms = 0.0
         self.total_decisions = 0
 
-    # ------------------------------------------------------------- conditions --
-    def _draw_conditions(self, rng: Rng) -> dict:
-        wind_mph = rng.triangular(0.0, 18.0, 6.0)
-        if rng.random() < 0.5:
-            wind_dir = rng.uniform(300.0, 330.0)  # prevailing NW (§1.4)
-        else:
-            wind_dir = rng.uniform(0.0, 360.0)
-        temp_f = rng.gauss_clamped(62.0, 10.0, 38.0, 88.0)
-        sky = rng.weighted_choice([s for s, _ in SKY_WEIGHTS],
-                                  [w for _, w in SKY_WEIGHTS])
-        firmness = rng.gauss_clamped(0.6, 0.12, 0.25, 0.9)
-        if sky == "light_rain":
-            firmness = max(0.25, firmness - 0.15)
-        green_speed = rng.gauss_clamped(11.0, 0.6, 9.5, 12.5)
-        return dict(wind_mph=wind_mph, wind_dir_deg=wind_dir, temp_f=temp_f,
-                    sky=sky, firmness=firmness, green_speed=green_speed)
-
     def _draw_pin(self, rng: Rng, prev_zone: str | None):
         zone = rng.choice(PIN_ZONES)
         while zone == prev_zone:
@@ -170,7 +152,10 @@ class RoundEngine:
                          else self.round_no + 1)
         rng = Rng(seed_for_round(self.round_no) + self.seed_offset)
         emitter = EventEmitter(self.round_no)
-        cond = self._draw_conditions(rng)
+        # Dynamic conditions: drawn at round start, then walked hole by
+        # hole (conditions.py). Opening conditions go in round_start.
+        cond_engine = ConditionsEngine(rng)
+        cond = cond_engine.conditions.to_dict()
         form = self.model.form
         pars = [h.par for h in self.course.holes]
         watch = FiftyNineWatch(pars, self.record_book.last10_avg, form)
@@ -203,6 +188,16 @@ class RoundEngine:
         front9 = 0
         for hole_no in range(1, 19):
             hole = self.course.hole(hole_no)
+            # Mid-round conditions shift (from hole 2 on; hole 1 plays in
+            # the opening conditions). Notable changes get an event.
+            if hole_no >= 2:
+                changes = cond_engine.update(hole_no, rng)
+                if changes:
+                    cond = cond_engine.conditions.to_dict()
+                    emitter.emit("conditions_change", hole=hole_no,
+                                 changes={k: v for k, v in changes.items()
+                                          if k != "hole"},
+                                 conditions=dict(cond))
             zone = self._draw_pin(rng, prev_zone)
             prev_zone = zone
             pin_x, pin_y = self._pin_position(hole, zone)
