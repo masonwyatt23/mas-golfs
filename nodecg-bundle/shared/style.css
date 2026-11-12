@@ -1,0 +1,88 @@
+/* Mas Golfs — shared design system for all NodeCG graphics.
+   Brand: docs/brand-identity.md. Flat colors only, no decorative gradients.
+   All graphics are 1920x1080 transparent browser sources. */
+
+:root {
+  --fairway: #0B3D2E;
+  --rough: #062A1F;
+  --gold: #C9A227;
+  --cream: #F5F1E6;
+  --mist: #9DB8A6;
+  --sky: #7FB3D5;
+  --tracer: #FFD34D;
+  --alert: #E4572E;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  background: transparent;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: var(--cream);
+  -webkit-font-smoothing: antialiased;
+}
+
+.display { font-family: 'Archivo', 'Inter', sans-serif; font-weight: 800; text-transform: uppercase; letter-spacing: 0.01em; }
+.mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+.muted { color: var(--mist); }
+.gold-text { color: var(--gold); }
+
+/* Shared panel: Deep Rough at 92% opacity, gold left rule */
+.panel {
+  background: rgba(6, 42, 31, 0.92);
+  border-left: 4px solid var(--gold);
+  border-radius: 0 6px 6px 0;
+  padding: 18px 24px;
+}
+
+.pill {
+  display: inline-block;
+  background: var(--gold);
+  color: var(--rough);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 2px 12px;
+  line-height: 1.4;
+}
+
+.live-dot {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--alert);
+  margin-right: 8px;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-60px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeSwap {
+  0% { opacity: 1; }
+  15% { opacity: 0; }
+  30% { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+.fade-swap { animation: fadeSwap 0.4s ease; }
+
+@keyframes tickerScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}

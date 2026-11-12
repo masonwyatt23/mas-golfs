@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mas Golfs — Player Card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/style.css">
+<style>
+  #playerCard {
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 780px;
+    text-align: center;
+    padding: 40px 48px;
+    animation: fadeIn .4s ease;
+  }
+  .pc-mark { margin-bottom: 14px; }
+  .pc-name { font-size: 44px; color: var(--cream); }
+  .pc-sub { font-size: 19px; color: var(--mist); margin-top: 6px; }
+  .pc-stats {
+    display: flex; justify-content: center; gap: 36px;
+    margin-top: 24px; font-size: 20px;
+  }
+  .pc-stats .stat b { color: var(--gold); font-weight: 700; }
+  .pc-fix {
+    margin-top: 24px; padding-top: 20px;
+    border-top: 1px solid rgba(157, 184, 166, 0.35);
+    font-size: 18px; color: var(--mist);
+  }
+  .pc-fix .label { color: var(--gold); font-weight: 700; margin-right: 8px; }
+</style>
+</head>
+<body>
+  <div id="playerCard" class="panel">
+    <div class="pc-mark" id="mark"></div>
+    <div class="display pc-name">MAS — MASON'S DIGITAL TWIN</div>
+    <div class="pc-sub" id="identity">+3 handicap · Left-handed</div>
+    <div class="pc-stats mono" id="stats"></div>
+    <div class="pc-fix">
+      <span class="label display">ONE FIX</span><span id="fixText"></span>
+    </div>
+  </div>
+
+<script src="../shared/placeholder.js"></script>
+<script src="../shared/mas-golfs.js"></script>
+<script>
+(function () {
+  document.getElementById('mark').innerHTML = MasGolfs.markSVG(56);
+  var roundState = MasGolfs.makeReplicant('roundState', MasGolfs.placeholder.roundState || {});
+  var season = MasGolfs.placeholder.seasonStats || {};
+  var fix = MasGolfs.placeholder.learningFix || {};
+
+  function render(state) {
+    if (!state) return;
+    document.getElementById('identity').textContent =
+      (state.handicap || '+3') + ' handicap · Left-handed';
+    document.getElementById('stats').innerHTML =
+      '<span class="stat">Driving <b>' + season.driving_yds + '</b></span>'
+      + '<span class="stat">Fairways <b>' + season.fairways_pct + '%</b></span>'
+      + '<span class="stat">GIR <b>' + season.gir_pct + '%</b></span>'
+      + '<span class="stat">Last 10: <b>' + (state.last10_avg || '–') + '</b></span>'
+      + '<span class="stat">Best: <b>' + (state.best_round || '–') + '</b></span>';
+    document.getElementById('fixText').textContent = fix.adjustment || '—';
+  }
+
+  roundState.on('change', render);
+  render(roundState.value);
+  MasGolfs.startDemo({ shotData: null, lastShot: null });
+})();
+</script>
+</body>
+</html>

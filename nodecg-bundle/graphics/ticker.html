@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mas Golfs — Ticker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/style.css">
+<style>
+  #ticker {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: rgba(6, 42, 31, 0.94);
+    border-top: 2px solid var(--gold);
+    height: 44px; overflow: hidden;
+    display: flex; align-items: center;
+  }
+  .ticker-track {
+    display: inline-flex; white-space: nowrap;
+    animation: tickerScroll 60s linear infinite;
+    font-size: 17px;
+  }
+  .ticker-track span { padding: 0 28px; color: var(--mist); }
+  .ticker-track b { color: var(--cream); font-weight: 600; }
+  .ticker-track .gold { color: var(--gold); font-weight: 600; }
+</style>
+</head>
+<body>
+  <div id="ticker"><div class="ticker-track" id="track"></div></div>
+
+<script src="../shared/placeholder.js"></script>
+<script src="../shared/mas-golfs.js"></script>
+<script>
+(function () {
+  var roundState = MasGolfs.makeReplicant('roundState', MasGolfs.placeholder.roundState || {});
+  var lastShot = MasGolfs.makeReplicant('lastShot', MasGolfs.placeholder.lastShot || '');
+
+  function buildItems(state, shot) {
+    var items = [];
+    if (state) {
+      items.push('<b>MAS ' + MasGolfs.fmtToPar(state.score_to_par || 0) + ' THRU ' + (state.thru || 0) + '</b>');
+      if (shot) items.push('LAST: ' + shot);
+      var h = state.current_hole || {};
+      items.push('NEXT: Par ' + (h.par || '–') + ', ' + (h.yards || '–') + ' yds');
+      items.push('<span class="gold">ROAD TO 59</span>');
+      items.push('Last 10 avg ' + (state.last10_avg || '–'));
+      if (state.coins && state.coins.prediction_open) {
+        items.push('Coins open: ' + state.coins.question + ' (Yes ' + state.coins.odds.yes + ' / No ' + state.coins.odds.no + ')');
+      }
+    }
+    return items;
+  }
+
+  function render() {
+    var items = buildItems(roundState.value, lastShot.value);
+    var chunk = items.map(function (i) { return '<span>' + i + '</span>'; }).join('<span>·</span>');
+    // Duplicate for a seamless loop.
+    document.getElementById('track').innerHTML = chunk + '<span>·</span>' + chunk + '<span>·</span>';
+  }
+
+  roundState.on('change', render);
+  lastShot.on('change', render);
+  render();
+  MasGolfs.startDemo({ shotData: null, lastShot: lastShot });
+})();
+</script>
+</body>
+</html>

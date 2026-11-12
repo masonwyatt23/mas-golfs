@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mas Golfs — Scorebug</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/style.css">
+<style>
+  #scorebug {
+    position: absolute; top: 24px; left: 24px;
+    display: flex; flex-direction: column; gap: 0;
+    transition: opacity .2s ease;
+  }
+  .bug-main {
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(6, 42, 31, 0.92);
+    border-radius: 6px 6px 0 0;
+    padding: 10px 18px 10px 12px;
+  }
+  .bug-main .mark { flex: 0 0 auto; display: flex; }
+  .bug-line1 { display: flex; align-items: center; gap: 14px; }
+  .bug-name { font-size: 26px; color: var(--cream); }
+  .bug-thru { font-size: 22px; color: var(--mist); }
+  .bug-score { font-size: 30px; font-weight: 700; color: var(--gold); }
+  .bug-hcp { font-size: 18px; }
+  .bug-sub {
+    background: rgba(11, 61, 46, 0.92);
+    border-radius: 0 0 6px 6px;
+    padding: 7px 18px;
+    font-size: 15px; letter-spacing: 0.06em;
+    color: var(--mist);
+    display: flex; gap: 16px; align-items: center;
+  }
+  .bug-sub .season { color: var(--gold); font-weight: 600; }
+</style>
+</head>
+<body>
+  <div id="scorebug">
+    <div class="bug-main">
+      <span class="mark" id="mark"></span>
+      <div class="bug-line1">
+        <span class="display bug-name">MAS</span>
+        <span class="mono bug-thru" id="thru">THRU 11</span>
+        <span class="mono bug-score" id="score">-2</span>
+        <span class="pill bug-hcp" id="hcp">+3.1</span>
+      </div>
+    </div>
+    <div class="bug-sub">
+      <span class="season display">ROAD TO 59</span>
+      <span id="holeLine">H12 · PAR 3 · 164 YDS</span>
+      <span id="bestLine">BEST 63</span>
+    </div>
+  </div>
+
+<script src="../shared/placeholder.js"></script>
+<script src="../shared/mas-golfs.js"></script>
+<script>
+(function () {
+  document.getElementById('mark').innerHTML = MasGolfs.markSVG(40);
+  var roundState = MasGolfs.makeReplicant('roundState', MasGolfs.placeholder.roundState || {});
+  var bug = document.getElementById('scorebug');
+
+  function render(state) {
+    if (!state) return;
+    document.getElementById('thru').textContent = 'THRU ' + (state.thru != null ? state.thru : '–');
+    document.getElementById('score').textContent = MasGolfs.fmtToPar(state.score_to_par || 0);
+    document.getElementById('hcp').textContent = state.handicap || '';
+    var h = state.current_hole || {};
+    document.getElementById('holeLine').textContent =
+      'H' + (state.hole || '–') + ' · PAR ' + (h.par || state.hole_par || '–') + ' · ' + (h.yards || '–') + ' YDS';
+    document.getElementById('bestLine').textContent = 'BEST ' + (state.course_record || state.best_round || '–');
+    bug.classList.remove('fade-swap');
+    void bug.offsetWidth; // restart the fade
+    bug.classList.add('fade-swap');
+  }
+
+  roundState.on('change', render);
+  render(roundState.value);
+  MasGolfs.startDemo({ shotData: null, lastShot: null });
+})();
+</script>
+</body>
+</html>

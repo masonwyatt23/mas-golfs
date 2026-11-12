@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mas Golfs — Leaderboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/style.css">
+<style>
+  #leaderboard {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: rgba(6, 42, 31, 0.96);
+    padding: 60px 120px;
+  }
+  .lb-header { text-align: center; margin-bottom: 28px; }
+  .lb-header .mark { display: inline-block; margin-bottom: 10px; }
+  .lb-title { font-size: 54px; color: var(--cream); }
+  .lb-sub { font-size: 20px; color: var(--mist); margin-top: 8px; }
+  .lb-sub b { color: var(--gold); font-weight: 700; }
+  table { width: 1100px; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; }
+  th {
+    text-align: left; font-size: 16px; color: var(--mist);
+    padding: 10px 16px; border-bottom: 2px solid var(--gold);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  td { font-size: 22px; padding: 9px 16px; border-bottom: 1px solid rgba(157, 184, 166, 0.25); }
+  tr.best td { color: var(--gold); font-weight: 700; }
+  tr.live td { color: var(--cream); background: rgba(201, 162, 39, 0.12); }
+  tr.live td .live-tag {
+    background: var(--alert); color: var(--cream);
+    font-size: 13px; padding: 2px 8px; border-radius: 999px; margin-left: 10px;
+  }
+  .lb-fix {
+    margin-top: 30px; width: 1100px;
+    background: rgba(11, 61, 46, 0.9);
+    border-left: 4px solid var(--gold);
+    padding: 16px 22px; font-size: 20px;
+  }
+  .lb-fix .label { color: var(--gold); font-weight: 700; margin-right: 10px; }
+</style>
+</head>
+<body>
+  <div id="leaderboard">
+    <div class="lb-header">
+      <span class="mark" id="mark"></span>
+      <div class="display lb-title">MAS — THE RECORD BOOK</div>
+      <div class="lb-sub mono" id="summary"></div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Round</th><th>Score</th><th>To par</th><th>Date</th></tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="lb-fix">
+      <span class="label display">ONE FIX</span>
+      <span id="fixText"></span>
+    </div>
+  </div>
+
+<script src="../shared/placeholder.js"></script>
+<script src="../shared/mas-golfs.js"></script>
+<script>
+(function () {
+  document.getElementById('mark').innerHTML = MasGolfs.markSVG(64);
+  var roundState = MasGolfs.makeReplicant('roundState', MasGolfs.placeholder.roundState || {});
+  var rows = MasGolfs.placeholder.leaderboard || [];
+  var fix = MasGolfs.placeholder.learningFix || {};
+
+  function render(state) {
+    if (!state) return;
+    document.getElementById('summary').innerHTML =
+      'All-time: <b>' + MasGolfs.fmtToPar(state.all_time_score || 0) + '</b>'
+      + ' &nbsp;·&nbsp; Last 10 avg: <b>' + (state.last10_avg || '–') + '</b>'
+      + ' &nbsp;·&nbsp; Course record: <b>' + (state.course_record || '–') + '</b>'
+      + ' &nbsp;·&nbsp; Best round: <b>' + (state.best_round || '–') + '</b>';
+
+    var html = rows.map(function (r) {
+      return '<tr class="' + (r.rank === 1 ? 'best' : '') + '">'
+        + '<td>' + r.rank + '</td><td>R' + r.round + '</td><td>' + r.score + '</td>'
+        + '<td>' + MasGolfs.fmtToPar(r.to_par) + '</td><td>' + r.date + '</td></tr>';
+    }).join('');
+    html += '<tr class="live"><td>—</td><td>R' + (state.round || '–') + '</td><td>—</td>'
+      + '<td>' + MasGolfs.fmtToPar(state.score_to_par || 0) + ' thru ' + (state.thru || 0)
+      + '<span class="live-tag">LIVE</span></td><td>Today</td></tr>';
+    document.getElementById('rows').innerHTML = html;
+    document.getElementById('fixText').textContent =
+      fix.adjustment || '—';
+  }
+
+  roundState.on('change', render);
+  render(roundState.value);
+  MasGolfs.startDemo({ shotData: null, lastShot: null });
+})();
+</script>
+</body>
+</html>

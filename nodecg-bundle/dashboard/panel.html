@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mas Golfs — Broadcast Status</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/style.css">
+<style>
+  html, body { width: auto; height: auto; background: #062A1F; }
+  body { padding: 16px; font-size: 14px; }
+  h2 { font-size: 18px; margin-bottom: 12px; }
+  .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .status-cell { background: rgba(11,61,46,.9); border-radius: 6px; padding: 10px 12px; }
+  .status-cell .label { font-size: 11px; letter-spacing: .08em; color: var(--mist); text-transform: uppercase; }
+  .status-cell .value { font-size: 16px; margin-top: 4px; }
+  .ok { color: #7BD88A; }
+  .warn { color: var(--tracer); }
+  .section-title { font-size: 13px; color: var(--gold); text-transform: uppercase; letter-spacing: .08em; margin: 16px 0 8px; }
+  .override-btn {
+    display: block; width: 100%; margin-bottom: 8px;
+    background: var(--fairway); color: var(--cream);
+    border: 1px solid var(--gold); border-radius: 6px;
+    padding: 10px; font-family: 'Inter', sans-serif; font-size: 14px;
+    cursor: pointer; text-align: left;
+  }
+  .override-btn:active { background: var(--gold); color: var(--rough); }
+  .note { font-size: 12px; color: var(--mist); line-height: 1.5; margin-top: 12px; }
+  #log { font-size: 12px; color: var(--mist); margin-top: 8px; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+  <h2 class="display">MAS GOLFS — BROADCAST STATUS</h2>
+
+  <div class="status-grid">
+    <div class="status-cell"><div class="label">Round</div><div class="value mono" id="stRound">—</div></div>
+    <div class="status-cell"><div class="label">Hole / Score</div><div class="value mono" id="stHole">—</div></div>
+    <div class="status-cell"><div class="label">Event bus</div><div class="value" id="stBus"><span class="warn">● Preview</span></div></div>
+    <div class="status-cell"><div class="label">Last event</div><div class="value mono" id="stEvent">—</div></div>
+    <div class="status-cell"><div class="label">Prediction</div><div class="value mono" id="stCoins">—</div></div>
+    <div class="status-cell"><div class="label">Handicap</div><div class="value mono" id="stHcp">—</div></div>
+  </div>
+
+  <div class="section-title display">Emergency override only</div>
+  <button class="override-btn" data-action="forceScene:LEADERBOARD">Force scene — Leaderboard</button>
+  <button class="override-btn" data-action="forceScene:TEE_DTL">Force scene — Tee (down-the-line)</button>
+  <button class="override-btn" data-action="forceReplay">Force replay — last shot</button>
+  <button class="override-btn" data-action="muteCommentary">Mute commentary</button>
+  <div id="log"></div>
+
+  <p class="note">Read-only status + emergency overrides. The dashboard cannot change
+  scores, stats, or outcomes — overrides are logged by the extension and the
+  autonomous systems re-assert state. The system must never <em>need</em> these buttons.</p>
+
+<script src="../shared/placeholder.js"></script>
+<script src="../shared/mas-golfs.js"></script>
+<script>
+(function () {
+  var roundState = MasGolfs.makeReplicant('roundState', MasGolfs.placeholder.roundState || {});
+  var prediction = MasGolfs.makeReplicant('prediction', MasGolfs.placeholder.prediction || {});
+
+  function render(state) {
+    if (!state) return;
+    document.getElementById('stRound').textContent = 'R' + (state.round || '–');
+    document.getElementById('stHole').textContent =
+      'H' + (state.hole || '–') + ' · ' + MasGolfs.fmtToPar(state.score_to_par || 0) + ' thru ' + (state.thru || 0);
+    document.getElementById('stHcp').textContent = state.handicap || '–';
+    document.getElementById('stEvent').textContent = new Date().toLocaleTimeString();
+    if (MasGolfs.isNodeCG) {
+      document.getElementById('stBus').innerHTML = '<span class="ok">● Connected</span>';
+    }
+  }
+
+  function renderCoins(p) {
+    document.getElementById('stCoins').textContent =
+      (p && p.open) ? 'OPEN — ' + (p.question || '') : 'Closed';
+  }
+
+  roundState.on('change', render);
+  prediction.on('change', renderCoins);
+  render(roundState.value);
+  renderCoins(prediction.value);
+
+  document.querySelectorAll('.override-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var action = btn.getAttribute('data-action');
+      MasGolfs.sendMessage('manualOverride', { action: action, at: new Date().toISOString() });
+      document.getElementById('log').textContent =
+        'Override sent (logged by extension): ' + action + ' — ' + new Date().toLocaleTimeString();
+    });
+  });
+})();
+</script>
+</body>
+</html>

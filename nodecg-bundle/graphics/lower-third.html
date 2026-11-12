@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mas Golfs — Lower Third</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/style.css">
+<style>
+  #lowerThird {
+    position: absolute; left: 24px; bottom: 120px;
+    max-width: 1100px;
+    opacity: 0;
+    transform: translateX(-60px);
+    transition: opacity .3s ease, transform .3s ease;
+  }
+  #lowerThird.show { opacity: 1; transform: translateX(0); }
+  #lowerThird .lt-title { font-size: 34px; color: var(--cream); }
+  #lowerThird .lt-body { font-size: 20px; color: var(--mist); margin-top: 6px; }
+  #lowerThird .lt-tag {
+    display: inline-block; font-size: 14px; letter-spacing: 0.12em;
+    color: var(--gold); margin-bottom: 6px; text-transform: uppercase;
+  }
+  #lowerThird.milestone .lt-title { color: var(--gold); }
+</style>
+</head>
+<body>
+  <div id="lowerThird" class="panel">
+    <div class="lt-tag display" id="ltTag">Shot data</div>
+    <div class="display lt-title" id="ltTitle"></div>
+    <div class="mono lt-body" id="ltBody"></div>
+  </div>
+
+<script src="../shared/placeholder.js"></script>
+<script src="../shared/mas-golfs.js"></script>
+<script>
+(function () {
+  var el = document.getElementById('lowerThird');
+  var hideTimer = null;
+  var lowerThird = MasGolfs.makeReplicant('lowerThird', null);
+
+  var TAGS = { shot: 'Shot data', holeResult: 'Hole result', milestone: 'Milestone' };
+
+  function show(payload) {
+    if (!payload) return;
+    document.getElementById('ltTag').textContent = TAGS[payload.variant] || 'Mas Golfs';
+    document.getElementById('ltTitle').textContent = payload.title || '';
+    document.getElementById('ltBody').textContent = payload.body || '';
+    el.className = 'panel show' + (payload.variant === 'milestone' ? ' milestone' : '');
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(function () { el.classList.remove('show'); }, 5000);
+  }
+
+  // NodeCG messages (extension sends 'showLowerThird' on strike / hole_end / milestone).
+  MasGolfs.listenFor('showLowerThird', show);
+  // Replicant fallback — also reacts when the extension writes lowerThird.
+  lowerThird.on('change', show);
+
+  if (!MasGolfs.isNodeCG) {
+    // Standalone preview: cycle the three variants every 8 s.
+    var variants = ['shot', 'holeResult', 'milestone'];
+    var i = 0;
+    show(MasGolfs.placeholder.lowerThirds[variants[0]]);
+    setInterval(function () {
+      i = (i + 1) % variants.length;
+      show(MasGolfs.placeholder.lowerThirds[variants[i]]);
+    }, 8000);
+  }
+})();
+</script>
+</body>
+</html>
