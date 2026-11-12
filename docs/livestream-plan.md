@@ -77,7 +77,18 @@ Unreal vertical slice judged and, if it clears the bar, built out. Sponsorship c
 - Mas's scoring average and handicap trend (the story).
 - Stream uptime — the one metric that must never dip.
 
-## 9. Cost efficiency & speed (a design constraint, not an afterthought)
+## 9. Completely free (a design constraint, not an afterthought)
+
+The whole project runs on free tools and free tiers only — no paid services, no paid APIs, no paid hosting. Greatness without a bill:
+
+- **Engine:** Unreal is free under $1M revenue. Quixel Megascans + Megaplants are free. The web build is a static page — ~$0 to run.
+- **Thinking is local and free.** The decision engine runs on-device — no server, no API calls per shot, no per-decision cost.
+- **Commentary is event-only and free-tier.** Real golf is mostly quiet; commentate on events only, with cached lines, and prefer free/self-hosted voice options (e.g. Kokoro) over paid TTS wherever quality allows.
+- **Streaming is free.** OBS Studio is free. YouTube Live and Twitch are free. Restream's free tier covers 2 channels. Render once, broadcast to everyone.
+- **Assets are free.** USGS LiDAR is public domain. Cesium for Unreal is free. NodeCG, SPX Graphics, and CasparCG are open source.
+- **The only thing money can buy is speed of build** — a cloud GPU (~$250–500/mo) or a ~$2,500 box — and even that is optional: the web build runs the show for $0 while the Unreal build matures.
+
+## 10. Cost efficiency & speed
 
 Everything in this project is built to be cheap and fast, because it runs forever:
 
@@ -88,7 +99,7 @@ Everything in this project is built to be cheap and fast, because it runs foreve
 - **Clips are free.** The replay buffer and auto-clip pipeline turn the stream itself into the content factory — no shoot days, no editing suite, no crew.
 - **Speed is a feature.** The page opens straight into the broadcast with no setup and no clicks. Every system is judged on latency: decisions in milliseconds, camera cuts on events, commentary landing as the ball lands.
 
-## 10. Compliance (from day one)
+## 11. Compliance (from day one)
 
 - YouTube AI-use disclosure set on the stream — realistic AI-generated content must be disclosed; the label doesn't limit audience or earnings.
 - Keep "Mas is Mason's digital twin" visible on screen — originality (a real person's swing model, real decisions, a learning arc) is the defense against the generic-AI-content monetization policy.
