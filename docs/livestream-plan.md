@@ -6,7 +6,7 @@
 
 - **Always on.** The loop is the product. A viewer can arrive at 3am and Mas is mid-round, chasing something. Permanence is the growth engine — every hour live accumulates watch time, subscribers, and search ranking.
 - **A number to chase, always on screen.** Course record, best round, par, last-10 average, live handicap. A golfer just playing golf is ambient; a golfer chasing 65 is a show.
-- **A season, not a stream.** Frame it as "Road to 62" — numbered rounds, a season leaderboard, streaks, slumps, and recoveries. Long arcs bring people back; single shots don't.
+- **A season, not a stream.** Frame it as "Road to 59" — numbered rounds, a season leaderboard, streaks, slumps, and recoveries. Long arcs bring people back; single shots don't.
 - **The golfer is a person.** Mas — Mason's digital twin, a real +3, training to get better. Viewers return for *him*: his form, his decisions, his one-fix-per-round learning arc.
 - **Stakes on every shot.** Clubhouse Coins predictions before nearly every shot (fairway? GIR? birdie or better? up-and-down?) with moving odds. A prediction every shot is a reason to stay for the next 30 seconds, hundreds of times a day.
 
@@ -38,7 +38,7 @@ The stream is the factory; clips are the growth engine. Discovery happens off-pl
 
 - **Daily clip rhythm:** 1–2 vertical clips a day, cut natively for each platform (best shot, worst miss, the knockdown into the wind, the decision that paid off). Commit to 60 days before judging it.
 - **Every round auto-produces 3–5 clips.** Hole-outs, near-misses, recoveries, chunks — the moments, not the routine.
-- **Repeatable daily premises:** "Day 14 of the +3 trying to break the course record," "Can he go 3 rounds without a bogey?" A daily, countable quest viewers can follow and return for.
+- **Repeatable daily premises:** "Day 14 of the +3 trying to break 60 — the Road to 59," "Can he go 3 rounds without a bogey?" A daily, countable quest viewers can follow and return for.
 - **Premiere appointment viewing:** the 24/7 loop runs continuously, but cut "episodes" (a full round, a best-of) premiere on a fixed schedule to create chat moments.
 - **Mason in chat:** a fixed "prime time" moment each evening when Mason himself drops into chat. The creator is the brand.
 
@@ -61,7 +61,7 @@ The web build is the always-on prototype and clip factory — it stays live whil
 Stream goes live on YouTube + Twitch. Daily clips start. Instagram funnel active. Goal: stream stable 24/7, clip rhythm established, first regulars.
 
 **Days 30–60 — Find the format.**
-Review what clips and moments actually perform on a 60-day cycle. Double down on the winning format. First "Road to 62" season arc in full swing. Goal: returning viewers, not peak concurrents — three regulars beat thirty strangers.
+Review what clips and moments actually perform on a 60-day cycle. Double down on the winning format. First "Road to 59" season arc in full swing. Goal: returning viewers, not peak concurrents — three regulars beat thirty strangers.
 
 **Days 60–90 — Community.**
 Weekly leaderboard reset, fixed prime-time chat moment, guest moments (other golfers' swings as guest golfers in the game). First collab outreach. Goal: follows-per-stream rising, a recognizable core community.
@@ -77,7 +77,18 @@ Unreal vertical slice judged and, if it clears the bar, built out. Sponsorship c
 - Mas's scoring average and handicap trend (the story).
 - Stream uptime — the one metric that must never dip.
 
-## 9. Compliance (from day one)
+## 9. Cost efficiency & speed (a design constraint, not an afterthought)
+
+Everything in this project is built to be cheap and fast, because it runs forever:
+
+- **The thinking is local.** The decision engine runs on-device in the page — no server, no API calls per shot, no per-decision cost. It can't go down and it can't get rate-limited.
+- **Commentary is event-only.** Continuous 24/7 TTS would run ~$1,300/month. Commentating only on decisions, results, and milestones — with cached lines for repeated calls — cuts that by roughly an order of magnitude.
+- **Render once, broadcast to everyone.** One GPU renders the show; YouTube and Twitch distribute to unlimited viewers at zero marginal GPU cost. Never pixel-stream per viewer.
+- **The web build costs ~$0 to run.** It is a static page. The Unreal build, when it comes, is ~$250–500/month on a spot GPU, or ~$2,500 one-time for a box that pays for itself in 3–6 months.
+- **Clips are free.** The replay buffer and auto-clip pipeline turn the stream itself into the content factory — no shoot days, no editing suite, no crew.
+- **Speed is a feature.** The page opens straight into the broadcast with no setup and no clicks. Every system is judged on latency: decisions in milliseconds, camera cuts on events, commentary landing as the ball lands.
+
+## 10. Compliance (from day one)
 
 - YouTube AI-use disclosure set on the stream — realistic AI-generated content must be disclosed; the label doesn't limit audience or earnings.
 - Keep "Mas is Mason's digital twin" visible on screen — originality (a real person's swing model, real decisions, a learning arc) is the defense against the generic-AI-content monetization policy.
