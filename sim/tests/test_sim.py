@@ -374,9 +374,9 @@ class TestConditions(unittest.TestCase):
     def test_update_deterministic(self):
         a = ConditionsEngine(Rng(4))
         b = ConditionsEngine(Rng(4))
+        rng_a, rng_b = Rng(99), Rng(99)
         for hole in range(2, 19):
-            self.assertEqual(a.update(hole, Rng(100 + hole)),
-                             b.update(hole, Rng(100 + hole)))
+            self.assertEqual(a.update(hole, rng_a), b.update(hole, rng_b))
             self.assertEqual(a.conditions.to_dict(), b.conditions.to_dict())
 
     def test_firmness_labels(self):

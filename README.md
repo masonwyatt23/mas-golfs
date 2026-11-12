@@ -47,6 +47,7 @@ YouTube golf now out-subscribes the PGA Tour. Creator golf averages 4–5x the v
 - **Self-improvement system:** see [docs/self-improvement.md](docs/self-improvement.md) — how Mas gets better autonomously: the learning architecture, the improvement ladder, slumps, noise vs. weakness, and the safeguards that keep 59 rare.
 - **Analytics & observability:** see [docs/analytics.md](docs/analytics.md) — what to measure on the stream, clips, and sim, the free-tier tooling, the Sunday 30-minute review ritual, and what pages Mason.
 - **Dynamic conditions & course ratings:** see [docs/conditions-system.md](docs/conditions-system.md) — weather, firmness, green speed, the USGA rating/slope derivation, setup tiers, and the conditions calendar.
+- **Second course — Dunmore Links:** see [docs/course-two.md](docs/course-two.md) — Wyatt National's opposite: a seaside links in the Outer Banks, hole-by-hole, with course rotation and the Dunmore–Wyatt Double.
 - **Guest digital twins:** see [docs/guest-twins.md](docs/guest-twins.md) — how a guest's swing becomes a twin that plays Wyatt National against Mas, no travel, no filming day.
 
 ## Contributing

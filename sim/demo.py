@@ -1,12 +1,15 @@
 """Demo: simulate rounds of Mas Golfs and print the scorecard.
 
 Usage:
-    python -m sim.demo [--rounds N] [--seed N] [--mc N] [--fast] [--save PATH]
+    python -m sim.demo [--rounds N] [--seed N] [--mc N] [--fast]
+                       [--course wyatt|black] [--save PATH]
 
 --mc N sets the Monte Carlo size per decision (default 120, spec §5.4).
 --fast uses the rule-based decision path (no Monte Carlo) — much faster,
-used by the calibration harness. --save writes the engine state (golfer
-model, records, handicap history) to a JSON file for the next run.
+used by the calibration harness. --course black plays the championship
+(black tee) variant with its harder computed rating/slope. --save writes
+the engine state (golfer model, records, handicap history) to a JSON file
+for the next run.
 """
 
 from __future__ import annotations
@@ -15,12 +18,15 @@ import argparse
 import json
 import sys
 
+from .course import championship_variant
 from .engine import RoundEngine
 
 
 def print_scorecard(result, engine):
     holes = result.holes
-    print(f"\n=== Mas Golfs — Round {result.round_no} at Wyatt National ===")
+    c = engine.course
+    print(f"\n=== Mas Golfs — Round {result.round_no} at {c.name} "
+          f"(par {c.par}, rating {c.rating}, slope {c.slope}) ===")
     print(f"Score: {result.score} ({result.score_to_par:+d})   "
           f"Handicap: {result.handicap_before} -> {result.handicap_after} "
           f"(diff {result.differential:+.1f})")
@@ -66,17 +72,20 @@ def main(argv=None):
     parser.add_argument("--mc", type=int, default=120)
     parser.add_argument("--fast", action="store_true",
                         help="rule-based decisions, no Monte Carlo")
+    parser.add_argument("--course", choices=["wyatt", "black"],
+                        default="wyatt")
     parser.add_argument("--save", default=None)
     parser.add_argument("--load", default=None)
     args = parser.parse_args(argv)
 
+    course = championship_variant() if args.course == "black" else None
     if args.load:
         engine = RoundEngine.load(args.load, mc_n=args.mc,
                                   fast_mode=args.fast,
-                                  seed_offset=args.seed)
+                                  seed_offset=args.seed, course=course)
     else:
         engine = RoundEngine(mc_n=args.mc, fast_mode=args.fast,
-                             seed_offset=args.seed)
+                             seed_offset=args.seed, course=course)
     for _ in range(args.rounds):
         result = engine.play_round()
         print_scorecard(result, engine)

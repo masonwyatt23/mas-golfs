@@ -24,8 +24,10 @@ from .engine import RoundEngine
 
 
 def run_calibration(rounds: int = 1000, mc_n: int = 120,
-                    fast_mode: bool = True, seed: int = 0) -> dict:
-    engine = RoundEngine(mc_n=mc_n, fast_mode=fast_mode, seed_offset=seed)
+                    fast_mode: bool = True, seed: int = 0,
+                    course=None) -> dict:
+    engine = RoundEngine(mc_n=mc_n, fast_mode=fast_mode, seed_offset=seed,
+                         course=course)
     results = [engine.play_round() for _ in range(rounds)]
     n = len(results)
 
@@ -96,11 +98,16 @@ def main(argv=None):
     parser.add_argument("--fast", action="store_true", default=True)
     parser.add_argument("--no-fast", dest="fast", action="store_false")
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--course", choices=["wyatt", "black"],
+                        default="wyatt")
     args = parser.parse_args(argv)
 
+    from .course import championship_variant
+    course = championship_variant() if args.course == "black" else None
     print(f"Calibrating over {args.rounds} rounds "
-          f"({'fast' if args.fast else f'MC n={args.mc}'}) ...")
-    out = run_calibration(args.rounds, args.mc, args.fast, args.seed)
+          f"({'fast' if args.fast else f'MC n={args.mc}'}) "
+          f"on {course.name if course else 'Wyatt National'} ...")
+    out = run_calibration(args.rounds, args.mc, args.fast, args.seed, course)
     rows = check(out["metrics"])
     print(f"\n{'metric':<26}{'actual':>10}{'target':>10}  pass")
     print("-" * 52)
