@@ -10,8 +10,11 @@ Pace arithmetic (§7.5): 59 on a par-72 course is -13. After ``n`` holes,
 the expected score at pace is ``par_played + (-13) * n / 18``.
 ``strokes_vs_pace`` is the actual score minus that expectation (negative =
 ahead of pace). The operational version the broadcast shows is
-``strokes_remaining = 59 - (score_so_far + par_remaining)`` — the number of
-over-par strokes he can still afford on the remaining holes and shoot 59.
+``strokes_remaining = 59 - (score_so_far + par_remaining)`` — the margin
+if he plays the remaining holes at par. Note it can be negative while 59
+is still very much alive (8-under through 9 needs only 5-under coming
+in); "gone" is decided by whether birdieing every remaining hole can
+still reach 59, not by the par-margin.
 
 Probability model: each remaining hole's score is treated as an independent
 normal with mean ``par + delta`` (delta = his average strokes over par per
@@ -124,14 +127,21 @@ class FiftyNineWatch:
         remaining = TARGET_SCORE - (score_so_far + par_remaining)
         prob = probability_break_60(score_so_far, hole_no, self.pars,
                                     self.last10_avg, self.form)
+        # "Gone" means mathematically gone: even birdieing every remaining
+        # hole cannot reach 59. Being behind the pace line is not gone —
+        # a golfer 8-under through 9 still needs only 5-under on the back
+        # nine. (The spec's §7.5 operational "strokes remaining" is the
+        # margin at par, not the alive/dead test; it is kept as a field.)
+        holes_remaining = 18 - hole_no
+        best_possible = score_so_far + par_remaining - holes_remaining
         if hole_no == 18:
             if score_so_far + self.pars[17] <= TARGET_SCORE:
-                status = STATUS_SECURED
-            elif remaining >= 0:
-                status = STATUS_ON_THE_LINE
+                status = STATUS_SECURED       # par or worse still shoots 59
+            elif score_so_far + self.pars[17] - 2 <= TARGET_SCORE:
+                status = STATUS_ON_THE_LINE   # birdie or eagle does it
             else:
                 status = STATUS_GONE
-        elif remaining < 0:
+        elif best_possible > TARGET_SCORE:
             status = STATUS_GONE
         elif vs_pace <= 0:
             status = STATUS_ON_PACE
@@ -159,10 +169,9 @@ class FiftyNineWatch:
         """Status entering a hole (used for the 18th-tee 'on the line' call)."""
         if hole_no != 18:
             return None
-        remaining = TARGET_SCORE - (score_so_far + self.pars[17])
         if score_so_far + self.pars[17] <= TARGET_SCORE:
             return STATUS_SECURED
-        if remaining >= 0:
+        if score_so_far + self.pars[17] - 2 <= TARGET_SCORE:
             return STATUS_ON_THE_LINE
         return STATUS_GONE
 

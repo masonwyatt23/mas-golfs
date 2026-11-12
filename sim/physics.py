@@ -230,7 +230,8 @@ def fly(ball_speed_mph, launch_deg, spin_rpm, spin_axis_deg, start_dir_deg,
             np.linalg.norm(omega, axis=1, keepdims=True), 1e-9)
         drag = (-0.5 * rho * cd * C.BALL_AREA_M2 * speed_rel * v_rel)
         magnus_dir = np.cross(omega_hat, v_rel_hat)
-        magnus = (0.5 * rho * cl * C.BALL_AREA_M2 * speed_rel ** 2)[:, None] * magnus_dir
+        # speed_rel is already (n, 1); it broadcasts against (n, 3) directly.
+        magnus = (0.5 * rho * cl * C.BALL_AREA_M2 * speed_rel ** 2) * magnus_dir
         a = (drag + magnus) / C.BALL_MASS_KG
         a[:, 1] -= C.GRAVITY
         a[done] = 0.0               # finished balls stay frozen

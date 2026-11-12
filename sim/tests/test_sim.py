@@ -17,8 +17,9 @@ from sim.decisions import (allowed_shot_types, decide, generate_candidates,
                            risk_threshold, Situation)
 from sim.engine import RoundEngine
 from sim.fifty_nine_watch import (FiftyNineWatch, probability_break_60,
-                                  STATUS_GONE, STATUS_ON_PACE,
-                                  STATUS_ON_THE_LINE, STATUS_SECURED)
+                                  STATUS_GONE, STATUS_OFF_PACE,
+                                  STATUS_ON_PACE, STATUS_ON_THE_LINE,
+                                  STATUS_SECURED)
 from sim.handicap import differential, form_from_scores, whs_index
 from sim.learning import GolferModel, LearningLoop, ShotRecord
 from sim.physics import (apply_roll, classify_contact, delivery_to_launch,
@@ -280,8 +281,9 @@ class TestHandicap(unittest.TestCase):
         self.assertGreater(idx, 0)  # better than scratch displays positive
 
     def test_form(self):
-        self.assertEqual(form_from_scores([70, 70, 70] + [73] * 7), "hot")
-        self.assertEqual(form_from_scores([76, 76, 76] + [72] * 7), "cold")
+        # Lists are chronological: the last 3 are the most recent rounds.
+        self.assertEqual(form_from_scores([73] * 7 + [70, 70, 70]), "hot")
+        self.assertEqual(form_from_scores([72] * 7 + [76, 76, 76]), "cold")
         self.assertEqual(form_from_scores([72] * 10), "neutral")
 
 
