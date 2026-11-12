@@ -51,6 +51,7 @@ YouTube golf now out-subscribes the PGA Tour. Creator golf averages 4–5x the v
 - **Deployment runbook:** see [docs/deployment-runbook.md](docs/deployment-runbook.md) — the 8GB MacBook Pro as the broadcast box, multistream to YouTube + Twitch (+ TikTok when eligible), watchdog and auto-recovery, no scheduled restart, and the Unreal upgrade path.
 - **Local models:** see [docs/local-models.md](docs/local-models.md) — the MLX-first local-model architecture for the 8GB box: model picks, memory budgets, self-improvement, and the GPU-box upgrade path. Research behind the picks: [Qwen3 family](docs/research/qwen3-family.md), [small LLMs for broadcast](docs/research/small-llm-broadcast.md), [Qwen 27B fit](docs/research/qwen-27b-fit.md).
 - **Ops automation:** see [ops/README.md](ops/README.md) — the watchdog, launchd agents, and install script for the 8GB broadcast box.
+- **Commentary service:** see [commentary/README.md](commentary/README.md) — the MLX event-driven booth (Nantz-inspired host + Gruden-inspired color) with cached lines and Kokoro voices.
 - **Guest digital twins:** see [docs/guest-twins.md](docs/guest-twins.md) — how a guest's swing becomes a twin that plays Wyatt National against Mas, no travel, no filming day.
 
 ## Contributing
