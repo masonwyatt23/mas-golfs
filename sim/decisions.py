@@ -128,6 +128,30 @@ def resolve_hole_wind(round_wind_mph: float, wind_from_deg: float,
     return along, lateral, wind_effect_string(along, lateral)
 
 
+def wind_in_shot_frame(hole: Hole, ball_x: float, ball_y: float,
+                       aim_ang: float, wind_along_mph: float,
+                       wind_lateral_mph: float):
+    """Rotate hole-frame wind into the shot frame (m/s).
+
+    The wind is stored relative to the hole's centreline direction at the
+    ball; the shot frame is rotated by the angle between centreline and
+    aim line. Returns (wind_along_ms, wind_lateral_ms).
+    """
+    s_ball, _ = hole.project(ball_x, ball_y)
+    pts = hole.centreline_points()
+    seg_ang = math.atan2(pts[1][1] - pts[0][1], pts[1][0] - pts[0][0])
+    if len(pts) > 2:
+        s1 = math.hypot(pts[1][0] - pts[0][0], pts[1][1] - pts[0][1])
+        if s_ball > s1:
+            seg_ang = math.atan2(pts[2][1] - pts[1][1], pts[2][0] - pts[1][0])
+    diff = aim_ang - seg_ang
+    along_ms = wind_along_mph * C.MPH_TO_MS
+    lat_ms = wind_lateral_mph * C.MPH_TO_MS
+    w_along = along_ms * math.cos(diff) + lat_ms * math.sin(diff)
+    w_lat = -along_ms * math.sin(diff) + lat_ms * math.cos(diff)
+    return w_along, w_lat
+
+
 # --------------------------------------------------------- club selection ----
 def effective_distance(sit: Situation) -> float:
     """Distance adjusted for wind, elevation, and lie (§4.3)."""
@@ -386,20 +410,9 @@ def evaluate_candidate(course: Course, sit: Situation, cand: Candidate,
     dx = cand.target_x - sit.ball_x
     dy = cand.target_y - sit.ball_y
     aim_ang = math.atan2(dy, dx)
-    # Wind is stored relative to the hole's centreline direction at the
-    # ball. Rotate it by the angle between centreline and aim line.
-    s_ball, _ = sit.hole.project(sit.ball_x, sit.ball_y)
-    pts = sit.hole.centreline_points()
-    seg_ang = math.atan2(pts[1][1] - pts[0][1], pts[1][0] - pts[0][0])
-    if len(pts) > 2:
-        s1 = math.hypot(pts[1][0] - pts[0][0], pts[1][1] - pts[0][1])
-        if s_ball > s1:
-            seg_ang = math.atan2(pts[2][1] - pts[1][1], pts[2][0] - pts[1][0])
-    diff = aim_ang - seg_ang
-    wind_along_ms = sit.wind_along_mph * C.MPH_TO_MS
-    wind_lat_ms = sit.wind_lateral_mph * C.MPH_TO_MS
-    w_along = wind_along_ms * math.cos(diff) + wind_lat_ms * math.sin(diff)
-    w_lat = -wind_along_ms * math.sin(diff) + wind_lat_ms * math.cos(diff)
+    w_along, w_lat = wind_in_shot_frame(
+        sit.hole, sit.ball_x, sit.ball_y, aim_ang,
+        sit.wind_along_mph, sit.wind_lateral_mph)
     ground_elev_m = sit.elevation_ft * C.FT_TO_M
     result = fly(ball_speed, launch_deg, spin, spin_axis, start_dir,
                  w_along, w_lat, ground_elev_m, sit.temp_f, sit.firmness)

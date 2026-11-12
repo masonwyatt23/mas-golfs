@@ -36,15 +36,20 @@ class Delivery:
 
 def draw_delivery(rng: Rng, club: str, shot_type: str = "full",
                   form_sig_mult: float = 1.0, shape: str = "straight",
-                  power: bool = False, lie: str = "fairway") -> Delivery:
-    """Draw club delivery from the per-club normal distributions (§3.2)."""
+                  power: bool = False, lie: str = "fairway",
+                  speed_fraction: float = 1.0) -> Delivery:
+    """Draw club delivery from the per-club normal distributions (§3.2).
+
+    ``speed_fraction`` scales the swing for partial shots (chip/pitch/
+    knockdown/punch) — the club speed mean is multiplied by it.
+    """
     spec = C.CLUBS[club]
     mod = C.SHOT_TYPE_MODIFIERS[shot_type]
     lie_sig = C.LIE_EFFECTS[lie]["sig"]
     sig_mult = mod["sig"] * form_sig_mult * lie_sig
     if power:
         sig_mult *= 1.25
-    speed_mean = spec["speed_mean"] * (1.04 if power else 1.0)
+    speed_mean = spec["speed_mean"] * speed_fraction * (1.04 if power else 1.0)
     speed = rng.gauss_clamped(speed_mean, spec["sig_speed"], 60.0, 135.0)
     face = C.SHAPE_FACE_BIAS[shape] + rng.gauss(0.0, spec["sig_face"] * sig_mult)
     path = rng.gauss(0.0, spec["sig_path"] * sig_mult)

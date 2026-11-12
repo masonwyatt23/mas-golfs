@@ -42,6 +42,8 @@ YouTube golf now out-subscribes the PGA Tour. Creator golf averages 4–5x the v
 - **Voice options:** see [docs/voice-options.md](docs/voice-options.md) — free TTS engines compared for the two-voice commentary pipeline, with Kokoro-82M as the recommended default and setup steps.
 - **60-day content calendar:** see [docs/content-calendar-60-day.md](docs/content-calendar-60-day.md) — a specific title, hook, and format for every day, with weekly themes and milestone days.
 - **QA plan:** see [docs/qa-plan.md](docs/qa-plan.md) — the calibration harness, 24/7 soak test, web build checklist, graphics/commentary checks, coins economy tests, and the go-live checklist.
+- **Commentary prompts:** see [docs/commentary-prompts.md](docs/commentary-prompts.md) — paste-ready prompt templates for both broadcast voices, per event type, with the hard rules and line-caching strategy.
+- **Mobile experience:** see [docs/mobile-experience.md](docs/mobile-experience.md) — the PWA spec: five tabs, 59 Watch push alerts, one-thumb predictions, catch-up, and mobile performance budgets.
 
 ## Contributing
 
