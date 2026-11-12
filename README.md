@@ -48,7 +48,8 @@ YouTube golf now out-subscribes the PGA Tour. Creator golf averages 4–5x the v
 - **Analytics & observability:** see [docs/analytics.md](docs/analytics.md) — what to measure on the stream, clips, and sim, the free-tier tooling, the Sunday 30-minute review ritual, and what pages Mason.
 - **Dynamic conditions & course ratings:** see [docs/conditions-system.md](docs/conditions-system.md) — weather, firmness, green speed, the USGA rating/slope derivation, setup tiers, and the conditions calendar.
 - **Second course — Dunmore Links:** see [docs/course-two.md](docs/course-two.md) — Wyatt National's opposite: a seaside links in the Outer Banks, hole-by-hole, with course rotation and the Dunmore–Wyatt Double.
-- **Deployment runbook:** see [docs/deployment-runbook.md](docs/deployment-runbook.md) — the 16GB MacBook Air as the broadcast box, multistream to YouTube + Twitch (+ TikTok when eligible), watchdog and auto-recovery, and the Unreal upgrade path.
+- **Deployment runbook:** see [docs/deployment-runbook.md](docs/deployment-runbook.md) — the 8GB MacBook Pro as the broadcast box, multistream to YouTube + Twitch (+ TikTok when eligible), watchdog and auto-recovery, no scheduled restart, and the Unreal upgrade path.
+- **Local models:** see [docs/local-models.md](docs/local-models.md) — the MLX-first local-model architecture for the 8GB box: model picks, memory budgets, self-improvement, and the GPU-box upgrade path.
 - **Guest digital twins:** see [docs/guest-twins.md](docs/guest-twins.md) — how a guest's swing becomes a twin that plays Wyatt National against Mas, no travel, no filming day.
 
 ## Contributing
