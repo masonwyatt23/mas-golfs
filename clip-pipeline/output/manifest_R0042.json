@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "generator": "mas-golfs clip-pipeline 0.1.0",
-  "generated_at": "2026-11-12T06:23:36.942814+00:00",
+  "generated_at": "2026-11-12T06:24:35.141006+00:00",
   "round": {
     "round_no": 42,
     "round_id": "R0042",
@@ -36,8 +36,8 @@
     }
   },
   "summary": {
-    "moments_detected": 15,
-    "clips_saved": 15,
+    "moments_detected": 13,
+    "clips_saved": 13,
     "queue_size": 2,
     "top_drama": 100,
     "moments_below_threshold": 0
@@ -104,12 +104,12 @@
           "source_start_s": 57,
           "source_end_s": 60,
           "speed": 1.0,
-          "on_screen_text": "Result card: 8 under par through 12 \u00b7 Road to 59 \u00b7 Mas Golfs \u2014 live now, 24/7"
+          "on_screen_text": "Result card: 10 under par through 12 \u00b7 Road to 59 \u00b7 Mas Golfs \u2014 live now, 24/7"
         }
       ],
       "hook_line": "HOLE IN ONE.",
       "title": "Ace at The Picture \u2014 8-iron from 164 yards.",
-      "caption": "It's in! Hole-in-one at The Picture! Mas is 8 under par through 12 at Wyatt National. Mas Golfs \u2014 live now, 24/7. Road to 59.",
+      "caption": "It's in! Hole-in-one at The Picture! Mas is 10 under par through 12 at Wyatt National. Mas Golfs \u2014 live now, 24/7. Road to 59.",
       "first_comment": "It's in! Hole-in-one at The Picture! Full round live now \u2014 link in bio.",
       "platforms": {
         "shorts": {
@@ -352,12 +352,12 @@
           "source_start_s": 57,
           "source_end_s": 60,
           "speed": 1.0,
-          "on_screen_text": "Result card: 8 under par through 12 \u00b7 Road to 59 \u00b7 Mas Golfs \u2014 live now, 24/7"
+          "on_screen_text": "Result card: 10 under par through 12 \u00b7 Road to 59 \u00b7 Mas Golfs \u2014 live now, 24/7"
         }
       ],
       "hook_line": "HOLE IN ONE.",
       "title": "Ace at The Picture \u2014 8-iron from 164 yards.",
-      "caption": "It's in! Hole-in-one at The Picture! Mas is 8 under par through 12 at Wyatt National. Mas Golfs \u2014 live now, 24/7. Road to 59.",
+      "caption": "It's in! Hole-in-one at The Picture! Mas is 10 under par through 12 at Wyatt National. Mas Golfs \u2014 live now, 24/7. Road to 59.",
       "first_comment": "It's in! Hole-in-one at The Picture! Full round live now \u2014 link in bio.",
       "platforms": {
         "shorts": {
@@ -661,129 +661,6 @@
       }
     },
     {
-      "clip_id": "R0042-H14-recovery",
-      "moment_id": "R0042-H14-recovery-0103",
-      "moment_type": "recovery",
-      "format": "Best shot",
-      "drama": 90,
-      "round_no": 42,
-      "hole": 14,
-      "hole_name": "The Gambler",
-      "duration_s": 35,
-      "source": {
-        "replay_file": "round0042-hole14-recovery-0103.mp4",
-        "in_s": 25.0,
-        "out_s": 60.0,
-        "replay_buffer_s": 60
-      },
-      "slow_motion": true,
-      "segments": [
-        {
-          "name": "hook",
-          "start_s": 0,
-          "end_s": 2,
-          "source_start_s": 58,
-          "source_end_s": 60,
-          "speed": 1.0,
-          "on_screen_text": "From trouble. Saved."
-        },
-        {
-          "name": "context",
-          "start_s": 2,
-          "end_s": 6,
-          "source_start_s": 25,
-          "source_end_s": 29,
-          "speed": 1.0,
-          "on_screen_text": "Splashed it out to eighteen feet."
-        },
-        {
-          "name": "shot",
-          "start_s": 6,
-          "end_s": 32,
-          "source_start_s": 29,
-          "source_end_s": 57,
-          "speed": 1.0,
-          "on_screen_text": "Shot data strip: club, distance, ball speed, carry"
-        },
-        {
-          "name": "shot_slow_motion",
-          "start_s": 29,
-          "end_s": 32,
-          "source_start_s": 54,
-          "source_end_s": 57,
-          "speed": 0.5,
-          "on_screen_text": "REPLAY"
-        },
-        {
-          "name": "payoff",
-          "start_s": 32,
-          "end_s": 35,
-          "source_start_s": 57,
-          "source_end_s": 60,
-          "speed": 1.0,
-          "on_screen_text": "Result card: 10 under par through 14 \u00b7 Road to 59 \u00b7 Mas Golfs \u2014 live now, 24/7"
-        }
-      ],
-      "hook_line": "From trouble. Saved.",
-      "title": "The recovery that saved Hole 14 \u2014 The Gambler.",
-      "caption": "Splashed it out to eighteen feet. Mas is 10 under par through 14 at Wyatt National. Mas Golfs \u2014 live now, 24/7. Road to 59.",
-      "first_comment": "Splashed it out to eighteen feet. Full round live now \u2014 link in bio.",
-      "platforms": {
-        "shorts": {
-          "platform": "YouTube Shorts",
-          "aspect": "9:16",
-          "resolution": "1080x1920",
-          "target_length": "20-45 s (sweet spot ~30 s)",
-          "captions": "Burned in, large, top-third safe",
-          "on_screen_text": "Shot data strip + decision line",
-          "sound": "Ambient bed + impact sound; trending audio only if it fits",
-          "cta": "Full round live now \u2014 link in bio",
-          "hashtags": [
-            "#golf",
-            "#golftok",
-            "#masgolfs",
-            "#roadto59",
-            "#shottracer"
-          ],
-          "posting_window": "12:00-2:00pm ET and 7:00-9:00pm ET"
-        },
-        "reels": {
-          "platform": "Instagram Reels",
-          "aspect": "9:16",
-          "resolution": "1080x1920",
-          "target_length": "20-40 s",
-          "captions": "Burned in, large, avoid bottom 25% (UI)",
-          "on_screen_text": "Same, plus 'Mason W Golf' handle watermark",
-          "sound": "Ambient bed + impact sound",
-          "cta": "Live 24/7 \u2014 link in bio",
-          "hashtags": [
-            "#golf",
-            "#golfreels",
-            "#masgolfs",
-            "#roadto59"
-          ],
-          "posting_window": "11:00am-1:00pm ET and 7:00-9:00pm ET"
-        },
-        "tiktok": {
-          "platform": "TikTok",
-          "aspect": "9:16",
-          "resolution": "1080x1920",
-          "target_length": "20-35 s",
-          "captions": "Burned in, large, avoid right edge (UI)",
-          "on_screen_text": "Same, minimal \u2014 TikTok punishes text-heavy frames",
-          "sound": "Ambient bed + impact sound; native sounds sparingly",
-          "cta": "Live now \u2014 link in bio",
-          "hashtags": [
-            "#golf",
-            "#golftok",
-            "#masgolfs",
-            "#roadto59"
-          ],
-          "posting_window": "12:00-3:00pm ET and 7:00-10:00pm ET"
-        }
-      }
-    },
-    {
       "clip_id": "R0042-H03-near_miss",
       "moment_id": "R0042-H03-near_miss-0019",
       "moment_type": "near_miss",
@@ -974,129 +851,6 @@
       "title": "The recovery that saved Hole 5 \u2014 The Temptation.",
       "caption": "Par at The Temptation. Mas is 3 under par through 5 at Wyatt National. Mas Golfs \u2014 live now, 24/7. Road to 59.",
       "first_comment": "Par at The Temptation. Full round live now \u2014 link in bio.",
-      "platforms": {
-        "shorts": {
-          "platform": "YouTube Shorts",
-          "aspect": "9:16",
-          "resolution": "1080x1920",
-          "target_length": "20-45 s (sweet spot ~30 s)",
-          "captions": "Burned in, large, top-third safe",
-          "on_screen_text": "Shot data strip + decision line",
-          "sound": "Ambient bed + impact sound; trending audio only if it fits",
-          "cta": "Full round live now \u2014 link in bio",
-          "hashtags": [
-            "#golf",
-            "#golftok",
-            "#masgolfs",
-            "#roadto59",
-            "#shottracer"
-          ],
-          "posting_window": "12:00-2:00pm ET and 7:00-9:00pm ET"
-        },
-        "reels": {
-          "platform": "Instagram Reels",
-          "aspect": "9:16",
-          "resolution": "1080x1920",
-          "target_length": "20-40 s",
-          "captions": "Burned in, large, avoid bottom 25% (UI)",
-          "on_screen_text": "Same, plus 'Mason W Golf' handle watermark",
-          "sound": "Ambient bed + impact sound",
-          "cta": "Live 24/7 \u2014 link in bio",
-          "hashtags": [
-            "#golf",
-            "#golfreels",
-            "#masgolfs",
-            "#roadto59"
-          ],
-          "posting_window": "11:00am-1:00pm ET and 7:00-9:00pm ET"
-        },
-        "tiktok": {
-          "platform": "TikTok",
-          "aspect": "9:16",
-          "resolution": "1080x1920",
-          "target_length": "20-35 s",
-          "captions": "Burned in, large, avoid right edge (UI)",
-          "on_screen_text": "Same, minimal \u2014 TikTok punishes text-heavy frames",
-          "sound": "Ambient bed + impact sound; native sounds sparingly",
-          "cta": "Live now \u2014 link in bio",
-          "hashtags": [
-            "#golf",
-            "#golftok",
-            "#masgolfs",
-            "#roadto59"
-          ],
-          "posting_window": "12:00-3:00pm ET and 7:00-10:00pm ET"
-        }
-      }
-    },
-    {
-      "clip_id": "R0042-H11-recovery",
-      "moment_id": "R0042-H11-recovery-0082",
-      "moment_type": "recovery",
-      "format": "Best shot",
-      "drama": 80,
-      "round_no": 42,
-      "hole": 11,
-      "hole_name": "The Monster",
-      "duration_s": 30,
-      "source": {
-        "replay_file": "round0042-hole11-recovery-0082.mp4",
-        "in_s": 30.0,
-        "out_s": 60.0,
-        "replay_buffer_s": 60
-      },
-      "slow_motion": true,
-      "segments": [
-        {
-          "name": "hook",
-          "start_s": 0,
-          "end_s": 2,
-          "source_start_s": 58,
-          "source_end_s": 60,
-          "speed": 1.0,
-          "on_screen_text": "From trouble. Saved."
-        },
-        {
-          "name": "context",
-          "start_s": 2,
-          "end_s": 6,
-          "source_start_s": 30,
-          "source_end_s": 34,
-          "speed": 1.0,
-          "on_screen_text": "Birdie at The Monster."
-        },
-        {
-          "name": "shot",
-          "start_s": 6,
-          "end_s": 27,
-          "source_start_s": 34,
-          "source_end_s": 57,
-          "speed": 1.0,
-          "on_screen_text": "Shot data strip: club, distance, ball speed, carry"
-        },
-        {
-          "name": "shot_slow_motion",
-          "start_s": 24,
-          "end_s": 27,
-          "source_start_s": 54,
-          "source_end_s": 57,
-          "speed": 0.5,
-          "on_screen_text": "REPLAY"
-        },
-        {
-          "name": "payoff",
-          "start_s": 27,
-          "end_s": 30,
-          "source_start_s": 57,
-          "source_end_s": 60,
-          "speed": 1.0,
-          "on_screen_text": "Result card: 8 under par through 11 \u00b7 Road to 59 \u00b7 Mas Golfs \u2014 live now, 24/7"
-        }
-      ],
-      "hook_line": "From trouble. Saved.",
-      "title": "The recovery that saved Hole 11 \u2014 The Monster.",
-      "caption": "Birdie at The Monster. Mas is 8 under par through 11 at Wyatt National. Mas Golfs \u2014 live now, 24/7. Road to 59.",
-      "first_comment": "Birdie at The Monster. Full round live now \u2014 link in bio.",
       "platforms": {
         "shorts": {
           "platform": "YouTube Shorts",
@@ -1709,7 +1463,7 @@
         }
       ],
       "hook_line": "That's golf.",
-      "title": "Thinned it. The miss is the story \u2014 Hole 5 \u2014 The Temptation.",
+      "title": "Chunked it. The miss is the story \u2014 Hole 5 \u2014 The Temptation.",
       "caption": "Driver at the green \u2014 the Temptation. Chunked it. Heavy lie, 186 to go. Mas is 3 under par through 5 at Wyatt National. Mas Golfs \u2014 live now, 24/7. Road to 59.",
       "first_comment": "Driver at the green \u2014 the Temptation. Full round live now \u2014 link in bio.",
       "platforms": {
@@ -1828,12 +1582,12 @@
           "source_start_s": 57,
           "source_end_s": 60,
           "speed": 1.0,
-          "on_screen_text": "Result card: 4 under par through 7 \u00b7 Road to 59 \u00b7 Mas Golfs \u2014 live now, 24/7"
+          "on_screen_text": "Result card: 5 under par through 7 \u00b7 Road to 59 \u00b7 Mas Golfs \u2014 live now, 24/7"
         }
       ],
       "hook_line": "Uphill into the wind \u2014 club up one, knock it down, aim right edge and let the wind bring it back.",
       "title": "5-iron. Uphill into the wind \u2014 club up one, knock it down, aim right edge and let the wind bring it back. \u2014 Hole 7 \u2014 The Valley.",
-      "caption": "Uphill into the wind \u2014 club up one, knock it down, aim right edge and let the wind bring it back. Knocked down beautifully \u2014 rode the wind back to 14 feet. Mas is 4 under par through 7 at Wyatt National. Mas Golfs \u2014 live now, 24/7. Road to 59.",
+      "caption": "Uphill into the wind \u2014 club up one, knock it down, aim right edge and let the wind bring it back. Knocked down beautifully \u2014 rode the wind back to 14 feet. Mas is 5 under par through 7 at Wyatt National. Mas Golfs \u2014 live now, 24/7. Road to 59.",
       "first_comment": "Uphill into the wind \u2014 club up one, knock it down, aim right edge and let the wind bring it back. Full round live now \u2014 link in bio.",
       "platforms": {
         "shorts": {

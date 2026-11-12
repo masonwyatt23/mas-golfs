@@ -1,0 +1,2 @@
+# Mas Golfs clip pipeline — no third-party dependencies.
+# Standard library only (Python 3.10+). Nothing to install.

@@ -99,6 +99,26 @@ class ScoringTests(unittest.TestCase):
         # H17 record-chase is on pace and deep: 70 + 10 boost = 80.
         self.assertEqual(self.by_hole_type[(17, "record_chase")].drama, 80)
 
+    def test_bogey_hole_scores_nothing(self):
+        # H14 ends in bogey: the bunker splash is not a recovery.
+        self.assertFalse(any(m.hole == 14 for m in self.moments))
+
+    def test_h11_pitch_is_gir_not_a_recovery(self):
+        # The H11 pitch reaches the green in regulation on the par 5,
+        # so there is no up-and-down recovery moment — only the streak.
+        self.assertNotIn((11, "recovery"), self.by_hole_type)
+        self.assertIn((11, "streak"), self.by_hole_type)
+
+    def test_worst_miss_hook_names_the_mishit(self):
+        _, clips, _, _ = run_pipeline(build_round())
+        miss = next(c for c in clips if c.moment_type == "worst_miss")
+        self.assertIn("Chunked", miss.title)
+
+    def test_shot_moment_caption_uses_score_after_the_hole(self):
+        _, clips, _, _ = run_pipeline(build_round())
+        ace = next(c for c in clips if c.moment_type == "hole_out")
+        self.assertIn("10 under par through 12", ace.caption)
+
     def test_all_moments_meet_replay_threshold(self):
         self.assertTrue(all(m.save_replay for m in self.moments))
 

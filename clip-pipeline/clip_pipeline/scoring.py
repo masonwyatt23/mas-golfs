@@ -130,6 +130,7 @@ def _shot_context(ev: dict, state: _RoundState) -> dict:
         "club": ev.get("club") or decision.get("club"),
         "shot_type": ev.get("shot_type") or decision.get("shot_type"),
         "lie": situation.get("lie"),
+        "contact_quality": (ev.get("contact") or {}).get("quality"),
         "distance_yd": situation.get("distance_yd"),
         "decision_reasoning": decision.get("reasoning"),
         "intended_carry_yd": (decision.get("target") or {}).get("intended_carry_yd"),
@@ -192,10 +193,13 @@ def _score_shot(ev: dict, state: _RoundState, moments: list[Moment]) -> None:
     ):
         candidates.append((75, "best_decision", [f"{ev.get('shot_type')} executed to the green"]))
 
-    # Great recovery: a trouble lie turned into a green hit.
+    # Great recovery: a trouble lie turned into a green in regulation.
+    # (On-green-but-not-GIR recoveries are scored at hole level, via
+    # up-and-down / sand-save, and only when the hole is par or better —
+    # a bunker splash that still ends in bogey is not a recovery.)
     lie = ((state.last_decision or {}).get("situation") or {}).get("lie")
-    if lie in TROUBLE_LIES and (outcome.get("gir") or outcome.get("on_green")):
-        candidates.append((80, "recovery", [f"recovered from {lie} to the green"]))
+    if lie in TROUBLE_LIES and outcome.get("gir"):
+        candidates.append((80, "recovery", [f"recovered from {lie} to the green in regulation"]))
 
     if not candidates:
         return
@@ -261,6 +265,12 @@ def _score_hole(ev: dict, state: _RoundState, moments: list[Moment]) -> None:
     hole_stats = ev.get("hole_stats", {})
     new_score = ev.get("score_to_par", state.score_to_par)
     under_par = score_name in {"eagle", "birdie", "hole_in_one", "albatross"}
+
+    # Shot-anchored moments on this hole were scored with the score
+    # entering the hole; the clip copy needs the score after the hole.
+    for m in moments:
+        if m.hole == state.hole and m.shot_no > 0:
+            m.score_to_par = new_score
 
     # Road to 59: the round that ends at 59 (or better).
     if state.hole == 18 and new_score <= PACE_TO_PAR:

@@ -377,11 +377,11 @@ HOLE_SCRIPTS = [
                 "spin": 3200, "apex": 78, "commentary": "Forty yards short — pitch left."}),
       ("shot", {"club": "LW", "shot_type": "pitch", "lie": "fairway", "dist": 40,
                 "carry": 39, "total": 40, "dist_pin": 9, "lie_out": "green",
-                "on_green": True, "gir": False, "quality": 0.88, "club_speed": 62,
+                "on_green": True, "gir": True, "quality": 0.88, "club_speed": 62,
                 "ball_speed": 72, "launch_deg": 32.0, "spin": 9500, "apex": 35,
                 "commentary": "Nine feet for the third straight birdie."}),
       ("putt", 9, True, 0, "Three in a row!")],
-     {"fairway_hit": True, "gir": False, "putts": 1, "up_and_down": True,
+     {"fairway_hit": True, "gir": True, "putts": 1,
       "driving_yd": 292, "approach_ft": 9},
      [("streak_birdie_3", "Three consecutive birdies — Mas is on fire.", None, None)]),
     # H12 — hole-in-one at The Picture.

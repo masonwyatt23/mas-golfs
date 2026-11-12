@@ -287,4 +287,105 @@ class Course:
         return "rough_heavy", False, False
 
 
+    def determine_lie_batch(self, hole: Hole, xs, ys):
+        """Vectorized ``determine_lie`` for Monte Carlo arrays (§5.4).
+
+        Returns (lies, in_water, ob) as numpy arrays. Same test order as
+        the scalar version: OB -> water -> green -> bunkers -> trees ->
+        fairway -> rough.
+        """
+        import numpy as np
+
+        xs = np.asarray(xs, dtype=float)
+        ys = np.asarray(ys, dtype=float)
+        n = xs.size
+        lies = np.full(n, "rough_heavy", dtype=object)
+        in_water = np.zeros(n, dtype=bool)
+        ob = np.zeros(n, dtype=bool)
+
+        # Project onto the centreline (vectorized, per segment).
+        pts = hole.centreline_points()
+        best_s = np.zeros(n)
+        best_lat = np.zeros(n)
+        best_d = np.full(n, np.inf)
+        s_acc = 0.0
+        for i in range(len(pts) - 1):
+            ax, ay = pts[i]
+            bx, by = pts[i + 1]
+            dx, dy = bx - ax, by - ay
+            seg_len = math.hypot(dx, dy)
+            t = ((xs - ax) * dx + (ys - ay) * dy) / (seg_len * seg_len)
+            t = np.clip(t, 0.0, 1.0)
+            px, py = ax + t * dx, ay + t * dy
+            dist = np.hypot(xs - px, ys - py)
+            cross = (xs - px) * dy - (ys - py) * dx
+            lateral = np.where(cross <= 0, dist, -dist)
+            s_here = s_acc + t * seg_len
+            take = dist < best_d
+            best_d = np.where(take, dist, best_d)
+            best_s = np.where(take, s_here, best_s)
+            best_lat = np.where(take, lateral, best_lat)
+            s_acc += seg_len
+        s, lateral = best_s, best_lat
+
+        gx, gy = hole.green_centre()
+        dist_green = np.hypot(xs - gx, ys - gy)
+        green_r = hole.green_radius_ft / 3.0
+
+        ob_mask = (lateral > hole.ob_right_yd) | (lateral < -90) | \
+                  (s < -15) | (s > hole.yardage + 80)
+        ob |= ob_mask
+
+        water_mask = np.zeros(n, dtype=bool)
+        for w in hole.water:
+            water_mask |= ((s - w.s_yd) / (w.rx_ft / 3.0)) ** 2 + \
+                          ((lateral - w.lateral_yd) / (w.ry_ft / 3.0)) ** 2 <= 1.0
+        in_water |= water_mask & ~ob_mask
+
+        green_mask = (dist_green <= green_r) & ~ob_mask & ~water_mask
+        bunker_mask = np.zeros(n, dtype=bool)
+        bunker_green_mask = np.zeros(n, dtype=bool)
+        for b in hole.bunkers:
+            rx = (b.rx_ft + 2.0) / 3.0
+            ry = (b.ry_ft + 2.0) / 3.0
+            hit = ((s - b.s_yd) / rx) ** 2 + ((lateral - b.lateral_yd) / ry) ** 2 <= 1.0
+            bunker_mask |= hit
+            if b.is_greenside:
+                bunker_green_mask |= hit
+        tree_mask = np.zeros(n, dtype=bool)
+        for t in hole.trees:
+            tree_mask |= np.hypot(s - t.s_yd, lateral - t.lateral_yd) <= t.r_ft / 3.0
+        fairway_mask = (np.abs(lateral) <= hole.fairway_width_yd / 2.0) & \
+                       (s <= hole.yardage + 10)
+        light_mask = np.abs(lateral) <= hole.fairway_width_yd / 2.0 + 8
+
+        lies = np.where(ob_mask, "ob", lies)
+        lies = np.where(water_mask & ~ob_mask, "water", lies)
+        lies = np.where(green_mask, "green", lies)
+        lies = np.where(bunker_mask & ~green_mask & ~water_mask & ~ob_mask,
+                        np.where(bunker_green_mask, "bunker_green",
+                                 "bunker_fairway"), lies)
+        lies = np.where(tree_mask & ~bunker_mask & ~green_mask & ~water_mask
+                        & ~ob_mask, "trees", lies)
+        lies = np.where(fairway_mask & ~tree_mask & ~bunker_mask & ~green_mask
+                        & ~water_mask & ~ob_mask, "fairway", lies)
+        lies = np.where((lies == "rough_heavy") & light_mask & ~tree_mask
+                        & ~bunker_mask & ~green_mask & ~water_mask & ~ob_mask,
+                        "rough_light", lies)
+        return lies, in_water, ob
+
+    def distance_to_pin(self, hole: Hole, x: float, y: float):
+        """(along_yd, straight_yd) from a position to the green centre.
+
+        ``along`` is the centreline arc remaining plus a lateral penalty —
+        the distance the decision engine clubs for. ``straight`` is the
+        laser distance, used for events and stats.
+        """
+        s, lateral = hole.project(x, y)
+        gx, gy = hole.green_centre()
+        straight = math.hypot(gx - x, gy - y)
+        along = max(0.0, hole.yardage - s) + abs(lateral) * 0.3
+        return along, straight
+
+
 WYATT_NATIONAL = Course()

@@ -116,7 +116,10 @@ def _hook_and_title(m: Moment) -> tuple[str, str]:
         reasoning = ctx.get("decision_reasoning") or "The right call."
         return (reasoning, f"{club}. {reasoning} — {hole}.")
     if m.moment_type == "worst_miss":
-        return ("That's golf.", f"Thinned it. The miss is the story — {hole}.")
+        verb = {"thin": "Thinned", "chunk": "Chunked", "toe": "Toed",
+                "heel": "Heeled", "shank": "Shanked"}.get(
+            ctx.get("contact_quality"), "Missed")
+        return ("That's golf.", f"{verb} it. The miss is the story — {hole}.")
     if m.moment_type == "streak":
         return ("Three in a row.", f"Three straight birdies. { _fmt_score(m.score_to_par) } through {m.hole}.")
     if m.moment_type == "record_chase":
