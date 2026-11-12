@@ -37,7 +37,7 @@ this code.
 
 ```bash
 # 1. The model servers it talks to (separate processes, on the box):
-python -m mlx_lm.server --model mlx-community/Qwen3-1.7B-4bit \
+python -m mlx_lm.server --model mlx-community/Qwen3.5-4B-4bit \
   --port 8080 --max-kv-size 2048          # MLX LLM (docs/local-models.md §3.2)
 ollama pull qwen3:1.7b                    # fallback LLM (docs/local-models.md §3.3)
 docker run -d -p 8880:8880 ghcr.io/remsky/kokoro-fastapi-cpu:latest  # TTS
@@ -46,7 +46,7 @@ docker run -d -p 8880:8880 ghcr.io/remsky/kokoro-fastapi-cpu:latest  # TTS
 #    (docs/broadcast-stack.md §1).
 
 # 3. Run the service (from the repo root):
-python3 -m commentary.service
+python3 -m commentary
 
 # Dry run (no LLM/TTS calls — cached lines only, everything logged):
 #   set dry_run: true in commentary/config.yaml
@@ -67,7 +67,7 @@ The service writes three things:
 
 ```bash
 # Demo: scripted fake event stream, stub LLM + stub TTS, offline.
-python3 -m commentary.service --demo
+python3 -m commentary --demo
 
 # Full test suite (30 tests, all offline):
 python3 -m unittest discover -s commentary/tests -v

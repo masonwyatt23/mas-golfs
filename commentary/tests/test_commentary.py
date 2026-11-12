@@ -36,7 +36,7 @@ def make_service(**overrides):
         "bus": {"url": "ws://localhost:4456"},
         "llm": {
             "backend": "mlx",
-            "mlx": {"model": "mlx-community/Qwen3-1.7B-4bit",
+            "mlx": {"model": "mlx-community/Qwen3.5-4B-4bit",
                     "base_url": "http://localhost:8080/v1"},
             "ollama": {"model": "qwen3:1.7b",
                        "base_url": "http://localhost:11434/v1"},
