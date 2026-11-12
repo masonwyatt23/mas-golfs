@@ -279,7 +279,13 @@ Every day at 03:00, the watchdog performs a clean, ordered restart of the whole 
 - Start everything again in the §4.3 order.
 - Verify the stream is live on both YouTube and Twitch before declaring success.
 
-**Why daily:** Restream suggests restarting every 24 hours for maintenance; YouTube's archive truncates at 12 hours, so a daily restart gives clean VOD boundaries; and a daily restart bounds the blast radius of any slow leak or drift to one day. 03:00 is the lowest-viewership hour. The restart takes ~2–3 minutes. Viewers see a brief "be right back" slate in OBS during the gap (an OBS scene, not a dead stream).
+**Why daily:** Restream suggests restarting every 24 hours for maintenance; YouTube's archive truncates at 12 hours, so a daily restart gives clean VOD boundaries; and a daily restart bounds the blast radius of any slow leak or drift to one day. 03:00 is the lowest-viewership hour. The restart takes ~2–3 minutes. Viewers see the **intermission card** in OBS during the gap (an OBS scene, not a dead stream) — see §4.5.
+
+### 4.5 The "pee break" intermission
+
+The stream never just goes dark. Every planned break — the daily restart, a Sunday update, a model swap — cuts to a branded intermission card: Mas taking a quick break, "back in a moment" energy, a tasteful pee-break joke, the scorebug still visible, and a countdown. The round state is persisted before the break, so the stream resumes exactly where it left off — same hole, same score, same 59 Watch state.
+
+Rules: intermissions are planned, never accidental (a crash shows the same card, but the watchdog logs it as an incident, not a break); the card always says when the show returns; the longest planned intermission is the Sunday macOS update at ~30 minutes, announced in advance; the daily restart intermission is ~2–3 minutes. An intermission is a feature of the show — it makes the stream feel like a live broadcast with a host who takes breaks, not a server that went down.
 
 ---
 
