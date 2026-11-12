@@ -2,13 +2,14 @@
 
 **What this is:** the complete guide to running the 24/7 autonomous Mas Golfs broadcast on real hardware, for real, forever. Read it end to end once, then use the checklists in §6 as the daily routine.
 
-**The machine plan in one line:** the **16GB MacBook Air is the dedicated broadcast box** for the web build. The **8GB MacBook Pro is the warm spare**. The **128GB MacBook Pro stays untouched** — it is Mason's workhorse for Phantom and everything else, and the stream must never compete with it for CPU, RAM, or attention.
+**The machine plan in one line:** the **8GB MacBook Pro is the dedicated broadcast box** for the web build, and there is **no warm spare**. The **128GB MacBook Pro stays untouched** — it is Mason's workhorse for Phantom and everything else, and the stream must never compete with it for CPU, RAM, or attention. The **16GB MacBook Air is off-limits entirely** — it was Mason's grandpa's computer and holds all of his poems and writing; his grandma wants to publish that material. It is never touched, repurposed, or used for the stream in any way.
 
 **The stack in one line:** web build (static page, ~$0) → OBS Studio → Restream Free (YouTube Live + Twitch) → later, TikTok Live when eligible. Everything free-tier. The Unreal build, when it comes, needs a GPU box or cloud GPU — it does not run on any of these Macs (§7).
 
 **Principles:**
 - The stream must survive a power cut, a crash, a reboot, and a macOS update without a human.
 - The 128GB MBP is never the stream box. No exceptions, no "just for tonight."
+- The 16GB MacBook Air is never touched for this project. It is grandpa's writing archive, not a spare. No exceptions, no "just for a failover test."
 - One alert per incident. If Mason is paged twice for the same cause, that is a bug, not an incident.
 - If it isn't written down, it didn't happen. Every failure gets a line in the ops log (§6.4).
 
@@ -19,10 +20,19 @@
 | Machine | Role | Why |
 |---|---|---|
 | **MacBook Pro, 128GB RAM** | **Mason's workhorse — NOT the stream box** | Runs Phantom coding agents and all of Mason's work. The stream never runs here. It is only ever a *viewer* and a *monitor* of the stream, never a producer. |
-| **MacBook Air, 16GB RAM** | **Primary broadcast box** | Dedicated, always-on. OBS + a browser + NodeCG + Kokoro TTS are light — this machine is more than enough for the web build. Plugged in, lid open or in clamshell, never sleeps. |
-| **MacBook Pro, 8GB RAM** | **Warm spare** | Same software installed, same config, kept in sync. If the Air dies, the spare takes over in under 15 minutes (§8.5). |
+| **MacBook Pro, 8GB RAM** | **Primary broadcast box** | Dedicated, always-on. OBS + a browser + NodeCG + Kokoro TTS are light enough for 8GB — with the memory discipline in §3.2. It has a fan, which matters for a 24/7 encoder. Plugged in, lid open or in clamshell, never sleeps. |
+| **MacBook Air, 16GB RAM** | **OFF-LIMITS — never used** | This was Mason's grandpa's computer. It holds all of his poems and writing, and his grandma wants to publish that material. It is a writing archive, not a spare. It is never touched, repurposed, powered on for this project, or used for the stream in any way — not even as a failover. |
 
-**Why the Air and not the 8GB MBP:** 16GB of unified memory gives OBS + Chrome + NodeCG + Kokoro headroom without swap pressure, and the Air runs cooler and quieter on a desk 24/7. The 8GB MBP works — it is a fine spare — but on 8GB the browser and OBS will fight for memory during long runs, and a swap-thrashed encoder drops frames first.
+**Why the 8GB MBP:** it is the machine Mason chose to dedicate, and it is a good choice for a 24/7 encoder: it has a fan (the Air does not), so sustained encoding loads are handled by active cooling instead of thermal throttling. There is no spare machine — that is the honest consequence of the Air being off-limits, and the failover plan in §8.5 is built around that fact instead of pretending otherwise.
+
+### What 8GB changes (read this first)
+
+The web build runs fine on 8GB — OBS + a browser + NodeCG + Kokoro TTS are light — but headroom is thin, and that changes how the box is run:
+
+- **Swap pressure is the failure mode to watch.** On 8GB, the browser and OBS will fight for memory during long runs. A swap-thrashed encoder drops frames first, so the watchdog watches swap, not just RAM (§4.1), and the box runs with the memory discipline in §3.2: nothing else open, browser tab discipline, Kokoro Docker memory-limited, Balanced quality tier as the default.
+- **The first upgrade trigger is sustained swap or dropped frames.** If the 8GB MBP shows sustained swap pressure or drops > 1% of frames for two consecutive weeks, that is the signal to accelerate the Unreal GPU-box plan (§7.1) — there is no bigger Mac to move the broadcast to. Do not wait for a dead stream to make that call.
+- **There is no spare, so recovery is different.** If the 8GB MBP dies, there is no second machine to fail over to. The recovery paths are: repair/restart the box, or fall back to a rented cloud GPU / the web build hosted elsewhere (§8.5). The watchdog, the daily restart, and the auto-recovery exist precisely because this box is the only box.
+- **Nothing else changes.** The multistream architecture, the TikTok plan, the Unreal path, and the failure modes are all the same. 8GB is a constraint on the box, not on the show.
 
 **Why not the 128GB MBP:** it is the most powerful machine and therefore the worst choice. It runs Phantom agents, builds, and Mason's actual work. A 24/7 encoder on it means: thermal throttling during builds, fan noise during calls, a stream that dies the day Mason takes the laptop to a meeting, and a stream that competes with the thing that pays for everything. Separation is the whole point.
 
@@ -30,7 +40,7 @@
 
 ## 1. Machine setup (per machine)
 
-Do this on the Air first, then repeat verbatim on the 8GB MBP spare. The two machines must be configured identically so a failover is a swap, not a setup.
+Do this on the 8GB MacBook Pro. There is no second machine to repeat it on — the Air is off-limits and the 128GB MBP is Mason's workhorse — so this one box has to be configured right the first time.
 
 ### 1.1 macOS power settings (the reliable route: `pmset`)
 
@@ -58,17 +68,17 @@ Then in **System Settings → General → Software Update**: turn **off** "Insta
 
 A MacBook with the lid closed sleeps — unless it is in **clamshell mode**: lid closed, connected to power, connected to an external display, and with an external keyboard/mouse (Bluetooth counts). Two acceptable setups:
 
-- **Lid open (recommended for the Air).** Simplest and most reliable. The Air sits on a desk or a small stand, lid open, display brightness at minimum (or display off via `pmset displaysleep`), plugged in. No clamshell edge cases, no wake failures, and you can see at a glance that it is alive.
+- **Lid open (recommended for the 8GB MBP).** Simplest and most reliable. The MBP sits on a desk or a small stand, lid open, display brightness at minimum (or display off via `pmset displaysleep`), plugged in. No clamshell edge cases, no wake failures, and you can see at a glance that it is alive. Lid open also keeps the fan vents and exhaust unobstructed.
 - **Lid closed in clamshell.** Only if the desk demands it. Requires a real external display attached and powered, plus an external keyboard or mouse. Test it: close the lid, confirm the stream keeps running for 10 minutes, then open the lid and confirm nothing glitched. If it ever fails the test, go back to lid open.
 
 **Never** run the broadcast box with the lid closed and no external display. That is just a sleeping laptop.
 
 ### 1.3 Thermal and ventilation
 
-- The Air has no fan. Keep it on a hard surface or a laptop stand with airflow underneath — never on fabric, never in a closed drawer or cabinet.
-- Keep the room under ~26°C / 79°F. The Air will thermal-throttle before it shuts down; throttling shows up first as dropped encoder frames, which is exactly the failure you are trying to avoid.
-- Check once a month: Activity Monitor → CPU, and OBS's dropped-frames counter (§5). Dust the vents (compressed air, machine off).
-- The 8GB MBP spare has a fan — keep its vents clear too, and do not stack anything on it.
+- The 8GB MBP has a fan — one reason it is the primary. Keep it on a hard surface or a laptop stand with airflow underneath, vents and exhaust unobstructed — never on fabric, never in a closed drawer or cabinet, never with anything stacked on it.
+- Keep the room under ~26°C / 79°F. The MBP will thermal-throttle before it shuts down; throttling shows up first as dropped encoder frames, which is exactly the failure you are trying to avoid.
+- Check once a month: Activity Monitor → CPU and Memory (watch swap, not just RAM — §4.1), and OBS's dropped-frames counter (§5). Dust the vents (compressed air, machine off).
+- (The Air is not a spare and is never used — see §0. There is nothing else to keep ready.)
 
 ### 1.4 Auto-login and auto-start
 
@@ -76,11 +86,11 @@ The broadcast box must come back up unattended after any reboot:
 
 1. **Auto-login:** System Settings → General → Login Items → enable automatic login for the dedicated `masgolfs` user account (see §1.5). No FileVault unlock prompt can be answered by a watchdog, so if FileVault is on, the box cannot self-recover after a power cut — **turn FileVault off on the broadcast box** (it holds no personal data).
 2. **Login Items:** add OBS Studio, the NodeCG start script, and the Kokoro TTS service to Login Items (or, better, launch them from a single `launchd` agent — see §4.2).
-3. **Test it:** reboot the Air, walk away, come back in 5 minutes. OBS should be open, the stream should be live, NodeCG should be serving graphics. If any step needs a click, fix the automation, not the checklist.
+3. **Test it:** reboot the 8GB MBP, walk away, come back in 5 minutes. OBS should be open, the stream should be live, NodeCG should be serving graphics. If any step needs a click, fix the automation, not the checklist.
 
 ### 1.5 Accounts and hygiene
 
-- Create a dedicated macOS user account **`masgolfs`** on both broadcast machines. The stream runs as this user, not as Mason's account. No personal email, no iCloud, no personal files on the broadcast box.
+- Create a dedicated macOS user account **`masgolfs`** on the 8GB MBP. The stream runs as this user, not as Mason's account. No personal email, no iCloud, no personal files on the broadcast box.
 - The broadcast box holds exactly: OBS, NodeCG, the web build, Kokoro, Restream credentials (in the macOS Keychain), and the ops log. Nothing else. No browser with Mason's sessions, no Slack, no code editor.
 - **Disk:** keep at least 20GB free at all times. OBS replay-buffer clips and NodeCG logs are the only things that grow; a weekly cleanup job (§4.2) deletes clips older than 7 days and rotates logs.
 
@@ -88,7 +98,7 @@ The broadcast box must come back up unattended after any reboot:
 
 ## 2. Software stack — install order
 
-Install in this order on the Air, then repeat on the spare. Do not skip ahead: each layer is tested before the next is added.
+Install in this order on the 8GB MacBook Pro. There is no second machine to repeat it on. Do not skip ahead: each layer is tested before the next is added.
 
 ### Step 1 — The web build (the show itself)
 
@@ -120,8 +130,8 @@ Install in this order on the Air, then repeat on the spare. Do not skip ahead: e
 ### Step 4 — Kokoro TTS (free, self-hosted)
 
 1. Per `docs/voice-options.md` §2/§8: run Kokoro-82M via Kokoro-FastAPI in Docker.
-2. Install Docker Desktop for Mac (free for personal use) on the Air.
-3. Pull and run the Kokoro-FastAPI image with the two voices configured: host `am_michael`, color `af_sky`.
+2. Install Docker Desktop for Mac (free for personal use) on the 8GB MBP.
+3. Pull and run the Kokoro-FastAPI image with the two voices configured: host `am_michael`, color `af_sky`. **Memory-limit the container** (`--memory 2g`) — on an 8GB box, an unbounded Docker allocation is a swap-pressure incident waiting to happen (see §3.2).
 4. Test: generate one decision line and one result line, confirm the audio plays through OBS, and confirm the ambient bed ducks under it (see `docs/broadcast-stack.md` §5–§6).
 
 ### Step 5 — Restream (free tier)
@@ -146,7 +156,7 @@ Web build (localhost:8080) ─┐
 NodeCG graphics ────────────┤
 Kokoro TTS + ambient bed ───┤
                             ▼
-                    OBS Studio (Air)
+                    OBS Studio (8GB MBP)
                             │  one RTMP push, 1080p60
                             ▼
                     Restream (free)
@@ -164,12 +174,20 @@ One GPU renders once. One encoder encodes once. Restream distributes to everyone
 |---|---|---|
 | Resolution | 1920×1080 | The web build renders at 1080p; do not upscale a 720p canvas |
 | Frame rate | 60 fps | Golf needs 60 — the swing and the tracer smear at 30 |
-| Encoder | Apple VideoToolbox H.264 (hardware) | Hardware encoding keeps CPU free for the browser and NodeCG; x264 software encoding on the Air would fight the 3D render |
+| Encoder | Apple VideoToolbox H.264 (hardware) | Hardware encoding keeps CPU free for the browser and NodeCG; x264 software encoding on the 8GB MBP would fight the 3D render |
 | Bitrate | 8,000 Kbps CBR | Restream passes it through; YouTube and Twitch both accept it |
 | Keyframe interval | 2 s | Standard for live; required by most platforms |
 | Audio | AAC, 160 Kbps, 48 kHz | Commentary + bed |
 
-**Upload bandwidth needed:** ~10 Mbps sustained upload minimum (8 Mbps video + audio + overhead + headroom). Test with a speed test from the Air's actual network connection, at the time of day the stream runs. If the Air is on Wi-Fi, move it to Ethernet (USB-C adapter) — Wi-Fi jitter is the single most common cause of dropped frames on an otherwise healthy box.
+**Upload bandwidth needed:** ~10 Mbps sustained upload minimum (8 Mbps video + audio + overhead + headroom). Test with a speed test from the 8GB MBP's actual network connection, at the time of day the stream runs. If the MBP is on Wi-Fi, move it to Ethernet (USB-C adapter) — Wi-Fi jitter is the single most common cause of dropped frames on an otherwise healthy box.
+
+**8GB memory discipline (the box only works if this is enforced):**
+
+- **Nothing else runs on the broadcast box.** No Slack, no code editor, no extra browser windows. OBS + one Chrome window (the web build tab + the NodeCG graphics tabs) + NodeCG + Kokoro. That is the whole machine.
+- **Browser tab discipline:** the web build tab stays open and nothing else does. Every extra tab is memory the encoder does not have.
+- **Balanced quality tier is the default on 8GB.** The web build's capability tiers (High / Balanced / Lite, see `docs/performance-audit.md`) default to Balanced on this box — High is not for 8GB. If frames drop, the quality controller steps down; do not force High by hand.
+- **Kokoro Docker is memory-limited to 2 GB** (§2, Step 4). Docker Desktop itself gets a 3 GB allocation cap in its settings.
+- **Watch swap, not RAM.** Activity Monitor → Memory → Swap Used is the number that matters. Sustained swap growth over a round is the early warning (§4.1, check 6); the first upgrade trigger is sustained swap or dropped frames (§0, "What 8GB changes").
 
 ### 3.3 Restream Free — verified facts (November 2026)
 
@@ -202,16 +220,16 @@ Verified facts (TikTok's own help pages, as of November 2026):
 2. **Phase 2 (at 1,000 TikTok followers): check RTMP access.** Open the LIVE Center producer page. If a stream key appears, TikTok is reachable from OBS. If no key appears, the account has LIVE access but not RTMP access — keep posting clips and re-check monthly; do not buy anything or use a sketchy third-party relay to force it.
 3. **Phase 3 (RTMP confirmed): add the third channel.** Two options, in order:
    - **Restream Standard ($19/mo)** — adds the third channel, removes branding, and keeps one OBS push. Simplest, and the only option that keeps the "one encoder" architecture.
-   - **OBS Multi-RTMP plugin (free)** — a second RTMP push directly from OBS to TikTok's ingest, bypassing Restream. Free, but it doubles the Air's upload bandwidth and encoder load, and the TikTok push is a separate thing to monitor and restart. Only if Standard is refused for some reason.
+   - **OBS Multi-RTMP plugin (free)** — a second RTMP push directly from OBS to TikTok's ingest, bypassing Restream. Free, but it doubles the 8GB MBP's upload bandwidth and encoder load, and the TikTok push is a separate thing to monitor and restart. Only if Standard is refused for some reason.
 4. **The vertical problem:** TikTok Live is a vertical surface. The broadcast is 16:9 horizontal. Sending the horizontal feed to TikTok is acceptable for a golf stream (viewers watch landscape video on TikTok all the time), but the real answer is Restream Professional's dual-format streaming (horizontal to YouTube, vertical to TikTok in the same broadcast) — which is $49/mo and a decision for much later, after TikTok proves it brings viewers. Do not build a vertical layout before the audience exists.
 
 ### 3.5 Recording and the clip pipeline
 
-Restream Free does not record. The recording path is local, on the Air:
+Restream Free does not record. The recording path is local, on the 8GB MBP:
 
 - **OBS Replay Buffer:** always on, 60-second buffer. Drama-scored moments save automatically (see `docs/broadcast-stack.md` §3.5 and `docs/launch-playbook.md` §1).
-- **OBS recording:** the full stream is recorded locally to disk in parallel (same 1080p60 settings). This is the archive and the clip source. Disk math: ~4 GB/hour at 8,000 Kbps, ~96 GB/day. **That will fill the Air's disk in days.** The weekly cleanup job (§4.2) deletes recordings older than 7 days, and the clip pipeline extracts the keepers daily. If disk pressure becomes a problem, record at 6,000 Kbps or attach an external SSD for recordings only — never let the boot disk fill.
-- **The clip pipeline** (`clip-pipeline/`) reads the event log and the replay saves and produces the daily clip manifest. It runs on the Air, on a schedule, unattended.
+- **OBS recording:** the full stream is recorded locally to disk in parallel (same 1080p60 settings). This is the archive and the clip source. Disk math: ~4 GB/hour at 8,000 Kbps, ~96 GB/day. **That will fill the MBP's disk in days.** The weekly cleanup job (§4.2) deletes recordings older than 7 days, and the clip pipeline extracts the keepers daily. If disk pressure becomes a problem, record at 6,000 Kbps or attach an external SSD for recordings only — never let the boot disk fill.
+- **The clip pipeline** (`clip-pipeline/`) reads the event log and the replay saves and produces the daily clip manifest. It runs on the 8GB MBP, on a schedule, unattended.
 
 ---
 
@@ -229,12 +247,13 @@ The show must run with no human in the loop. The watchdog is the difference betw
 | 4 | Is NodeCG serving graphics? (HTTP 200 on the graphics URLs) | 60 s | Overlays are dead |
 | 5 | Is Kokoro responding? (test synthesis < 5 s) | 5 min | Commentary is silent |
 | 6 | Is GPU memory flat? (no growth > 10% over a round) | 15 min | The memory leak is back — see `docs/performance-audit.md` P0-1 |
+| 6b | Is swap pressure flat? (Swap Used not growing over a round) | 15 min | On 8GB, swap growth is the early warning — sustained swap means the box is out of headroom; see §0, "What 8GB changes" |
 | 7 | Is the disk above 20GB free? | 15 min | Recordings will fill the disk |
-| 8 | Is the network up? (upload > 5 Mbps) | 60 s | The Air is offline |
+| 8 | Is the network up? (upload > 5 Mbps) | 60 s | The 8GB MBP is offline |
 
 ### 4.2 The watchdog itself
 
-A small shell script + `launchd` agent on the Air (free, built into macOS — no paid monitoring tool):
+A small shell script + `launchd` agent on the 8GB MBP (free, built into macOS — no paid monitoring tool):
 
 - **`launchd` agent** (`~/Library/LaunchAgents/com.masgolfs.broadcast.plist`): starts on login and keeps alive, in order: the local web server → NodeCG → Kokoro (Docker) → OBS. If any process exits, `launchd` restarts it. This is the first line of defence and it needs no code — it is macOS doing what macOS does.
 - **Watchdog script** (`~/mas-golfs/ops/watchdog.sh`, run every 30 s by a second `launchd` agent): performs the checks in §4.1 in order. On failure it acts, then logs, then (only for the five paging failures in §5.3) alerts Mason.
@@ -273,14 +292,14 @@ Mason monitors from the 128GB MBP. He never touches the broadcast box unless som
 From the main MacBook, in order of usefulness:
 
 1. **Watch the stream itself** — open the YouTube Live or Twitch page. If the picture is moving and the scorebug is fresh, the show is healthy. This is the only check that matters most of the time.
-2. **The status dashboard** — a single static page (served from the Air, or a simple status file in the repo) showing: stream uptime, current round/hole/score, 59 Watch state, last event time, GPU memory trend, disk free, and the last watchdog action. One page, six numbers, no login. See `docs/analytics.md` §4 for the dashboard panels.
+2. **The status dashboard** — a single static page (served from the 8GB MBP, or a simple status file in the repo) showing: stream uptime, current round/hole/score, 59 Watch state, last event time, GPU memory trend, disk free, and the last watchdog action. One page, six numbers, no login. See `docs/analytics.md` §4 for the dashboard panels.
 3. **Restream dashboard** — confirms both channels are receiving, with bitrate and dropped-frame counts per destination.
 
 ### 5.2 Remote access to the broadcast box (for fixes only)
 
-- **Screen Sharing (built into macOS):** enable it on the Air for the `masgolfs` user, restricted to the local network + Tailscale (see below). Mason connects from the 128GB MBP only when something needs hands-on fixing.
-- **Tailscale (free tier):** install Tailscale on the Air, the spare, and the 128GB MBP. It puts all three machines on one private network with no port forwarding and no public exposure. This is how Mason reaches the Air from anywhere, and how the spare can be reached for failover. **Do not expose the Air to the public internet** — no open ports, no public SSH, no VNC on the open internet.
-- **SSH:** enabled on the Air for the `masgolfs` user, key-only (no password auth), reachable only via Tailscale. This is the fast path for restarts and log checks: `ssh masgolfs@air "tail -50 ~/mas-golfs/ops/watchdog.log"`.
+- **Screen Sharing (built into macOS):** enable it on the 8GB MBP for the `masgolfs` user, restricted to the local network + Tailscale (see below). Mason connects from the 128GB MBP only when something needs hands-on fixing.
+- **Tailscale (free tier):** install Tailscale on the 8GB MBP and the 128GB MBP. It puts both machines on one private network with no port forwarding and no public exposure. This is how Mason reaches the 8GB MBP from anywhere. **Do not expose the 8GB MBP to the public internet** — no open ports, no public SSH, no VNC on the open internet. (The Air is not on Tailscale and never will be — it is grandpa's archive, not part of this network.)
+- **SSH:** enabled on the 8GB MBP for the `masgolfs` user, key-only (no password auth), reachable only via Tailscale. This is the fast path for restarts and log checks: `ssh masgolfs@mbp8 "tail -50 ~/mas-golfs/ops/watchdog.log"`.
 
 ### 5.3 What Mason sees when something is wrong (alerting)
 
@@ -316,23 +335,23 @@ From `docs/analytics.md` §5:
 - [ ] **5 min mechanical:** fill the weekly tracking sheet, pull the dashboard, note any alerts from the week.
 - [ ] **20 min on four questions:** Is the machine healthy? Is the audience compounding? What do the clips say? What is Mas doing?
 - [ ] **5 min writing:** `docs/reviews/review-<date>.md`, four lines.
-- [ ] **Machine care:** apply any pending macOS updates by hand (never automatic), `git pull` the repo on the Air and the spare, confirm the spare still boots and streams (failover drill, monthly — see §8.5).
+- [ ] **Machine care:** apply any pending macOS updates by hand (never automatic), `git pull` the repo on the 8GB MBP. Check Swap Used while you are there — any sustained growth is the first upgrade trigger (§0).
 - [ ] **Guest scheduling:** confirm next week's guest twin (see `docs/guest-twins.md` §6) if one is booked.
 
 ### 6.3 Monthly
 
-- [ ] Failover drill: stop the Air, bring up the spare, confirm the stream is live from the spare, then fail back. Target: under 15 minutes, and the drill is the only way to know it works.
-- [ ] Disk and thermal check on both machines (Activity Monitor, OBS dropped frames, vent cleaning).
+- [ ] Recovery drill (there is no spare — this replaces the failover drill): power the 8GB MBP fully off, power it back on, and confirm the whole stack comes back unattended in §4.3 order with the stream live — no clicks. Target: under 10 minutes from power-on. Then confirm the cloud fallback is still staged (§8.5): the RunPod template exists and the static-host fallback page is current. The drill is the only way to know either path works.
+- [ ] Disk and thermal check on the broadcast box (Activity Monitor, OBS dropped frames, vent cleaning).
 - [ ] Review the Restream/TikTok position: TikTok follower count vs. the 1,000 gate; if RTMP access appears, plan Phase 2 (§3.4).
 - [ ] Review the 30/60/90-day milestones from `docs/launch-playbook.md` §7.
 
 ### 6.4 The ops log
 
-`~/mas-golfs/ops/ops-log.md` on the Air (and committed to the repo monthly). One line per incident:
+`~/mas-golfs/ops/ops-log.md` on the 8GB MBP (and committed to the repo monthly). One line per incident:
 
 ```
 2026-11-14 03:02 — Daily restart took 4 min (Kokoro slow to start). No viewer impact.
-2026-11-16 14:22 — Stream down 6 min. Cause: Wi-Fi dropout. Fix: moved Air to Ethernet.
+2026-11-16 14:22 — Stream down 6 min. Cause: Wi-Fi dropout. Fix: moved the 8GB MBP to Ethernet.
 ```
 
 If it isn't written down, it didn't happen. The ops log is how a one-off becomes a pattern, and a pattern becomes a fix.
@@ -341,13 +360,14 @@ If it isn't written down, it didn't happen. The ops log is how a one-off becomes
 
 ## 7. The upgrade path to Unreal
 
-The Air runs the web build. It does **not** run Unreal. Know the trigger points in advance so the upgrade is a decision, not a crisis.
+The 8GB MBP runs the web build. It does **not** run Unreal. Know the trigger points in advance so the upgrade is a decision, not a crisis.
 
-### 7.1 When the web build outgrows the Air
+### 7.1 When the web build outgrows the 8GB MBP
 
 Upgrade when **any** of these is true for two consecutive weeks:
 
-- OBS drops > 1% of frames at 1080p60 on the Air (the web build is too heavy for the machine).
+- OBS drops > 1% of frames at 1080p60 on the 8GB MBP (the web build is too heavy for the machine).
+- Sustained swap pressure (Swap Used growing over a round, §4.1 check 6b) — the box is out of headroom, and there is no bigger Mac to move to.
 - The web build can no longer hold 60 fps at the visual quality the show needs (see `docs/performance-audit.md` and `docs/qa-plan.md` §3).
 - The Unreal vertical slice passes its go/no-go (see `docs/unreal-vertical-slice.md`) and the decision is made to go Unreal for real.
 
@@ -367,8 +387,8 @@ The architecture does not change: **render once, broadcast to everyone.** One Un
 
 ### 7.3 What changes when Unreal arrives
 
-- The Air stops being the render box and becomes the **broadcast controller**: OBS, NodeCG, Kokoro, and Restream stay on the Air (they are light). The GPU box (or cloud instance) renders Unreal and sends its picture to the Air over NDI or a capture card.
-- The web build does not go away: it stays live as the prototype, the clip factory, and the fallback if the Unreal box dies. The failover for Unreal is the web build on the Air — the show never goes dark because a GPU died.
+- The 8GB MBP stops being the render box and becomes the **broadcast controller**: OBS, NodeCG, Kokoro, and Restream stay on the MBP (they are light). The GPU box (or cloud instance) renders Unreal and sends its picture to the MBP over NDI or a capture card.
+- The web build does not go away: it stays live as the prototype, the clip factory, and the fallback if the Unreal box dies. The failover for Unreal is the web build on the 8GB MBP — the show never goes dark because a GPU died.
 - The Macs still do not run Unreal. Unreal on Apple Silicon exists, but the broadcast stack (Lumen, Nanite, DLSS) is built for NVIDIA, and the 128GB MBP is still never the stream box.
 
 ---
@@ -381,8 +401,8 @@ The architecture does not change: **render once, broadcast to everyone.** One Un
 | 8.2 | Web build stalls (event bus silent) | Picture frozen, scorebug stale | Watchdog restarts the browser tab / web server; if it recurs, restart the whole stack in §4.3 order | < 3 min, automatic |
 | 8.3 | NodeCG crash | Overlays disappear, picture continues | `launchd` restarts NodeCG; graphics reappear on next event | < 1 min, automatic |
 | 8.4 | Kokoro down | Commentary silent, bed continues | Watchdog restarts Docker container; if it fails, commentary is disabled (the show continues silent — silence is acceptable, a dead stream is not) | < 2 min, automatic |
-| 8.5 | Air dies (hardware) | Everything down | **Failover to the 8GB MBP spare:** power on spare → `git pull` → start stack in §4.3 order → verify stream live. The spare is kept in sync weekly (§6.2), so this is a swap, not a setup | < 15 min, manual |
-| 8.6 | Power cut (whole room) | Everything down | `autorestart 1` brings the Air back when power returns; auto-login + `launchd` bring the stack back in §4.3 order. No human needed unless the power cut outlasts the UPS (there is no UPS — see below) | Automatic on power return + ~5 min |
+| 8.5 | 8GB MBP dies (hardware) | Everything down | **There is no spare machine.** Recovery, in order: (1) repair/restart the box — most "deaths" are a dead charger, a swollen battery, or a stuck boot, all fixable same-day; (2) if the box is truly dead, **rent a cloud GPU** (RunPod Secure RTX 4090, ~$0.69–$0.89/hr) and run the stream from it — the repo, the OBS scene collection, and the NodeCG bundle are all in GitHub, so a fresh cloud instance can be streaming in ~30–60 min if the template is pre-staged (§6.3 drill); (3) if even that is not possible, **host the web build on a static host** (GitHub Pages / Vercel free tier) and point OBS on the 128GB MBP at it as a *temporary* emergency measure only — the 128GB MBP is still never the stream box, this is a bridge of hours, not a plan. Honest times: restart/repair same day if fixable; cloud fallback ~30–60 min once staged, hours if it was never staged — which is why the monthly drill stages it | Minutes (restart) to ~1 hr (cloud), hours if unprepared |
+| 8.6 | Power cut (whole room) | Everything down | `autorestart 1` brings the 8GB MBP back when power returns; auto-login + `launchd` bring the stack back in §4.3 order. No human needed unless the power cut outlasts the UPS (there is no UPS — see below) | Automatic on power return + ~5 min |
 | 8.7 | Internet outage | Stream down, local stack healthy | Nothing to do locally. The watchdog keeps the stack running and reconnects when the network returns. OBS reconnects to Restream automatically. If the outage exceeds 1 hour, post a note on social that the stream will be back | Automatic on network return |
 | 8.8 | Restream outage | Both destinations down, OBS healthy | OBS reconnects automatically. If Restream is down > 30 min, switch OBS to stream directly to YouTube Live (bypassing Restream) as a temporary measure — the stream key is in the Keychain | < 5 min, manual |
 | 8.9 | YouTube or Twitch outage (one platform) | One destination dark, the other live | Nothing to do. Restream keeps sending to the healthy platform. Note it in the ops log | N/A |
@@ -390,16 +410,17 @@ The architecture does not change: **render once, broadcast to everyone.** One Un
 | 8.11 | WebGL context lost | 3D picture goes black, overlays continue | The context-lost recovery in the web build (see `docs/performance-audit.md` P2) restores it. If it recurs 3× in an hour, the watchdog restarts the browser | < 30 s, automatic |
 | 8.12 | Disk full | Recordings stop, OBS errors | Weekly cleanup (§4.2) prevents this. If it happens anyway, the watchdog deletes the oldest recordings immediately and pages Mason | < 5 min, automatic + alert |
 
-**The one thing this runbook does not cover:** a UPS. The Air has a battery — a power cut does not kill it immediately, which is one more reason the broadcast box is a laptop and not a desktop. A desktop GPU box for Unreal (§7) will need a UPS; buy it with the box, not after the first outage.
+**The one thing this runbook does not cover:** a UPS. The 8GB MBP has a battery — a power cut does not kill it immediately, which is one more reason the broadcast box is a laptop and not a desktop. A desktop GPU box for Unreal (§7) will need a UPS; buy it with the box, not after the first outage.
 
 ---
 
 ## 9. Quick reference (print this)
 
 ```
-PRIMARY:  MacBook Air 16GB  — the broadcast box. OBS + web build + NodeCG + Kokoro.
-SPARE:    MacBook Pro 8GB   — warm spare, same config, synced weekly.
+PRIMARY:  MacBook Pro 8GB   — the broadcast box. OBS + web build + NodeCG + Kokoro.
+SPARE:    NONE — there is no spare machine.
 NEVER:    MacBook Pro 128GB — Mason's workhorse. Viewer and monitor only.
+NEVER:    MacBook Air 16GB  — grandpa's writing archive. Never touched, ever.
 
 STREAM:   OBS → Restream Free → YouTube Live + Twitch (1080p60, 8,000 Kbps)
 TIKTOK:   Later — 1,000 followers first, then check RTMP access. Windows LIVE
@@ -408,7 +429,8 @@ TIKTOK:   Later — 1,000 followers first, then check RTMP access. Windows LIVE
 RESTART:  Daily 03:00, ordered: web server → NodeCG → Kokoro → OBS.
 WATCHDOG: launchd keeps processes alive; watchdog.sh checks every 30 s.
 ALERTS:   Only 5 things page Mason (§5.3). Everything else waits for Sunday.
-FAILOVER: Spare takes over in < 15 min. Drill it monthly.
+FAILOVER: No spare. Box dies → repair/restart, or cloud GPU (~30–60 min if
+          staged) / static-host fallback. Cold-boot recovery drill monthly.
 UPGRADE:  Unreal needs a GPU box (~$2,500) or cloud (~$500/mo) — never a Mac.
 ```
 

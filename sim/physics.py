@@ -200,8 +200,10 @@ def fly(ball_speed_mph, launch_deg, spin_rpm, spin_axis_deg, start_dir_deg,
     spin = np.atleast_1d(spin)
 
     rho = air_density(temp_f)
-    cd = 0.24 + 0.000012 * spin
-    cl = np.clip(spin / 145000.0, 0.02, 0.35)
+    # Column vectors: cd/cl are (n, 1) so they broadcast correctly against
+    # the (n, 3) velocity arrays in the Monte Carlo path.
+    cd = (0.24 + 0.000012 * spin)[:, None]
+    cl = np.clip(spin / 145000.0, 0.02, 0.35)[:, None]
     omega = _spin_vector(spin, spin_axis_deg)
     wind = np.array([float(wind_along_ms), 0.0, float(wind_lateral_ms)])
 

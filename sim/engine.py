@@ -220,8 +220,9 @@ class RoundEngine:
             if hole_no == 18:
                 tee_status = watch.status_on_tee(18, score_so_far)
                 if tee_status in (STATUS_ON_THE_LINE, STATUS_SECURED):
-                    emitter.emit("fifty_nine_watch", hole=18,
-                                 **watch.state.to_dict(),
+                    wd = watch.state.to_dict()
+                    wd.pop("hole")
+                    emitter.emit("fifty_nine_watch", hole=18, **wd,
                                  moment="59_on_the_line" if tee_status ==
                                  STATUS_ON_THE_LINE else "59_secured")
             hr, records = self._play_hole(
@@ -265,8 +266,10 @@ class RoundEngine:
             if changed:
                 moment = ("back_on_pace" if watch_state.status == "on_pace"
                           and hole_no > 1 else watch_state.status)
-                emitter.emit("fifty_nine_watch", hole=hole_no,
-                             **watch_state.to_dict(), moment=moment)
+                wd = watch_state.to_dict()
+                wd.pop("hole")
+                emitter.emit("fifty_nine_watch", hole=hole_no, **wd,
+                             moment=moment)
             emitter.emit(
                 "hole_complete", hole=hole_no, par=hole.par, score=hr.score,
                 score_name=hr.score_name,
