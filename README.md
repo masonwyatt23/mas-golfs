@@ -41,6 +41,7 @@ YouTube golf now out-subscribes the PGA Tour. Creator golf averages 4–5x the v
 - **Creator growth playbook:** see [docs/creator-growth.md](docs/creator-growth.md) — what's working for small golf creators in 2026: hooks, conversion math, collabs, community, thumbnails, and realistic timelines.
 - **Voice options:** see [docs/voice-options.md](docs/voice-options.md) — free TTS engines compared for the two-voice commentary pipeline, with Kokoro-82M as the recommended default and setup steps.
 - **60-day content calendar:** see [docs/content-calendar-60-day.md](docs/content-calendar-60-day.md) — a specific title, hook, and format for every day, with weekly themes and milestone days.
+- **QA plan:** see [docs/qa-plan.md](docs/qa-plan.md) — the calibration harness, 24/7 soak test, web build checklist, graphics/commentary checks, coins economy tests, and the go-live checklist.
 
 ## Contributing
 

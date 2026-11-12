@@ -1,0 +1,283 @@
+{
+  "round": {
+    "round_no": 42,
+    "round_id": "R0042",
+    "course": "Wyatt National",
+    "score": 59,
+    "score_to_par": -13,
+    "stats": {
+      "fairways": "12/14",
+      "fairway_pct": 0.86,
+      "gir": "14/18",
+      "gir_pct": 0.78,
+      "putts": 27,
+      "putts_per_gir": 1.5,
+      "scrambling_pct": 0.75,
+      "sand_saves": "0/1",
+      "driving_avg_yd": 284,
+      "driving_longest_yd": 296,
+      "approach_prox_ft": 16.2,
+      "prox_100_125_ft": 11.0,
+      "prox_150_175_ft": 22.0,
+      "prox_175_200_ft": 30.0,
+      "penalties": 0,
+      "birdies": 8,
+      "bogeys": 1,
+      "eagles": 1
+    },
+    "road_to_59": {
+      "rounds_played": 42,
+      "rounds_under_70": 12,
+      "best_score": 59,
+      "strokes_from_59": 0
+    }
+  },
+  "queue": [
+    {
+      "clip_id": "R0042-H12-hole_out",
+      "moment_id": "R0042-H12-hole_out-0086",
+      "moment_type": "hole_out",
+      "format": "Best shot",
+      "drama": 100,
+      "round_no": 42,
+      "hole": 12,
+      "hole_name": "The Picture",
+      "duration_s": 35,
+      "source": {
+        "replay_file": "round0042-hole12-hole_out-0086.mp4",
+        "in_s": 25.0,
+        "out_s": 60.0,
+        "replay_buffer_s": 60
+      },
+      "slow_motion": true,
+      "segments": [
+        {
+          "name": "hook",
+          "start_s": 0,
+          "end_s": 2,
+          "source_start_s": 58,
+          "source_end_s": 60,
+          "speed": 1.0,
+          "on_screen_text": "HOLE IN ONE."
+        },
+        {
+          "name": "context",
+          "start_s": 2,
+          "end_s": 6,
+          "source_start_s": 25,
+          "source_end_s": 29,
+          "speed": 1.0,
+          "on_screen_text": "It's in! Hole-in-one at The Picture!"
+        },
+        {
+          "name": "shot",
+          "start_s": 6,
+          "end_s": 32,
+          "source_start_s": 29,
+          "source_end_s": 57,
+          "speed": 1.0,
+          "on_screen_text": "Shot data strip: club, distance, ball speed, carry"
+        },
+        {
+          "name": "shot_slow_motion",
+          "start_s": 29,
+          "end_s": 32,
+          "source_start_s": 54,
+          "source_end_s": 57,
+          "speed": 0.5,
+          "on_screen_text": "REPLAY"
+        },
+        {
+          "name": "payoff",
+          "start_s": 32,
+          "end_s": 35,
+          "source_start_s": 57,
+          "source_end_s": 60,
+          "speed": 1.0,
+          "on_screen_text": "Result card: 8 under par through 12 \u00b7 Road to 59 \u00b7 Mas Golfs \u2014 live now, 24/7"
+        }
+      ],
+      "hook_line": "HOLE IN ONE.",
+      "title": "Ace at The Picture \u2014 8-iron from 164 yards.",
+      "caption": "It's in! Hole-in-one at The Picture! Mas is 8 under par through 12 at Wyatt National. Mas Golfs \u2014 live now, 24/7. Road to 59.",
+      "first_comment": "It's in! Hole-in-one at The Picture! Full round live now \u2014 link in bio.",
+      "platforms": {
+        "shorts": {
+          "platform": "YouTube Shorts",
+          "aspect": "9:16",
+          "resolution": "1080x1920",
+          "target_length": "20-45 s (sweet spot ~30 s)",
+          "captions": "Burned in, large, top-third safe",
+          "on_screen_text": "Shot data strip + decision line",
+          "sound": "Ambient bed + impact sound; trending audio only if it fits",
+          "cta": "Full round live now \u2014 link in bio",
+          "hashtags": [
+            "#golf",
+            "#golftok",
+            "#masgolfs",
+            "#roadto59",
+            "#shottracer"
+          ],
+          "posting_window": "12:00-2:00pm ET and 7:00-9:00pm ET"
+        },
+        "reels": {
+          "platform": "Instagram Reels",
+          "aspect": "9:16",
+          "resolution": "1080x1920",
+          "target_length": "20-40 s",
+          "captions": "Burned in, large, avoid bottom 25% (UI)",
+          "on_screen_text": "Same, plus 'Mason W Golf' handle watermark",
+          "sound": "Ambient bed + impact sound",
+          "cta": "Live 24/7 \u2014 link in bio",
+          "hashtags": [
+            "#golf",
+            "#golfreels",
+            "#masgolfs",
+            "#roadto59"
+          ],
+          "posting_window": "11:00am-1:00pm ET and 7:00-9:00pm ET"
+        },
+        "tiktok": {
+          "platform": "TikTok",
+          "aspect": "9:16",
+          "resolution": "1080x1920",
+          "target_length": "20-35 s",
+          "captions": "Burned in, large, avoid right edge (UI)",
+          "on_screen_text": "Same, minimal \u2014 TikTok punishes text-heavy frames",
+          "sound": "Ambient bed + impact sound; native sounds sparingly",
+          "cta": "Live now \u2014 link in bio",
+          "hashtags": [
+            "#golf",
+            "#golftok",
+            "#masgolfs",
+            "#roadto59"
+          ],
+          "posting_window": "12:00-3:00pm ET and 7:00-10:00pm ET"
+        }
+      }
+    },
+    {
+      "clip_id": "R0042-H18-road_to_59",
+      "moment_id": "R0042-H18-road_to_59-0134",
+      "moment_type": "road_to_59",
+      "format": "Record-chase update",
+      "drama": 100,
+      "round_no": 42,
+      "hole": 18,
+      "hole_name": "The Closer",
+      "duration_s": 35,
+      "source": {
+        "replay_file": "round0042-hole18-road_to_59-0134.mp4",
+        "in_s": 25.0,
+        "out_s": 60.0,
+        "replay_buffer_s": 60
+      },
+      "slow_motion": true,
+      "segments": [
+        {
+          "name": "hook",
+          "start_s": 0,
+          "end_s": 2,
+          "source_start_s": 58,
+          "source_end_s": 60,
+          "speed": 1.0,
+          "on_screen_text": "59. HE DID IT."
+        },
+        {
+          "name": "context",
+          "start_s": 2,
+          "end_s": 6,
+          "source_start_s": 25,
+          "source_end_s": 29,
+          "speed": 1.0,
+          "on_screen_text": "Birdie at The Closer."
+        },
+        {
+          "name": "shot",
+          "start_s": 6,
+          "end_s": 32,
+          "source_start_s": 29,
+          "source_end_s": 57,
+          "speed": 1.0,
+          "on_screen_text": "Shot data strip: club, distance, ball speed, carry"
+        },
+        {
+          "name": "shot_slow_motion",
+          "start_s": 29,
+          "end_s": 32,
+          "source_start_s": 54,
+          "source_end_s": 57,
+          "speed": 0.5,
+          "on_screen_text": "REPLAY"
+        },
+        {
+          "name": "payoff",
+          "start_s": 32,
+          "end_s": 35,
+          "source_start_s": 57,
+          "source_end_s": 60,
+          "speed": 1.0,
+          "on_screen_text": "Result card: 13 under par through 18 \u00b7 Road to 59 \u00b7 Mas Golfs \u2014 live now, 24/7"
+        }
+      ],
+      "hook_line": "59. HE DID IT.",
+      "title": "Mas shoots 59 at Wyatt National \u2014 the Road to 59 is complete.",
+      "caption": "Birdie at The Closer. Mas is 13 under par through 18 at Wyatt National. Mas Golfs \u2014 live now, 24/7. Road to 59.",
+      "first_comment": "Birdie at The Closer. Full round live now \u2014 link in bio.",
+      "platforms": {
+        "shorts": {
+          "platform": "YouTube Shorts",
+          "aspect": "9:16",
+          "resolution": "1080x1920",
+          "target_length": "20-45 s (sweet spot ~30 s)",
+          "captions": "Burned in, large, top-third safe",
+          "on_screen_text": "Shot data strip + decision line",
+          "sound": "Ambient bed + impact sound; trending audio only if it fits",
+          "cta": "Full round live now \u2014 link in bio",
+          "hashtags": [
+            "#golf",
+            "#golftok",
+            "#masgolfs",
+            "#roadto59",
+            "#shottracer"
+          ],
+          "posting_window": "12:00-2:00pm ET and 7:00-9:00pm ET"
+        },
+        "reels": {
+          "platform": "Instagram Reels",
+          "aspect": "9:16",
+          "resolution": "1080x1920",
+          "target_length": "20-40 s",
+          "captions": "Burned in, large, avoid bottom 25% (UI)",
+          "on_screen_text": "Same, plus 'Mason W Golf' handle watermark",
+          "sound": "Ambient bed + impact sound",
+          "cta": "Live 24/7 \u2014 link in bio",
+          "hashtags": [
+            "#golf",
+            "#golfreels",
+            "#masgolfs",
+            "#roadto59"
+          ],
+          "posting_window": "11:00am-1:00pm ET and 7:00-9:00pm ET"
+        },
+        "tiktok": {
+          "platform": "TikTok",
+          "aspect": "9:16",
+          "resolution": "1080x1920",
+          "target_length": "20-35 s",
+          "captions": "Burned in, large, avoid right edge (UI)",
+          "on_screen_text": "Same, minimal \u2014 TikTok punishes text-heavy frames",
+          "sound": "Ambient bed + impact sound; native sounds sparingly",
+          "cta": "Live now \u2014 link in bio",
+          "hashtags": [
+            "#golf",
+            "#golftok",
+            "#masgolfs",
+            "#roadto59"
+          ],
+          "posting_window": "12:00-3:00pm ET and 7:00-10:00pm ET"
+        }
+      }
+    }
+  ]
+}
