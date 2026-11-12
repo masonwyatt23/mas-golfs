@@ -45,6 +45,7 @@ YouTube golf now out-subscribes the PGA Tour. Creator golf averages 4–5x the v
 - **Commentary prompts:** see [docs/commentary-prompts.md](docs/commentary-prompts.md) — paste-ready prompt templates for both broadcast voices, per event type, with the hard rules and line-caching strategy.
 - **Mobile experience:** see [docs/mobile-experience.md](docs/mobile-experience.md) — the PWA spec: five tabs, 59 Watch push alerts, one-thumb predictions, catch-up, and mobile performance budgets.
 - **Self-improvement system:** see [docs/self-improvement.md](docs/self-improvement.md) — how Mas gets better autonomously: the learning architecture, the improvement ladder, slumps, noise vs. weakness, and the safeguards that keep 59 rare.
+- **Analytics & observability:** see [docs/analytics.md](docs/analytics.md) — what to measure on the stream, clips, and sim, the free-tier tooling, the Sunday 30-minute review ritual, and what pages Mason.
 
 ## Contributing
 
