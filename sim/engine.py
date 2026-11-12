@@ -487,6 +487,14 @@ class RoundEngine:
             wind_into = max(0.0, -w_along)
             launch = delivery_to_launch(delivery, chosen.club, quality,
                                         lie, wind_into, rng)
+            # Wind carry adjustments (§4.3): a full ball into the wind
+            # balloons (carry -8%); downwind it runs out (+7%). Applied
+            # to ball speed before flight (distance ~ v^2) so the reported
+            # launch, the flight, and the final position all agree.
+            if chosen.shot_type == "full" and wind_into >= 8:
+                launch.ball_speed_mph *= math.sqrt(0.92)
+            elif w_along >= 8:
+                launch.ball_speed_mph *= math.sqrt(1.07)
             aim_ang = math.atan2(chosen.target_y - pos[1],
                                  chosen.target_x - pos[0])
             w_a, w_l = wind_in_shot_frame(hole, pos[0], pos[1], aim_ang,
@@ -517,15 +525,10 @@ class RoundEngine:
             fy_yd = pos[1] + fx[0] * C.M_TO_YARD * math.sin(aim_ang) \
                 + fz[0] * C.M_TO_YARD * math.cos(aim_ang)
             new_lie, in_water, ob = self.course.determine_lie(hole, fx_yd, fy_yd)
-            # Wind carry adjustments (§4.3).
             carry_yd = float(flight.carry_yd[0])
-            total_yd = float(flight.total_yd[0])
-            if chosen.shot_type == "full" and wind_into >= 8:
-                carry_yd *= 0.92
-                total_yd *= 0.92
-            elif w_along >= 8:
-                carry_yd *= 1.07
-                total_yd *= 1.07
+            # Total distance includes bounce + roll (fx is the shot-frame
+            # x after roll, i.e. the full distance along the aim line).
+            total_yd = float(fx[0]) * C.M_TO_YARD
             dist_pin_ft = math.hypot(pin_x - fx_yd, pin_y - fy_yd) * 3.0
             dist_pin_yd = dist_pin_ft / 3.0
             shot_penalty = 0
@@ -563,6 +566,7 @@ class RoundEngine:
             if lie == "green" and first_green_strokes is None:
                 first_green_strokes = strokes
                 approach_ft = round(dist_pin_ft, 1)
+                approach_dist_yd = along
                 if strokes <= hole.par - 2:
                     gir = True
             if first_green_strokes is not None:
@@ -633,7 +637,9 @@ class RoundEngine:
                           fairway_hit=fairway_hit, gir=gir,
                           penalties=penalties, driving_yd=driving_yd,
                           approach_ft=approach_ft, up_and_down=up_and_down,
-                          sand_save=sand_save, sg=sg_hole), records
+                          sand_save=sand_save,
+                          approach_dist_yd=approach_dist_yd,
+                          sg=sg_hole), records
 
     # -------------------------------------------------------------- helpers --
     def _baseline_args(self, hole, pos, pin_x, pin_y):
@@ -670,20 +676,24 @@ class RoundEngine:
         return "putt_15_plus"
 
     def _trees_block(self, hole, pos, pin_x, pin_y) -> bool:
-        """Is the direct line to the pin blocked by trees (§4.4)?"""
-        s0, _ = hole.project(*pos)
-        s1, _ = hole.project(pin_x, pin_y)
+        """Is the direct line to the pin blocked by trees (§4.4)?
+
+        Point-to-segment distance from each tree cluster's centre to the
+        ball->pin line; blocked if the line passes within the cluster's
+        radius (plus a 4 yd margin) and the cluster is between ball and pin.
+        """
+        ax, ay = pos
+        bx, by = pin_x, pin_y
+        dx, dy = bx - ax, by - ay
+        seg_len2 = dx * dx + dy * dy or 1.0
         for t in hole.trees:
-            if s0 < t.s_yd < s1:
-                # Lateral distance from the line ball->pin at the tree's s.
-                frac = (t.s_yd - s0) / max(1.0, s1 - s0)
-                lx = pos[0] + (pin_x - pos[0]) * frac
-                ly = pos[1] + (pin_y - pos[1]) * frac
-                if math.hypot(t.s_yd - s0, 0) >= 0 and \
-                        math.hypot(lx - hole.point_at(t.s_yd, t.lateral_yd)[0],
-                                   ly - hole.point_at(t.s_yd, t.lateral_yd)[1]) \
-                        <= t.r_ft / 3.0 + 4:
-                    return True
+            tx, ty = hole.point_at(t.s_yd, t.lateral_yd)
+            tt = ((tx - ax) * dx + (ty - ay) * dy) / seg_len2
+            if not (0.0 < tt < 1.0):
+                continue
+            px, py = ax + tt * dx, ay + tt * dy
+            if math.hypot(tx - px, ty - py) <= t.r_ft / 3.0 + 4.0:
+                return True
         return False
 
     def _aim_label(self, cand: Candidate, sit: Situation) -> str:
@@ -766,7 +776,9 @@ class RoundEngine:
         prox = {}
         for lo, hi in ((100, 125), (125, 150), (150, 175), (175, 200)):
             vals = [h.approach_ft for h in holes
-                    if h.approach_ft is not None]
+                    if h.approach_ft is not None
+                    and h.approach_dist_yd is not None
+                    and lo <= h.approach_dist_yd < hi]
             prox[f"prox_{lo}_{hi}_ft"] = (round(sum(vals) / len(vals), 1)
                                          if vals else None)
         return {
