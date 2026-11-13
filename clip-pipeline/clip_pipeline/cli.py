@@ -29,8 +29,46 @@ def main(argv: list[str] | None = None) -> int:
                         help="Max clips in the daily queue (default 2).")
     parser.add_argument("--generate-sample", metavar="PATH",
                         help="Regenerate the deterministic sample event log and exit.")
+    parser.add_argument("--assemble", metavar="MANIFEST",
+                        help="Assemble finished clips from a clip manifest JSON "
+                             "(ffmpeg cut + slow-mo + burned-in captions) and exit.")
+    parser.add_argument("--recordings", default=str(Path.home() / "mas-golfs" / "clips"),
+                        help="OBS replay-buffer recordings dir for --assemble "
+                             "(default ~/mas-golfs/clips).")
+    parser.add_argument("--clips-out", default="output/clips",
+                        help="Where --assemble writes finished clips "
+                             "(default output/clips).")
+    parser.add_argument("--all-clips", action="store_true",
+                        help="With --assemble, assemble the whole library, "
+                             "not just the daily queue.")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="With --assemble, build the ffmpeg commands "
+                             "but do not run them.")
     parser.add_argument("--quiet", "-q", action="store_true", help="Only print errors.")
     args = parser.parse_args(argv)
+
+    if args.assemble:
+        from .assemble import assemble_manifest, load_manifest
+
+        try:
+            manifest = load_manifest(args.assemble)
+            results = assemble_manifest(
+                manifest, args.recordings, args.clips_out,
+                only_queue=not args.all_clips, dry_run=args.dry_run,
+            )
+        except FileNotFoundError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        except Exception as exc:  # noqa: BLE001 - surface a bad manifest cleanly
+            print(f"error: could not assemble: {exc}", file=sys.stderr)
+            return 1
+        if not args.quiet:
+            done = sum(r.status == "done" for r in results)
+            print(f"Assembled {done}/{len(results)} clip(s) -> {args.clips_out}")
+            for r in results:
+                mark = {"done": "OK ", "skipped": "SKIP", "failed": "FAIL"}[r.status]
+                print(f"  {mark} {r.clip_id} {r.source_file} — {r.message}")
+        return 0 if all(r.status != "failed" for r in results) else 1
 
     if args.generate_sample:
         from .sample_log import write_sample_log

@@ -31,7 +31,9 @@ sim engine (JSON events)          OBS replay buffer (60 s, always on)
 3. **Assembly (this tool).** Each saved moment becomes a clip card:
    20–35 s, result first (hook 0–2 s), decision line, swing + tracer,
    0.5× slow-mo of the last 3 s when drama ≥ 75, payoff card last.
-4. **Queue (this tool + Mason).** Ranked by drama. Best clip first; a
+4. **ffmpeg assembly (this tool, `clip_pipeline/assemble.py`).** The
+   queue's clip cards become finished 9:16 videos, ready to post.
+5. **Queue (this tool + Mason).** Ranked by drama. Best clip first; a
    second only when it scored 90+. One clip per hole unless 90+ (a
    hole-out earns a second look). Mason approves, posts Reels → Shorts
    → TikTok, same day, within an hour.
@@ -56,6 +58,20 @@ queue. Expected result: 13 moments detected, 13 clips saved, queue of 2
 python -m clip_pipeline.cli --input sample_data/round_R0042_events.jsonl \
     --output output/manifest.json
 
+# Assemble the daily queue from a manifest (ffmpeg — see below)
+python -m clip_pipeline.cli --assemble output/manifest.json \
+    --recordings ~/mas-golfs/clips --clips-out output/clips
+
+# Same thing as a standalone module
+python -m clip_pipeline.assemble --manifest output/manifest.json \
+    --recordings ~/mas-golfs/clips --out output/clips
+
+# Assemble the whole library instead of just the queue
+python -m clip_pipeline.cli --assemble output/manifest.json --all-clips
+
+# See the ffmpeg commands without running them
+python -m clip_pipeline.assemble --manifest output/manifest.json --dry-run
+
 # Regenerate the deterministic sample log
 python -m clip_pipeline.cli --generate-sample sample_data/round_R0042_events.jsonl
 
@@ -68,6 +84,114 @@ for clip in queue:
     print(clip.drama, clip.title)
 EOF
 ```
+
+## ffmpeg assembly
+
+The only non-stdlib dependency in this pipeline. Install it once on
+the machine that assembles clips (the broadcast box):
+
+```bash
+brew install ffmpeg        # macOS (the 8GB MacBook Pro)
+sudo apt install ffmpeg    # Ubuntu/Debian
+```
+
+`assemble.py` shells out to the `ffmpeg` binary (and `ffprobe`, which
+ships with it) — there is no Python ffmpeg binding to install. If the
+binary is missing, assembly fails fast with a clear error; nothing is
+half-written.
+
+What one ffmpeg call does per clip:
+
+```
+replay file (60 s, 1920x1080)
+  ├─ cut each segment [source_start_s, source_end_s) from the manifest
+  ├─ 0.5x slow-mo for drama >= 75 (setpts=2.0*PTS video, atempo=0.5 audio)
+  ├─ burn in the hook line + on-screen caption text (drawtext, top-third)
+  ├─ scale + center-crop to 9:16, 1080x1920, 30 fps
+  └─ concat in manifest order (hook first = payoff first, payoff last)
+     → libx264 (veryfast, CRF 20) + AAC 128k, +faststart
+```
+
+Output: one finished `.mp4` per clip, keeping the replay file's name
+(`round0042-hole12-hole_out-0086.mp4`), plus a `.txt` sidecar with the
+title, caption, first comment, and per-platform hashtags/CTA/posting
+window — the post copy, ready to paste. All three platform variants
+are the same 9:16 1080x1920 video (per the manifest, they differ only in
+post copy); there is one master file per clip, never three renders.
+
+Segment timing rule (read this before editing `assembly.py`): the
+manifest's segment table is a spec sketch and two of its rows overlap
+(the shot segment declares 28 s of source for a 26 s output slot, and
+the slow-mo segment sits inside the shot's span). The assembler treats
+the output timeline as authoritative — each segment fills its
+`[start_s, end_s)` slot, and where slots overlap the earlier segment
+is truncated at the next segment's start, so the shot's full-speed
+portion ends where the slow-mo replay begins and the finished clip is
+exactly `duration_s` long (verified: 35 s, not the 38 s an untruncated
+concatenation produces). A segment consumes `slot * speed` seconds of
+source: at 0.5x the slow-mo segment plays the first half of its
+declared range at half speed. See `assemble.py`'s docstring.
+
+Missing input is a skip, never a crash: if a clip's replay file is not
+in the recordings dir (OBS didn't save it, or it was already moved),
+that clip is logged `skipped` in `assembly_report.json` and the rest of
+the queue still assembles. An ffmpeg failure is logged `failed` with
+ffmpeg's stderr. The CLI exits non-zero only if a clip *failed*
+(skips do not fail the run).
+
+### The daily queue, end to end
+
+```bash
+cd clip-pipeline
+# 1. Score the round's event log -> manifest (queue of 1-2 clips)
+python -m clip_pipeline.cli --input <round-events>.jsonl --output output/manifest.json
+# 2. Assemble the queue -> finished clips (needs ~/mas-golfs/clips recordings)
+python -m clip_pipeline.cli --assemble output/manifest.json \
+    --recordings ~/mas-golfs/clips --clips-out output/clips
+# 3. Mason approves in output/clips/ (video + .txt sidecar per clip),
+#    posts Reels -> Shorts -> TikTok. 15 minutes, same evening.
+```
+
+On the broadcast box this is one cron/launchd line after the round
+completes (the runbook's Sunday review owns the schedule — the tool
+itself is stateless per round).
+
+### Verifying with a real ffmpeg run
+
+The unit tests mock subprocess and never invoke ffmpeg. To verify the
+real thing, generate two synthetic 60 s replay files and assemble the
+sample manifest:
+
+```bash
+for f in round0042-hole12-hole_out-0086 round0042-hole18-road_to_59-0136; do
+  ffmpeg -hide_banner -loglevel error -y \
+    -f lavfi -i testsrc=size=1920x1080:rate=60:duration=60 \
+    -f lavfi -i sine=frequency=440:duration=60 -shortest \
+    -c:v libx264 -preset veryfast -c:a aac /tmp/replay/$f.mp4
+done
+python -m clip_pipeline.assemble --manifest output/manifest_R0042.json \
+    --recordings /tmp/replay --out /tmp/clips-out
+ffprobe -v error -show_entries format=duration \
+    -show_entries stream=codec_type,width,height \
+    /tmp/clips-out/round0042-hole12-hole_out-0086.mp4
+# Expect: two 1080x1920 clips, 35 s each, video + audio streams.
+```
+
+### Known limitations
+
+- **Caption font:** drawtext needs a bold font file. `assemble.py`
+  looks for DejaVu Sans Bold (Linux) or Arial Bold / Helvetica (macOS);
+  override with `MAS_GOLFS_FONT=/path/to/font.ttf`. If no font is found,
+  the clip still assembles — without burned-in text — and the run
+  prints a warning to stderr.
+- **Center crop:** the 16:9 → 9:16 crop is centered. A tracer that runs
+  to the frame edge can be cropped out; a ball-tracking smart crop is
+  future work.
+- **No audio bed is mixed in:** the replay file's own audio is kept
+  (slowed with the video on slow-mo segments). The ambient bed / impact
+  sound from the playbook is not yet mixed — the posting step owns it.
+- **Slow-mo consumes half its declared source range** (see the timing
+  rule above) — the tail of the slow-mo range is dropped, not stretched.
 
 ## The drama model
 
@@ -181,16 +305,19 @@ clip-pipeline/
 │   ├── events.py             # JSONL loading + §1.1 envelope validation
 │   ├── scoring.py            # the drama model
 │   ├── assembly.py           # clip cards: segments, hooks, titles, platform variants
+│   ├── assemble.py           # ffmpeg assembly: cut + slow-mo + captions -> 9:16 video
 │   ├── manifest.py           # daily-queue selection + manifest output
 │   ├── sample_log.py         # deterministic R0042 generator
-│   └── cli.py                # argparse CLI
+│   └── cli.py                # argparse CLI (score, assemble, generate-sample)
 ├── sample_data/
 │   └── round_R0042_events.jsonl
 ├── output/
 │   ├── manifest_R0042.json   # demo output (full manifest)
-│   └── queue_R0042.json      # demo output (tonight's queue only)
+│   ├── queue_R0042.json      # demo output (tonight's queue only)
+│   └── clips/                # assemble.py output (video + .txt sidecar per clip)
 └── tests/
-    └── test_pipeline.py      # 30 tests (unittest, no dependencies)
+    ├── test_pipeline.py      # 30 tests (unittest, no dependencies)
+    └── test_assemble.py      # 26 tests (ffmpeg command construction, mocked subprocess)
 ```
 
 ## Extending it
@@ -206,10 +333,8 @@ clip-pipeline/
 - **Real logs:** point the CLI at a real sim-engine JSONL export. The
   pipeline is stateless per round — run it once per completed round, or
   stream events through `score_round` for a live queue.
-- **ffmpeg assembly (next step, not built here):** cut
-  `source.in_s`–`source.out_s` from the replay file, reorder per
-  `segments`, burn in captions, crop to 9:16, export the three platform
-  variants. The manifest already carries everything that step needs.
+- **ffmpeg assembly:** built — see `assemble.py` and the "ffmpeg
+  assembly" section above.
 
 ## Rules the copy follows
 
