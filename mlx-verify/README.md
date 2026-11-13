@@ -162,8 +162,14 @@ MacBook Pro — that is what this pack is for.
   Qwen3.5-4B default is a research conclusion, not a loyalty oath —
   the booth test decides.
 - **Server flags moved:** mlx-lm's server flags change between
-  releases. If `--max-kv-size 2048` is rejected, run the server
-  command by hand once, confirm the port answers, and write the exact
-  working command into the runbook (local-models §3.2 says exactly
-  this). The 2K context cap itself is non-negotiable — it is the
-  memory budget.
+  releases. **Resolved 2026-11-13 on the box (mlx-lm 0.32.2):**
+  `--max-kv-size` does not exist in the 0.32.x server (it is a
+  `generate`-only flag), and `-m mlx_lm.server` is deprecated in
+  favour of `python -m mlx_lm server`. `verify.sh` now starts the
+  server with `--prompt-cache-size 1 --max-tokens 120` — one cached
+  prompt prefix instead of ten, plus the 120-token generation cap
+  from commentary/config.yaml. The 2K context cap itself is
+  non-negotiable — it is the memory budget — and it is enforced by
+  the request shape (stateless ~200-token prompts, ≤120 generated)
+  plus those two flags; see local-models §3.2 for the working
+  command.

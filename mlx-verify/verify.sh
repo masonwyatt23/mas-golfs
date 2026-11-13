@@ -104,12 +104,25 @@ start_server() {
         return 0
     fi
     log "Starting mlx-lm server: model=$model port=$PORT ..."
-    # --max-kv-size 2048 is the 2K context cap from commentary/config.yaml.
-    # mlx-lm flags move between releases; if this fails, run the command
-    # by hand once and write the exact working flags into the runbook
-    # (docs/local-models.md §3.2 says exactly this).
-    nohup "$PY" -m mlx_lm.server --model "$model" --port "$PORT" \
-        --max-kv-size 2048 >"$RESULTS_DIR/server.log" 2>&1 &
+    # Context cap (verified on the box 2026-11-13, mlx-lm 0.32.2):
+    # --max-kv-size does NOT exist in the 0.32.x server (it lives only
+    # in `mlx_lm generate`). The bound is enforced two ways instead:
+    #   --prompt-cache-size 1  — one cached prompt prefix, not the
+    #       default 10 (the maintainer's preferred direction: bound
+    #       the cache count, since output degrades once a KV cap is
+    #       hit). This is the multiplier that could accumulate memory
+    #       across requests.
+    #   --max-tokens 120       — server-level generation cap matching
+    #       commentary/config.yaml. Requests are stateless single
+    #       prompts (~200 tokens) + at most 120 generated tokens, so
+    #       the active KV per request is ~320 tokens max.
+    # Together these preserve the 2K context cap's intent (the
+    # commentary prompts are ~300-500 tokens; 2,048 is generous).
+    # Also note the invocation: `python -m mlx_lm server` (subcommand)
+    # — the old `-m mlx_lm.server` form is deprecated in 0.32.x.
+    nohup "$PY" -m mlx_lm server --model "$model" --port "$PORT" \
+        --prompt-cache-size 1 --max-tokens 120 \
+        >"$RESULTS_DIR/server.log" 2>&1 &
     echo $! >"$SERVER_PID_FILE"
     local waited=0
     while ! server_is_up; do

@@ -176,8 +176,13 @@ curl http://localhost:8080/v1/models
 #    The commentary prompts are ~300-500 tokens; 2,048 is generous.
 #    Set it explicitly — never rely on a runtime default, which can be
 #    32K or larger and will eat the KV cache (and the box) alive.
-python -m mlx_lm.server --model mlx-community/Qwen3.5-4B-4bit \
-  --port 8080 --max-kv-size 2048
+#    Verified on the box 2026-11-13 (mlx-lm 0.32.2): --max-kv-size
+#    does NOT exist in the 0.32.x server (generate-only). The bound is
+#    --prompt-cache-size 1 (one cached prefix, not ten) plus
+#    --max-tokens 120 (matches commentary/config.yaml). Requests are
+#    stateless single prompts, so the active KV is ~320 tokens max.
+python -m mlx_lm server --model mlx-community/Qwen3.5-4B-4bit \
+  --port 8080 --prompt-cache-size 1 --max-tokens 120
 ```
 
 **MLX quirks to know before they bite:**
@@ -487,7 +492,7 @@ Build in this order. Each step is independently testable, and a step that fails 
 |---|---|---|
 | 1 | Measure the box at idle | macOS + system resident memory recorded. If it is over 2 GB, find out why before anything else starts. |
 | 2 | Install mlx-lm, pull Qwen3.5-4B-4bit | `mlx_lm.server` answers on localhost:8080; a test prompt returns a completion. |
-| 3 | Verify the 2K context cap | The server runs with `--max-kv-size 2048` (or the current equivalent flag — confirm on the installed version). Memory with the model loaded is recorded. |
+| 3 | Verify the 2K context cap | The server runs with `--prompt-cache-size 1 --max-tokens 120` (verified on the box 2026-11-13, mlx-lm 0.32.2 — `--max-kv-size` does not exist in the 0.32.x server). Memory with the model loaded is recorded. |
 | 4 | Run the 20 audition lines | The 10 host + 10 color lines from commentary-prompts §8, through the MLX server, temperature 0.7, max 120 tokens. Every line ≤280 chars, no invented numbers, no banned words. |
 | 5 | Wire the commentary service to MLX | One full round, headless, events → prompts → MLX → validation → normalizer → cache. Drop rate < 5%, P99 generation < 5 s. |
 | 6 | Install Kokoro (native first) | Kokoro answers on localhost:8880; the two voices render the audition lines; cache hit/miss works. If native fails, Docker with `--memory=1g`, and the budget table (§4) is corrected to the Docker numbers. |
