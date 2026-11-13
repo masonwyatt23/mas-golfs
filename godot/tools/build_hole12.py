@@ -123,13 +123,13 @@ red = mat((0.80, 0.10, 0.10))
 club_mat = mat((0.60, 0.60, 0.65), metallic=0.8, roughness=0.3)
 
 # --- Meshes -------------------------------------------------------------------
-# Ground is tiled, not one huge box. v6/v7 PROVED a single large ground
-# mesh is frustum-culled (400x400 and 240x360 render nothing; 120x120
-# renders fine) — the camera sits inside/near a huge mesh's AABB and
-# Godot culls it. So the ground is a 3x3 grid of 120x120 tiles (each
-# proven to render), covering x -180..+180, z -340..+20, to the horizon.
-# All tiles share one mesh + one material; only the node transform varies.
-ground_mesh = box(120, 0.4, 120)
+# Ground: ONE tile, 120 wide x 300 deep, centred z=-170 (spans z=-320..-20).
+# v9 proved NINE 120x120 tiles render NOTHING (pixel-identical shaded vs
+# unshaded) while v6's SINGLE 120x120 tile rendered green — so the tiling
+# itself breaks it (not the size: 120x120 works alone). One long tile
+# keeps the proven single-mesh path and still reaches the horizon. The
+# camera (z=15) stays in front of the tile's near edge (z=-20).
+ground_mesh = box(120, 0.4, 300)
 tee_mesh = box(12, 0.4, 10)
 green_mesh = cyl(GREEN_R, GREEN_R, 0.4, 32)
 collar_mesh = cyl(GREEN_R + 3, GREEN_R + 3, 0.3, 32)
@@ -183,12 +183,8 @@ node("BusClient", "Node", ".", None, ['script = ExtResource("1")'])
 node("Director", "Node", ".", None, ['script = ExtResource("2")'])
 
 # Ground + hole features.
-# Ground: 3x3 grid of 120x120 tiles, x centres -120/0/+120, z centres
-# -280/-160/-40 (covers x -180..+180, z -340..+20, to the horizon).
-for gx in (-120.0, 0.0, 120.0):
-    for gz in (-280.0, -160.0, -40.0):
-        mesh_node(f"Ground_{int(gx)}_{int(gz)}", ground_mesh, grass,
-                  gx, -0.2, gz)
+# One long ground tile, 120 wide x 300 deep, centred z=-170 (z -320..-20).
+mesh_node("Ground", ground_mesh, grass, 0, -0.2, -170)
 mesh_node("Tee", tee_mesh, fairway, 0, TEE_Y - 0.2, 0)
 mesh_node("Collar", collar_mesh, collar_mat, 0, -0.15, GREEN_Z)
 mesh_node("Green", green_mesh, green_mat, 0, 0, GREEN_Z)
