@@ -375,6 +375,10 @@ class TestLearning(unittest.TestCase):
     def test_one_fix_produced_and_applied(self):
         loop = LearningLoop()
         model = GolferModel()
+        # Spec §4.4: the first 3 rounds of a season are "establishing" —
+        # the loop watches and accumulates, and produces no fix.
+        for _ in range(3):
+            self.assertIsNone(loop.after_round(model, self._records(n=5)))
         fix = loop.after_round(model, self._records(n=5))
         self.assertIsNotNone(fix)
         self.assertEqual(fix.mechanism, "aim_offset_ft")
@@ -384,7 +388,8 @@ class TestLearning(unittest.TestCase):
     def test_exactly_one_active_fix(self):
         loop = LearningLoop()
         model = GolferModel()
-        for _ in range(3):
+        # 3 establishing rounds (§4.4), then the fix round.
+        for _ in range(4):
             loop.after_round(model, self._records(n=5))
         self.assertIsNotNone(model.active_fix)
 
