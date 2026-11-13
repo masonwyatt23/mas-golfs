@@ -15,7 +15,7 @@
 #                Qwen3-4B-Instruct-2507, side by side for a human judge
 #
 # Usage:
-#   ./verify.sh [check|latency|audition|soak|think|ab|all]
+#   ./verify.sh [check|latency|audition|soak|think|ab|merge-ab|all]
 #   ./verify.sh all            # the full pack, in order (default)
 #   SOAK_MINUTES=5 ./verify.sh soak     # short soak smoke run
 #   MLX_VERIFY_KEEP_SERVER=1 ./verify.sh check   # leave server running
@@ -258,23 +258,13 @@ run_think() {
     "$PY" "$PACK_DIR/mlx_verify.py" --out-dir "$RESULTS_DIR" think "${files[@]}"
 }
 
-run_ab() {
-    # Two sequential server runs: model A, then model B. Each load takes
-    # a minute or two; 100 generations at ~1–3 s each is ~5 minutes.
-    log "A/B: 50 events through $MODEL, then 50 through $MODEL_B."
-    start_server "$MODEL" || return $?
-    "$PY" "$PACK_DIR/mlx_verify.py" --base-url "$BASE_URL" --model "$MODEL" \
-        --out-dir "$RESULTS_DIR/ab-a" latency --n 50 >/dev/null
-    log "Model A done (50 generations). Switching servers..."
-    stop_server
-    start_server "$MODEL_B" || return $?
-    "$PY" "$PACK_DIR/mlx_verify.py" --base-url "$BASE_URL" --model "$MODEL_B" \
-        --out-dir "$RESULTS_DIR/ab-b" latency --n 50 >/dev/null
-    stop_server
-    # Merge the two latency runs into the blind A/B files. The labels are
-    # randomized by one coin flip for the whole file; the key is sealed
-    # separately. No re-generation happens here.
-    # argv: 1 = results dir, 2 = model A, 3 = model B.
+# Merge the two latency runs (ab-a, ab-b) into the blind A/B files.
+# The labels are randomized by one coin flip for the whole file; the
+# key is sealed separately. No re-generation happens here — this is
+# offline, so it can be re-run on its own (`./verify.sh merge-ab`)
+# if a full `ab` run was interrupted after the generations finished.
+# argv: 1 = results dir, 2 = model A, 3 = model B.
+merge_ab() {
     PYTHONPATH="$PACK_DIR" "$PY" - "$RESULTS_DIR" "$MODEL" "$MODEL_B" <<'PYEOF'
 import json, os, random, sys
 from mlx_verify import write_ab_side_by_side, load_events
@@ -306,6 +296,29 @@ print(f"Key sealed in {sys.argv[1]}/ab-key.json — do not open it until scoring
 PYEOF
 }
 
+run_ab() {
+    # Two sequential server runs: model A, then model B. Each load takes
+    # a minute or two; 100 generations at ~1–3 s each is ~5 minutes.
+    log "A/B: 50 events through $MODEL, then 50 through $MODEL_B."
+    start_server "$MODEL" || return $?
+    # NOTE: the latency subcommand exits non-zero when its verdict is
+    # FAIL, and this script runs under `set -e`. An A/B is a comparison,
+    # not a gate — both models' rows are data even if one side's p99
+    # fails (caught 2026-11-13: model B's first generation took 10.3 s,
+    # a cold-start spike after a fresh load, which failed its p99 and
+    # aborted the script before the merge, losing the whole A/B).
+    # So a FAIL verdict must not abort the merge: `|| true` here.
+    "$PY" "$PACK_DIR/mlx_verify.py" --base-url "$BASE_URL" --model "$MODEL" \
+        --out-dir "$RESULTS_DIR/ab-a" latency --n 50 >/dev/null || true
+    log "Model A done (50 generations). Switching servers..."
+    stop_server
+    start_server "$MODEL_B" || return $?
+    "$PY" "$PACK_DIR/mlx_verify.py" --base-url "$BASE_URL" --model "$MODEL_B" \
+        --out-dir "$RESULTS_DIR/ab-b" latency --n 50 >/dev/null || true
+    stop_server
+    merge_ab
+}
+
 # --- Main ----------------------------------------------------------------------
 main() {
     local cmd="${1:-all}"
@@ -324,6 +337,7 @@ main() {
         soak)     run_soak ;;
         think)    run_think ;;
         ab)       run_ab ;;
+        merge-ab) merge_ab ;;
         all)
             run_check || exit $?
             run_latency || exit $?
@@ -337,7 +351,7 @@ main() {
             ;;
         *)
             fail "Unknown command: $cmd"
-            echo "Usage: $0 [check|latency|audition|soak|think|ab|all]" >&2
+            echo "Usage: $0 [check|latency|audition|soak|think|ab|merge-ab|all]" >&2
             exit 2
             ;;
     esac
