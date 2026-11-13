@@ -170,7 +170,7 @@ environment = SubResource("Environment_31")
 transform = Transform3D(0.866, 0.353, 0.353, 0, 0.707, -0.707, -0.5, 0.612, 0.612, 0, 40, 20)
 light_color = Color(1, 0.85, 0.6, 1)
 light_energy = 1.6
-shadow_enabled = true
+shadow_enabled = false
 
 [node name="BusClient" type="Node" parent="."]
 script = ExtResource("1")
@@ -307,6 +307,6 @@ mesh = SubResource("CylinderMesh_28")
 surface_material_override/0 = SubResource("StandardMaterial3D_14")
 
 [node name="BroadcastCam" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.940, 0.342, 0, -0.342, 0.940, 0, 13, 20)
+transform = Transform3D(1, 0, 0, 0, 0.966, 0.259, 0, -0.259, 0.966, 0, 11, 15)
 fov = 50.0
 current = true
