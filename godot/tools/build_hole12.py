@@ -120,15 +120,13 @@ red = mat((0.80, 0.10, 0.10))
 club_mat = mat((0.60, 0.60, 0.65), metallic=0.8, roughness=0.3)
 
 # --- Meshes -------------------------------------------------------------------
-# Ground is a thin BOX. v6 PROVED the culling theory: the 400x400 ground
-# never rendered (v5 unshaded was pixel-identical to v4) while a 120x120
-# box renders fine — the huge mesh is frustum-culled because the camera
-# sits inside its footprint. The black trapezoid in v6 is the sky's dark
-# ground showing through beyond the 120-box's far edge (z=-140). Fix: a
-# ground long enough to reach the horizon (z=-340) but whose near edge
-# stays in FRONT of the camera (z=-20), so the camera is outside its
-# footprint and it renders. 240 wide x 360 deep, centred z=-160.
-ground_mesh = box(240, 0.4, 360)
+# Ground is tiled, not one huge box. v6/v7 PROVED a single large ground
+# mesh is frustum-culled (400x400 and 240x360 render nothing; 120x120
+# renders fine) — the camera sits inside/near a huge mesh's AABB and
+# Godot culls it. So the ground is a 3x3 grid of 120x120 tiles (each
+# proven to render), covering x -180..+180, z -340..+20, to the horizon.
+# All tiles share one mesh + one material; only the node transform varies.
+ground_mesh = box(120, 0.4, 120)
 tee_mesh = box(12, 0.4, 10)
 green_mesh = cyl(GREEN_R, GREEN_R, 0.4, 32)
 collar_mesh = cyl(GREEN_R + 3, GREEN_R + 3, 0.3, 32)
@@ -182,9 +180,12 @@ node("BusClient", "Node", ".", None, ['script = ExtResource("1")'])
 node("Director", "Node", ".", None, ['script = ExtResource("2")'])
 
 # Ground + hole features.
-# Ground centred at z=-160 so it spans z=-340..-20 (near edge in front of
-# the camera at z=15, far edge past the green at -172 to the horizon).
-mesh_node("Ground", ground_mesh, grass, 0, -0.2, -160)
+# Ground: 3x3 grid of 120x120 tiles, x centres -120/0/+120, z centres
+# -280/-160/-40 (covers x -180..+180, z -340..+20, to the horizon).
+for gx in (-120.0, 0.0, 120.0):
+    for gz in (-280.0, -160.0, -40.0):
+        mesh_node(f"Ground_{int(gx)}_{int(gz)}", ground_mesh, grass,
+                  gx, -0.2, gz)
 mesh_node("Tee", tee_mesh, fairway, 0, TEE_Y - 0.2, 0)
 mesh_node("Collar", collar_mesh, collar_mat, 0, -0.15, GREEN_Z)
 mesh_node("Green", green_mesh, green_mat, 0, 0, GREEN_Z)
