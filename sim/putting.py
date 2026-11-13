@@ -231,14 +231,17 @@ def _roll_batch_pin(green: Green, pin_ft, starts, dirs_rad, v0s,
     pace_at_closest = np.zeros(k)
     stop_idx = np.full(k, -1, dtype=int)
 
-    paths = [pos.copy()]
+    paths = [pos]
     max_steps = int(PUTT_MAX_T / PUTT_DT)
     for step in range(1, max_steps + 1):
         if not alive.any():
             break
-        prev = pos.copy()
-        prev_speed = speed.copy()
-        prev_vel = vel.copy()
+        # References, not copies: pos/speed/vel are only ever rebound
+        # below, never mutated in place, so the previous step's arrays
+        # stay valid. (Same for paths.append(pos) at the bottom.)
+        prev = pos
+        prev_speed = speed
+        prev_vel = vel
         gx = _bilinear(gx_arr, half_ft, pos[:, 0], pos[:, 1])
         gy = _bilinear(gy_arr, half_ft, pos[:, 0], pos[:, 1])
         # Gravity pulls downhill: a = -g * grad(h). Friction opposes motion.
@@ -290,7 +293,7 @@ def _roll_batch_pin(green: Green, pin_ft, starts, dirs_rad, v0s,
         off = (np.abs(pos[:, 0]) > half_ft + 2.0) | \
               (np.abs(pos[:, 1]) > half_ft + 2.0)
         alive = alive & (speed > STOP_SPEED_FT_S) & (~off)
-        paths.append(pos.copy())
+        paths.append(pos)  # reference: pos is rebound, never mutated
         newly_stopped = (~alive) & (stop_idx < 0)
         stop_idx = np.where(newly_stopped, step, stop_idx)
     stop_idx = np.where(stop_idx < 0, len(paths) - 1, stop_idx)
@@ -534,8 +537,14 @@ def predicted_path(green: Green, ball_ft, pin_ft,
 
 def solve_actual_path(green: Green, ball_ft, pin_ft, made: bool,
                       leave_ft: float, pace: str,
-                      green_speed: float) -> dict:
+                      green_speed: float,
+                      ideal_start_deg: float | None = None) -> dict:
     """The outcome-conditioned solver (§1.3): the "did" line.
+
+    ``ideal_start_deg`` is the ideal start line in degrees, when the
+    caller already computed it (build_putt_read runs the same
+    deterministic search for the preview). Passing it skips a redundant
+    identical search — same result, one less batch integration per putt.
 
     Given the outcome the table drew, search start lines and paces around
     the ideal line until the integrated path is consistent with it:
@@ -555,8 +564,11 @@ def solve_actual_path(green: Green, ball_ft, pin_ft, made: bool,
     """
     dist_ft = math.hypot(pin_ft[0] - ball_ft[0], pin_ft[1] - ball_ft[1])
     v_nom = nominal_pace_v0(dist_ft, green_speed)
-    ideal = ideal_start_line(green, ball_ft, pin_ft, green_speed)
-    phi_ideal = math.radians(ideal["start_deg"])
+    if ideal_start_deg is None:
+        ideal = ideal_start_line(green, ball_ft, pin_ft, green_speed)
+        phi_ideal = math.radians(ideal["start_deg"])
+    else:
+        phi_ideal = math.radians(ideal_start_deg)
     ball = np.asarray(ball_ft, dtype=float)
 
     if made:
@@ -752,11 +764,16 @@ def build_putt_read(green: Green, ball_ft, pin_ft, distance_ft: float,
         "green_speed": round(float(green_speed), 1),
         "predicted_path": pred["path"],
         "is_comebacker": bool(is_comebacker),
+        # The ideal start line, so build_putt_result can reuse it instead
+        # of re-running the same deterministic search (speed: one less
+        # 246-candidate batch integration per putt, identical result).
+        "ideal_start_deg": pred["start_deg"],
     }
 
 
 def build_putt_result(green: Green, ball_ft, pin_ft, res: dict,
-                      green_speed: float, make_pct: float | None = None
+                      green_speed: float, make_pct: float | None = None,
+                      ideal_start_deg: float | None = None
                       ) -> dict:
     """The extended ``putt_result`` putt dict (§2.3).
 
@@ -770,7 +787,8 @@ def build_putt_result(green: Green, ball_ft, pin_ft, res: dict,
     multiplier.
     """
     solved = solve_actual_path(green, ball_ft, pin_ft, res["made"],
-                               res["leave_ft"], res["speed"], green_speed)
+                               res["leave_ft"], res["speed"], green_speed,
+                               ideal_start_deg=ideal_start_deg)
     if make_pct is None:
         make_pct = make_probability(res["distance_ft"],
                                     solved["break_ft"], green_speed)

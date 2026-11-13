@@ -20,6 +20,7 @@ from sim.greens import green_for_hole
 from sim.pins import (pin_difficulty_for, pin_zone_for,
                       rotation_index_for_round)
 from sim.putting import build_putt_read
+from sim.tests._markers import slow
 
 
 def _pin_xy(engine, hole, zone):
@@ -145,6 +146,7 @@ class TestPinRotation(unittest.TestCase):
 
 
 class TestPinRotationEngine(unittest.TestCase):
+    @slow
     def test_engine_pins_follow_the_rotation(self):
         # Rounds 1-2 share a rotation (identical pins); round 3 is a
         # new rotation (pins move on nearly every hole).

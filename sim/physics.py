@@ -217,6 +217,117 @@ def _spin_vector(spin_rpm: np.ndarray, spin_axis_deg: np.ndarray):
     return np.stack([wx, wy, wz], axis=-1)
 
 
+def _fly_scalar(ball_speed_mph, launch_deg, spin_rpm, spin_axis_deg,
+                start_dir_deg, wind_along_ms=0.0, wind_lateral_ms=0.0,
+                ground_elev_m=0.0, temp_f=62.0, firmness=0.6,
+                record_trajectory=False) -> "FlightResult":
+    """Single-ball flight integration with plain floats (speed).
+
+    Identical formulas and step order to the vector path in :func:`fly`
+    — same semi-implicit Euler at 100 Hz, same drag/Magnus/bounce
+    model — but scalar ``math`` instead of numpy. The vector path costs
+    ~25 numpy calls per step; for one ball that overhead dwarfs the
+    arithmetic (~130 ms per flight vs ~3 ms here), and the engine's
+    per-shot path is always n == 1. Results agree with the vector path
+    to within float rounding; the carry bands in the tests are yards
+    wide, so this is far inside tolerance.
+    """
+    v0 = float(ball_speed_mph) * C.MPH_TO_MS
+    launch = math.radians(float(launch_deg))
+    start = math.radians(float(start_dir_deg))
+    spin = float(spin_rpm)
+    phi = math.radians(float(spin_axis_deg))
+    rho = air_density(temp_f)
+    cd = 0.24 + CD_SPIN_K * spin
+    omega_mag = spin * 2.0 * math.pi / 60.0
+    # Spin vector: pure backspin (axis 0) points along +z; a positive
+    # axis tilts it toward -y. (Same as _spin_vector for one ball.)
+    ox, oy, oz = 0.0, -omega_mag * math.sin(phi), omega_mag * math.cos(phi)
+    om_norm = math.sqrt(oy * oy + oz * oz)
+    ohx, ohy, ohz = 0.0, oy / max(om_norm, 1e-9), oz / max(om_norm, 1e-9)
+    radius_m = C.BALL_DIAMETER_M / 2.0
+    wx, wz = float(wind_along_ms), float(wind_lateral_ms)
+    px, py, pz = 0.0, 0.0, 0.0
+    vx = v0 * math.cos(launch) * math.cos(start)
+    vy = v0 * math.sin(launch)
+    vz = v0 * math.cos(launch) * math.sin(start)
+    apex = 0.0
+    carry = math.nan
+    first_contact_done = False
+    done = False
+    bounce_count = 0
+    restitution = 0.35 * firmness + 0.15
+    dt = C.DT
+    traj: list = []
+    t = 0.0
+    max_steps = int(C.MAX_FLIGHT_TIME_S / dt)
+    for step in range(max_steps):
+        vrx, vry, vrz = vx - wx, vy, vz - wz
+        speed_rel = math.sqrt(vrx * vrx + vry * vry + vrz * vrz)
+        speed_rel = max(speed_rel, 1e-9)
+        hx, hy, hz = vrx / speed_rel, vry / speed_rel, vrz / speed_rel
+        drag_k = -0.5 * rho * cd * C.BALL_AREA_M2 * speed_rel
+        # Magnus direction: omega_hat x v_rel_hat.
+        mx = ohy * hz - ohz * hy
+        my = ohz * hx - ohx * hz
+        mz = ohx * hy - ohy * hx
+        spin_ratio = omega_mag * radius_m / speed_rel
+        cl = min(0.35, max(0.02, CL_C2 * spin_ratio ** 2
+                           + CL_C1 * spin_ratio))
+        mag_k = 0.5 * rho * cl * C.BALL_AREA_M2 * speed_rel ** 2
+        ax = (drag_k * vrx + mag_k * mx) / C.BALL_MASS_KG
+        ay = (drag_k * vry + mag_k * my) / C.BALL_MASS_KG - C.GRAVITY
+        az = (drag_k * vrz + mag_k * mz) / C.BALL_MASS_KG
+        if done:
+            ax = ay = az = 0.0
+            vx = vy = vz = 0.0
+        vx += ax * dt
+        vy += ay * dt
+        vz += az * dt
+        px += vx * dt
+        py += vy * dt
+        pz += vz * dt
+        t += dt
+        apex = max(apex, py - ground_elev_m)
+        if record_trajectory and step % 5 == 0:
+            traj.append((px, py, pz))
+        if (not first_contact_done) and py <= ground_elev_m and vy < 0:
+            carry = px
+            first_contact_done = True
+        if (not done) and py <= ground_elev_m and vy < 0:
+            if abs(vy) < 1.0:
+                vx = vy = vz = 0.0
+                done = True
+                py = ground_elev_m
+            else:
+                spin_f = min(1.0, spin / 9000.0)
+                e_i = restitution * (1.0 - 0.35 * spin_f)
+                retain = (0.72 if bounce_count == 0 else 0.85) \
+                    * (1.0 - 0.55 * spin_f)
+                vy = -vy * e_i
+                vx *= retain
+                vz *= retain
+                bounce_count += 1
+                py = ground_elev_m
+        if done:
+            break
+    if math.isnan(carry):
+        carry = px
+    return FlightResult(
+        carry_yd=np.array([carry * C.M_TO_YARD]),
+        total_yd=np.array([px * C.M_TO_YARD]),
+        curve_ft=np.array([pz / C.FT_TO_M]),
+        offline_ft=np.array([pz / C.FT_TO_M]),
+        apex_ft=np.array([apex / C.FT_TO_M]),
+        flight_time_s=np.array([t]),
+        bounce_x_m=np.array([px]),
+        bounce_z_m=np.array([pz]),
+        hvel_x_ms=np.array([vx]),
+        hvel_z_ms=np.array([vz]),
+        trajectory=traj,
+    )
+
+
 def fly(ball_speed_mph, launch_deg, spin_rpm, spin_axis_deg, start_dir_deg,
         wind_along_ms=0.0, wind_lateral_ms=0.0, ground_elev_m=0.0,
         temp_f=62.0, firmness=0.6, record_trajectory=False):
@@ -230,6 +341,12 @@ def fly(ball_speed_mph, launch_deg, spin_rpm, spin_axis_deg, start_dir_deg,
     start = np.radians(np.asarray(start_dir_deg, dtype=float))
     spin = np.asarray(spin_rpm, dtype=float)
     n = v0.size if v0.ndim else 1
+    if n == 1:
+        # Single ball: the scalar path (same formulas, plain floats).
+        return _fly_scalar(ball_speed_mph, launch_deg, spin_rpm,
+                           spin_axis_deg, start_dir_deg, wind_along_ms,
+                           wind_lateral_ms, ground_elev_m, temp_f,
+                           firmness, record_trajectory)
     v0 = np.atleast_1d(v0)
     launch = np.atleast_1d(launch)
     start = np.atleast_1d(start)

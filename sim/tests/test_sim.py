@@ -27,6 +27,7 @@ from sim.physics import (apply_roll, classify_contact, delivery_to_launch,
 from sim.putting import make_probability, putt as putt_model
 from sim.rng import Rng, seed_for_round
 from sim.strokes_gained import baseline_strokes, strokes_gained
+from sim.tests._markers import slow
 
 
 def make_situation(**over):
@@ -475,6 +476,7 @@ class TestConditions(unittest.TestCase):
     def test_green_spin_factor_ordering(self):
         self.assertLess(green_spin_factor(0.85), green_spin_factor(0.30))
 
+    @slow
     def test_conditions_change_events_occur(self):
         eng = RoundEngine(fast_mode=True)
         seen = 0
@@ -524,6 +526,7 @@ class TestRatingSlope(unittest.TestCase):
         d_hard = differential(72, tourney.rating, tourney.slope)
         self.assertLess(d_hard, d_easy)
 
+    @slow
     def test_tournament_setup_round_plays(self):
         eng = RoundEngine(course=championship_variant(), fast_mode=True)
         res = eng.play_round()
@@ -591,6 +594,7 @@ class TestConditionsEffects(unittest.TestCase):
 
 
 class TestEngine(unittest.TestCase):
+    @slow
     def test_one_round_completes_and_adds_up(self):
         eng = RoundEngine(mc_n=8)
         res = eng.play_round()
@@ -599,6 +603,7 @@ class TestEngine(unittest.TestCase):
         self.assertGreaterEqual(res.score, 55)
         self.assertLessEqual(res.score, 95)
 
+    @slow
     def test_events_in_order(self):
         eng = RoundEngine(mc_n=8)
         res = eng.play_round()
@@ -617,6 +622,7 @@ class TestEngine(unittest.TestCase):
                         and x["shot_no"] == e["shot_no"]]
                 self.assertTrue(prev)
 
+    @slow
     def test_all_event_types_present(self):
         eng = RoundEngine(mc_n=8)
         res = eng.play_round()
@@ -627,6 +633,7 @@ class TestEngine(unittest.TestCase):
         self.assertIn("putt_result", types)
         self.assertIn("fifty_nine_watch", types)
 
+    @slow
     def test_determinism_byte_identical(self):
         a = RoundEngine(mc_n=8)
         b = RoundEngine(mc_n=8)
@@ -635,6 +642,7 @@ class TestEngine(unittest.TestCase):
         self.assertEqual(ra.events, rb.events)
         self.assertEqual(ra.score, rb.score)
 
+    @slow
     def test_no_nan_positions(self):
         eng = RoundEngine(mc_n=8)
         res = eng.play_round()
@@ -644,6 +652,7 @@ class TestEngine(unittest.TestCase):
                           e["launch"]["apex_ft"], e["outcome"]["distance_to_pin_ft"]):
                     self.assertFalse(math.isnan(v))
 
+    @slow
     def test_handicap_moves_at_most_half_point(self):
         eng = RoundEngine(mc_n=8, fast_mode=True)
         prev = eng.handicap_index
@@ -652,17 +661,20 @@ class TestEngine(unittest.TestCase):
             self.assertLessEqual(abs(res.handicap_after - prev), 0.5 + 1e-9)
             prev = res.handicap_after
 
+    @slow
     def test_fast_mode_rounds(self):
         eng = RoundEngine(fast_mode=True)
         res = eng.play_round()
         self.assertEqual(sum(res.hole_scores), res.score)
 
+    @slow
     def test_multiple_rounds_loop_never_ends(self):
         eng = RoundEngine(fast_mode=True)
         results = eng.play_rounds(5)
         self.assertEqual(len(results), 5)
         self.assertEqual([r.round_no for r in results], [1, 2, 3, 4, 5])
 
+    @slow
     def test_learning_loop_produces_fix_over_rounds(self):
         eng = RoundEngine(fast_mode=True)
         fixes = set()
@@ -672,6 +684,7 @@ class TestEngine(unittest.TestCase):
                 fixes.add(res.focus_fix["area"])
         self.assertTrue(len(fixes) >= 1)
 
+    @slow
     def test_fifty_nine_watch_in_round(self):
         eng = RoundEngine(fast_mode=True)
         res = eng.play_round()

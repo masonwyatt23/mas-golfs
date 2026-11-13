@@ -10,6 +10,7 @@ import unittest
 from sim import constants as C
 from sim import putting
 from sim.twins import (
+from sim.tests._markers import slow
     BAND_DRIVING_YD, BAND_PCT_POINTS, BAND_SCORING_STROKES,
     StatProfile, TwinAlreadyExists, TwinProfile, TwinRegistry,
     approve_twin, benchmark_for_handicap, build_twin, calibrate_twin,
@@ -432,6 +433,7 @@ class TestValidationRoundMC(unittest.TestCase):
     The tight gate lives in the calibration loop, on the running mean.
     """
 
+    @slow
     def test_scratch_validation_round(self):
         p = StatProfile(name="Scratch Sam", handicap=0, miss="straight",
                         best_part="irons", worst_part="putting",
@@ -448,6 +450,7 @@ class TestValidationRoundMC(unittest.TestCase):
         self.assertEqual(v.seed, 0)
         self.assertEqual(v.mc_n, 60)
 
+    @slow
     def test_calibrate_12hcp_and_approve(self):
         """The loop gates on the running mean; a validated twin can air
         once the guest approves the card."""

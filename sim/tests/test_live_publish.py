@@ -15,6 +15,7 @@ from bus.client import BusPublisher
 from bus.server import create_server
 from sim.events import DEFAULT_BUS_URL, EventEmitter, resolve_bus_url
 from sim import live_demo
+from sim.tests._markers import slow
 
 
 def _free_port() -> int:
@@ -132,6 +133,7 @@ class TestLivePublish(unittest.TestCase):
 
 
 class TestLiveDemo(unittest.TestCase):
+    @slow
     def test_demo_round_completes(self):
         port = _free_port()
         summary = live_demo.run(port=port, rounds=1, fast=True)

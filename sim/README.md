@@ -14,8 +14,25 @@ python -m sim.demo                # one full round, printed scorecard
 python -m sim.demo --rounds 3 --fast
 python -m sim.demo --course black # the harder black-tee variant
 python -m sim.calibrate           # calibration harness (spec §3.7)
-python -m unittest discover -s sim/tests -v
+python -m sim.run_tests           # FAST suite (no full rounds, seconds)
+python -m sim.run_tests --slow    # full suite incl. round-playing tests
+python -m sim.run_tests --parallel --slow  # full suite, modules in parallel
+python -m unittest discover -s sim/tests -v  # same as --slow, via unittest
 ```
+
+## Test speed
+
+A fast-mode round is ~25 s and an mc_n=60 validation round ~1 min, so
+the full suite takes ~15 minutes — too slow for the edit loop. Tests
+that play a full round (or an MC validation round) are marked ``@slow``
+(`sim/tests/_markers.py`); the default `python -m sim.run_tests` runs
+everything else in seconds. Run `--slow` before any push and on the
+Mac. Speed notes (Nov 13): the putting solver runs the ideal-start-line
+search once per putt (the read and the result share it); single-ball
+flight uses a scalar integrator (~3 ms vs ~130 ms, carry identical);
+`pace_at_closest` is rounding-sensitive when a putt has two near-tied
+closest approaches, so keep the bilinear interpolation exactly as-is
+(a fused variant flipped one such tie and broke a test).
 
 ## Layout
 

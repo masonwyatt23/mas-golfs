@@ -7,6 +7,7 @@ import unittest
 
 from sim.course import DUNMORE_LINKS, build_dunmore_links
 from sim.engine import RoundEngine
+from sim.tests._markers import slow
 
 
 def _lie(course, hole_no, s_yd, lateral_yd):
@@ -148,6 +149,7 @@ class TestDunmoreLies(unittest.TestCase):
 
 
 class TestDunmoreRound(unittest.TestCase):
+    @slow
     def test_fast_mode_round_completes(self):
         eng = RoundEngine(course=DUNMORE_LINKS, fast_mode=True)
         self.assertEqual(eng.course.name, "Dunmore Links")

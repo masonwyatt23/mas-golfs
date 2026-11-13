@@ -419,7 +419,9 @@ class RoundEngine:
                                  form_mult)
                 ext = build_putt_result(green, ball_ft, pin_ft, res,
                                         cond["green_speed"],
-                                        make_pct=read["make_pct"])
+                                        make_pct=read["make_pct"],
+                                        ideal_start_deg=read[
+                                            "ideal_start_deg"])
                 emitter.emit("putt_result", hole=hole_no, shot_no=strokes,
                              putt=ext,
                              putts_on_hole=putts,
@@ -518,7 +520,9 @@ class RoundEngine:
                                  form_mult)
                 ext = build_putt_result(green, ball_ft, pin_ft, res,
                                         cond["green_speed"],
-                                        make_pct=read["make_pct"])
+                                        make_pct=read["make_pct"],
+                                        ideal_start_deg=read[
+                                            "ideal_start_deg"])
                 emitter.emit("putt_result", hole=hole_no, shot_no=strokes,
                              putt=ext,
                              putts_on_hole=putts,
