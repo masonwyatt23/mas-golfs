@@ -161,7 +161,7 @@ tonemap_mode = 2
 tonemap_exposure = 1.0
 glow_enabled = true
 
-[node name="Hole12" type="Node3D" parent="."]
+[node name="Hole12" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_31")

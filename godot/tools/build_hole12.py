@@ -73,9 +73,12 @@ def capsule(r: float, h: float) -> str:
     return sub("CapsuleMesh", {"radius": str(r), "height": str(h)})
 
 
-def node(name: str, ntype: str, parent: str, transform: str | None = None,
+def node(name: str, ntype: str, parent: str | None, transform: str | None = None,
          extra: list[str] | None = None) -> None:
-    nodes_out.append(f'[node name="{name}" type="{ntype}" parent="{parent}"]')
+    if parent is None:
+        nodes_out.append(f'[node name="{name}" type="{ntype}"]')
+    else:
+        nodes_out.append(f'[node name="{name}" type="{ntype}" parent="{parent}"]')
     if transform:
         nodes_out.append(f"transform = {transform}")
     for e in extra or []:
@@ -150,7 +153,7 @@ env = sub("Environment", {
 # --- Scene ---------------------------------------------------------------------
 # (sub_resources and nodes were collected above; the header must lead.)
 
-node("Hole12", "Node3D", ".")
+node("Hole12", "Node3D", None)
 node("WorldEnvironment", "WorldEnvironment", ".", None,
      [f'environment = SubResource("{env}")'])
 # Golden-hour sun: low, warm, from behind-left so the golfer is rim-lit.
