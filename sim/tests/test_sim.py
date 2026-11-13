@@ -439,6 +439,23 @@ class TestFiftyNineWatch(unittest.TestCase):
         self.assertTrue(c2)
         self.assertFalse(c3)
 
+    def test_needs_on_tee(self):
+        # All par 4s: par through 17 is 68, the 18th is a par 4.
+        pars = [4] * 18
+        w = FiftyNineWatch(pars, last10_avg=72.0)
+        # 55 through 17: worst score on the 18th that still shoots 59 is 4.
+        self.assertEqual(w.needs_on_tee(55), "a par or better")
+        # 56 through 17: needs a 3 (birdie) on the 18th.
+        self.assertEqual(w.needs_on_tee(56), "a birdie or better")
+        # 57 through 17: needs a 2 (eagle) on the 18th.
+        self.assertEqual(w.needs_on_tee(57), "an eagle or better")
+        # 54 through 17: can afford a 5 (bogey) and still shoot 59.
+        self.assertEqual(w.needs_on_tee(54), "a bogey or better")
+        # 58 through 17: only a hole-in-one (1) reaches 59.
+        self.assertEqual(w.needs_on_tee(58), "a hole-in-one or better")
+        # 59 through 17: even a hole-in-one cannot reach 59.
+        self.assertIsNone(w.needs_on_tee(59))
+
 
 class TestConditions(unittest.TestCase):
     def test_opening_draw_in_ranges(self):

@@ -245,6 +245,7 @@ class RoundEngine:
                     wd = watch.state.to_dict()
                     wd.pop("hole")
                     emitter.emit("fifty_nine_watch", hole=18, **wd,
+                                 needs=watch.needs_on_tee(score_so_far),
                                  moment="59_on_the_line" if tee_status ==
                                  STATUS_ON_THE_LINE else "59_secured")
             hr, records = self._play_hole(

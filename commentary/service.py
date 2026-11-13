@@ -208,6 +208,7 @@ class CommentaryService:
         fields["status"] = event.get("status", "—")
         fields["holes_left"] = event.get("holes_left", "—")
         fields["strokes_remaining"] = event.get("strokes_remaining", "—")
+        fields["needs"] = event.get("needs", "—")
         fields["probability"] = event.get("probability", "—")
         fields["detail"] = event.get("detail", "—")
         return fields

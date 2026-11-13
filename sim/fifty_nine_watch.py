@@ -100,6 +100,28 @@ class WatchState:
                     on_pace_at_turn=self.on_pace_at_turn)
 
 
+def _score_name(score: int, par: int) -> str:
+    """Standard golf name for a score on a hole of the given par."""
+    if score == 1:
+        return "hole-in-one"
+    diff = score - par
+    if diff == 0:
+        return "par"
+    if diff == 1:
+        return "bogey"
+    if diff == 2:
+        return "double bogey"
+    if diff == 3:
+        return "triple bogey"
+    if diff == -1:
+        return "birdie"
+    if diff == -2:
+        return "eagle"
+    if diff == -3:
+        return "albatross"
+    return f"{diff} over par"
+
+
 class FiftyNineWatch:
     """Tracks the 59 chase through one round."""
 
@@ -174,6 +196,22 @@ class FiftyNineWatch:
         if score_so_far + self.pars[17] - 2 <= TARGET_SCORE:
             return STATUS_ON_THE_LINE
         return STATUS_GONE
+
+    def needs_on_tee(self, score_so_far: int) -> str | None:
+        """Plain-language requirement on the 18th to finish at 59 or better.
+
+        Returns e.g. "a birdie or better", or None if even a hole-in-one
+        cannot reach 59 (59 is gone). Computed in code — never by the
+        commentary model — so the booth states the requirement exactly
+        (the A/B found both 4B models derive the 59 pace wrong).
+        """
+        par_18 = self.pars[17]
+        if score_so_far + 1 > TARGET_SCORE:
+            return None  # even a hole-in-one cannot reach 59
+        max_score = TARGET_SCORE - score_so_far
+        name = _score_name(max_score, par_18)
+        article = "an" if name in ("eagle", "albatross") else "a"
+        return f"{article} {name} or better"
 
     def round_summary(self) -> dict:
         """Per-round 59-watch stats for the record book."""
