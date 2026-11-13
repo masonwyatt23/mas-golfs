@@ -76,7 +76,11 @@ _NUMBER_WORDS = {
     "ninety": 90, "hundred": 100,
 }
 _WORD_TO_NUM = {w: n for w, n in _NUMBER_WORDS.items()}
-_INT_RE = re.compile(r"-?\d+")
+# A hyphen is a minus only when it is NOT part of a compound word:
+# "par-5" is the number 5, not negative five (caught 2026-11-13:
+# ev12 was flagged [-5] for "par-5"). A real negative ("score -5",
+# "-5 under") is preceded by a space or nothing, so it still parses.
+_INT_RE = re.compile(r"(?<![A-Za-z])-?\d+")
 _WORD_RE = re.compile(r"[a-z]+(?:-[a-z]+)?")
 
 # Numeric context for a bare number word (mirrors
@@ -248,9 +252,15 @@ def find_invented_numbers(line: str, prompt: str) -> list[int]:
     must still be grounded in a bare number in the prompt: stripping
     both sides means a prompt that only ever said "120%" does not
     ground a line claiming "120 yards".
+
+    The literal "+3" is Mas's handicap, stated in the system prompts
+    the model is given ("a +3 left-handed golfer"); the model may
+    reference it as "+3" and that is not an invented stat (caught
+    2026-11-13: ev03 failed on "+3 lefty"). Only the exact "+3"
+    notation is exempt — a bare 3 ("3 under par") is still checked.
     """
     pct_re = re.compile(r"-?\d+\s*%")
-    line_nums = _numbers_in(pct_re.sub("", line))
+    line_nums = _numbers_in(pct_re.sub("", re.sub(r"\+3\b", "", line)))
     prompt_nums = _numbers_in(pct_re.sub("", prompt))
     return sorted(line_nums - prompt_nums)
 
