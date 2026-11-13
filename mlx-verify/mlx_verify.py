@@ -207,8 +207,19 @@ def find_invented_numbers(line: str, prompt: str) -> list[int]:
     The 280-char line may restate a prompt number in words ("twelve feet"
     for "12 feet"), so both forms count as present. A number the prompt
     never mentions is an invented stat (commentary-prompts rule 2).
+
+    Percentages are not stats — "120%" is an effort idiom ("giving
+    120%"), not a distance or a score — so they are stripped from both
+    sides before the check (caught 2026-11-13: ev05 failed on
+    "shouting 120%", which invents no stat). A bare number in the line
+    must still be grounded in a bare number in the prompt: stripping
+    both sides means a prompt that only ever said "120%" does not
+    ground a line claiming "120 yards".
     """
-    return sorted(_numbers_in(line) - _numbers_in(prompt))
+    pct_re = re.compile(r"-?\d+\s*%")
+    line_nums = _numbers_in(pct_re.sub("", line))
+    prompt_nums = _numbers_in(pct_re.sub("", prompt))
+    return sorted(line_nums - prompt_nums)
 
 
 def validate_line(line: str, prompt: str) -> dict:
