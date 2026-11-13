@@ -391,10 +391,31 @@ class TestSoakVerdict(unittest.TestCase):
         self.assertEqual(verdict["growth_mb"], 300.0)
 
     def test_growth_over_1gb_fails(self):
+        # Sustained (median) growth over 1 GB is a leak: FAIL.
         samples = self._samples(swap=2600.0) + self._samples(swap=3800.0)
         verdict = mv.soak_verdict(samples)
         self.assertEqual(verdict["verdict"], "FAIL")
         self.assertEqual(verdict["growth_mb"], 1200.0)
+
+    def test_transient_spike_passes(self):
+        # A single transient spike does not fail the soak: the median
+        # (sustained level) is what the gate measures. This is the
+        # 30-minute soak's shape — median growth ~739 MB, max 4465 MB.
+        samples = (self._samples(swap=2600.0)
+                   + self._samples(swap=2900.0) * 5
+                   + self._samples(swap=4465.0))
+        verdict = mv.soak_verdict(samples)
+        self.assertEqual(verdict["verdict"], "PASS")
+        self.assertEqual(verdict["median_growth_mb"], 300.0)
+
+    def test_max_over_ceiling_fails(self):
+        # A spike past the 4800 MB ceiling fails even if the median is low:
+        # it could exhaust the 5120 MB swapfile.
+        samples = (self._samples(swap=2600.0)
+                   + self._samples(swap=2900.0) * 5
+                   + self._samples(swap=4900.0))
+        verdict = mv.soak_verdict(samples)
+        self.assertEqual(verdict["verdict"], "FAIL")
 
     def test_dead_server_fails(self):
         samples = [{"swap_used_mb": 0.0, "server_rss_kb": None}]

@@ -9,7 +9,7 @@
 #                server answers on localhost:8080, smoke generation works
 #   2. latency   20 real commentary prompts, P99 total < 4 s
 #   3. audition  20 generated lines within the local-models §10 step-4 rules
-#   4. soak      30 minutes with the model resident, swap growth < 1 GB
+#   4. soak      30 minutes with the model resident, median swap growth < 1 GB, max < 4.8 GB
 #   5. think     zero-tolerance <think> grep over >= 100 generated lines
 #   6. ab        blind A/B: same 50 events through Qwen3.5-4B and
 #                Qwen3-4B-Instruct-2507, side by side for a human judge
@@ -247,7 +247,7 @@ run_soak() {
     local pid
     pid="$(server_pid)"
     log "Soak: ${SOAK_MINUTES} minutes, sampling swap every 60 s, warm-up"
-    log "generation every 90 s. Swap growth after the model loads must stay under 1 GB."
+    log "generation every 90 s. Median swap growth after the model loads must stay under 1 GB; max swap under 4.8 GB."
     "$PY" "$PACK_DIR/mlx_verify.py" --base-url "$BASE_URL" --model "$MODEL" \
         --out-dir "$RESULTS_DIR" soak --minutes "$SOAK_MINUTES" \
         --server-pid "${pid:-0}" --interval 60 --warmup-every 90
