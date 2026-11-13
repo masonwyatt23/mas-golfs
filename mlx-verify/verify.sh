@@ -210,6 +210,15 @@ run_check() {
     log "CHECK PASS."
 }
 
+# Diagnostic: dump the raw server response for one prompt (raw SSE lines
+# + raw non-streaming JSON). Added 2026-11-13 after the smoke reported
+# "streamed an empty completion" with prefill complete and zero deltas —
+# the cause is only visible in the raw response.
+run_probe() {
+    start_server "$MODEL" || return $?
+    "$PY" "$PACK_DIR/probe_raw.py" --base-url "$BASE_URL" --model "$MODEL"
+}
+
 run_latency() {
     start_server "$MODEL" || return $?
     "$PY" "$PACK_DIR/mlx_verify.py" --base-url "$BASE_URL" --model "$MODEL" \
@@ -309,6 +318,7 @@ main() {
     fi
     case "$cmd" in
         check)    run_check ;;
+        probe)    run_probe ;;
         latency)  run_latency ;;
         audition) run_audition ;;
         soak)     run_soak ;;
