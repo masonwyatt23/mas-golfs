@@ -113,11 +113,11 @@ def mesh_node(name: str, mesh: str, material: str, x: float, y: float,
 # ground tiles specifically (not culling); if still black, the tiles are
 # not rendering at all. The tee/green prove shaded green CAN read.
 grass = mat((0.28, 0.58, 0.28), unshaded=True)  # green again (v14 magenta was the diagnostic; shading_mode is now truly 0=unshaded, so this renders flat green)
-fairway = mat((0.32, 0.62, 0.30))
-green_mat = mat((0.35, 0.70, 0.32))
-collar_mat = mat((0.22, 0.55, 0.22))
-sand = mat((0.85, 0.75, 0.55), roughness=1.0)
-water = mat((0.10, 0.35, 0.55), roughness=0.15, metallic=0.4)
+fairway = mat((0.32, 0.62, 0.30), unshaded=True)
+green_mat = mat((0.35, 0.70, 0.32), unshaded=True)
+collar_mat = mat((0.22, 0.55, 0.22), unshaded=True)
+sand = mat((0.85, 0.75, 0.55), roughness=1.0, unshaded=True)
+water = mat((0.10, 0.35, 0.55), roughness=0.15, metallic=0.4, unshaded=True)
 trunk_mat = mat((0.35, 0.22, 0.12))
 pine_mat = mat((0.08, 0.25, 0.12))
 shirt = mat((0.08, 0.12, 0.30))
