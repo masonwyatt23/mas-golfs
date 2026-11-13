@@ -50,6 +50,11 @@ class HttpLLMBackend:
     def generate(self, speaker: str, user_prompt: str) -> tuple[str, float]:
         """Generate one line. Returns (text, latency_seconds)."""
         system = SYSTEM_PROMPTS[speaker]
+        # chat_template_kwargs enable_thinking=false: Qwen3.5 defaults to
+        # thinking mode, and with max_tokens=120 the whole budget is eaten
+        # by the reasoning block — content comes back null and the answer
+        # never starts (verified on the box 2026-11-13 via mlx-verify's
+        # probe_raw.py). The design is non-thinking (config.yaml).
         payload = json.dumps({
             "model": self.model,
             "messages": [
@@ -58,6 +63,7 @@ class HttpLLMBackend:
             ],
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
+            "chat_template_kwargs": {"enable_thinking": False},
         }).encode("utf-8")
         request = urllib.request.Request(
             f"{self.base_url}/chat/completions",
@@ -76,6 +82,10 @@ class HttpLLMBackend:
             text = body["choices"][0]["message"]["content"]
         except (KeyError, IndexError, TypeError) as exc:
             raise LLMError(f"{self.name} returned an unusable response: {body!r}") from exc
+        if text is None:
+            # A 200 with null content (e.g. the model spent its whole token
+            # budget thinking) is an unusable response, not a string.
+            raise LLMError(f"{self.name} returned an unusable response: {body!r}")
         return text.strip(), latency
 
     def healthy(self) -> bool:

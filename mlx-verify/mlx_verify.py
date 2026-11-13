@@ -253,6 +253,13 @@ class ChatClient:
         self._systems = system_prompts()
 
     def _payload(self, speaker: str, user_prompt: str, stream: bool) -> bytes:
+        # chat_template_kwargs enable_thinking=false: Qwen3.5 defaults to
+        # thinking mode, and with max_tokens=120 the whole budget is eaten
+        # by the reasoning block — content comes back null, finish_reason
+        # "length", and the answer never starts (verified on the box
+        # 2026-11-13 via probe_raw.py). The design is non-thinking
+        # (commentary/config.yaml). The mlx-lm server honors this kwarg —
+        # its own --chat-template-args help text gives exactly this example.
         return json.dumps({
             "model": self.model,
             "messages": [
@@ -262,6 +269,7 @@ class ChatClient:
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
             "stream": stream,
+            "chat_template_kwargs": {"enable_thinking": False},
         }).encode("utf-8")
 
     def _request(self, speaker: str, user_prompt: str, stream: bool):
