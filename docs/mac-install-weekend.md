@@ -17,9 +17,11 @@
 
 Written Nov 13, 2026, from the repo state that morning. The readiness audit (`docs/reviews/readiness-2026-11-13.md`, ~05:00 UTC Nov 13) said **NOT READY — 0 of 18 gates green**, but several of its reds have landed since. This table is the honest version; §7 re-marks the full §6 go-live checklist against it.
 
+**Evening update (Nov 13, ~4:30pm ET — supersedes the guided-Terminal path below):** the Mac is now drivable autonomously. Mason loaded a LaunchAgent runner (`~/Library/LaunchAgents/ai.ashlr.muse-runner.plist`, runs `~/.masgolfs/runner/run.sh` every 20s); Ash writes a command file and the runner executes it, output in `~/.masgolfs/runner/output.log`. Long jobs must be started via `~/.masgolfs/runner/daemonize.py` (Python setsid — plain `nohup &` dies when launchd reaps the job's process group). **Godot 4.7.2 is installed** (brew --cask) and the Hole 12 v1 scene loads clean headless. **MLX verify gates on the box: CHECK, LATENCY, AUDITION (20/20), THINK, and the blind A/B all PASS** (Qwen3.5-4B-4bit kept; challenger rejected); the 30-min soak is running with the new growth-based gate (< 1 GB swap growth). The 59 Watch prompt fix is in (the 18th-hole requirement is computed in code, not derived by the model). So the weekend's execution path is the runner, not Mason pasting commands — Mason only steps in for the phone eye test and the stream-key entries.
+
 | Area | Already green from this VM (repo state, Nov 13) | Only the box can prove |
 |---|---|---|
-| Sim suite | `semi` crash fixed, suite green (64 tests). Learning loop (41 tests), Dunmore (18 tests), twins (40/40), putting solver v2 (30 tests), pins rotation tests all in repo | Calibration harness (10,000-round MC) never run; flight-model retune still in flight — the sim's *numbers* are not settled yet |
+| Sim suite | `semi` crash fixed; full suite green, **210 tests** (Nov 13, pushed `d2fd34e0`); fast suite 193 tests in ~10 s (`python -m sim.run_tests`). Learning loop (41 tests), Dunmore (18 tests), twins (40/40), putting solver v2 (30 tests), pins rotation tests all in repo. Flight-model retune landed: driver carry 262.6 yd drawn mean / 264.6 pure vs 268 target. | Tier A (200-round) / Tier B (2,000-round) calibration harness per QA plan v1.1 — never run on any machine yet. The old 10,000-round gate is **deferred**, not in flight (see §0.1). |
 | Coins | Engine built, 36/36 tests pass | §5 payout/anti-abuse checks on a live test economy; NodeCG/web wiring + persistence not built — launch-with or descope is Mason's call |
 | Commentary | Made-putt crash fixed; harness 6/6 green; 34/34 commentary tests | Real MLX server on 8GB silicon, real Kokoro audio, Ollama failover, 24-hour soak — none of this has ever run on the box |
 | Bus / NodeCG | Live sim→bus publish hook built; integration harness 6/6 green (NodeCG test_04 flaky ~50%, not root-caused) | Live ws handshake against the real bus on the box; graphics updating from real events |
@@ -28,7 +30,8 @@ Written Nov 13, 2026, from the repo state that morning. The readiness audit (`do
 | Ops | `install.sh` + failure tests written | Whether `install.sh` actually installs and the checks actually pass on macOS |
 
 **Known stale bits in the repo (do not "fix" them mid-weekend — note them and keep going):**
-- `sim/constants.py` still holds the old 74.6/138 and 7,214 yd (verified Nov 13). The retune agent owns that file; the v3 numbers (76.1/142, 7,602 yd) live in `docs/course-rating-v3.md`.
+- `sim/constants.py` now reads the v3 numbers 76.1/142 and 7,602 yd (fixed Nov 13, verified in code; full suite green, 210 tests, pushed `d2fd34e0` Nov 13).
+- **Box RAM confirmed 8GB (Nov 13, ~1:06pm ET — Mason ran `sysctl` in Terminal: hw.memsize = 8GB, 8 cores, Chip "Apple M3", macOS 26.5 build 25F5068a, Python 3.13.1).** The "8GB" label was right; the Mac15,3-ships-18GB+ suspicion is resolved. The 8GB budget stands: Godot ~6.75GB total / 7.0GB hard cap, Qwen3.5-4B stays the commentary default, 8B does not fit alongside the stack. No re-measurement needed in Step 1. SSH to the box is blocked (tunnel approval never landed, Nov 13 ~1:02pm ET); the fallback is guided Terminal — Mason pastes, Ash reads results.
 - `sim/README.md:74` is wrong (same stale numbers).
 - `mlx-verify/README.md` line 21 says `mlx-audit.sh` where it means `mlx-verify.sh`.
 - The audit's "bus is Node.js ws" line is stale: the bus is Python stdlib, and it writes `ops/state/last_event` on every event.
@@ -39,7 +42,7 @@ These must be true before the box work starts. If any is red, the weekend still 
 
 | # | Gate | Status Nov 13 | If red |
 |---|---|---|---|
-| 0.1 | **Sim calibration gate decision.** The 10,000-round QA gate is infeasible in Python (14–55 hrs vs the <5 min requirement); the retune agent is recovering ~25 yd of driver carry (240.4 vs 268 yd) and will recommend what the gate becomes. | In flight — retune agent running | Run the weekend anyway, but the 12-hour soak is a *stack* soak, not a *calibration* soak. Do not claim GL-01 green until the harness runs and passes. |
+| 0.1 | **Sim calibration gate decision.** QA plan v1.1 (pushed `0739c4d8`, Nov 13) **decides it**: the 10,000-round / <5-min gate is infeasible in Python (~24 s/round vs <30 ms needed) and is **deferred** until a vectorized/compiled engine exists; replaced by Tier A (200 rounds per change, 60-min target on the box) and Tier B (2,000 rounds nightly). The retune landed the same day: driver carry 262.6 yd drawn mean / 264.6 pure vs 268 target, pushed `d2fd34e0`. | **Decided Nov 13 — see QA plan v1.1.** Tier A/B harness still never run. | Run the weekend anyway, but the 12-hour soak is a *stack* soak, not a *calibration* soak. Do not claim GL-01 green until the Tier A/B harness runs and passes. |
 | 0.2 | **Web build frozen.** Ash freezes the `autonomous-golf-world` artifact and exports it to the repo so `~/mas-golfs/index.html` is the current build. | Repo `index.html` is v10-era, stale | Step 4.5 verifies the export. If the export has not landed, stop at Step 4.5 and do not start the soak on a stale build. |
 | 0.3 | **Accounts + keys in hand.** YouTube channel + stream key, Twitch channel + stream key, Restream account (free tier) + ingest URL + stream key. | Mason to confirm | No keys = Steps 5.2–5.3 cannot run. Do everything else, then do 5.2–5.3 when the keys exist. |
 | 0.4 | **Downloads queued.** OBS Studio (Apple Silicon build, obsproject.com), Node.js LTS (nodejs.org), Docker Desktop for Mac (docker.com), Python 3.12+ (python.org or Homebrew). | — | Download on Mason's account first if the box's Wi-Fi is slow; install as `masgolfs` where the installer allows. |
@@ -640,7 +643,7 @@ One unchecked item = no launch. This is the checklist as it stands at the **end*
 
 | # | Item | VM (already green from this VM) | Box (only the box can prove) | Weekend status |
 |---|---|---|---|---|
-| GL-01 | Sim calibration (§1) | **Not green.** Suite is green (64 tests) but the 10,000-round harness has never run, and the flight-model retune is still in flight (driver carry 240.4 vs 268 yd). The gate itself is undecided (§0.1). | n/a — calibration is a repo job, not a box job. | 🔴 Must land before launch; the weekend does not close it. |
+| GL-01 | Sim calibration (§1) | **Not green.** Full suite is green (210 tests, pushed `d2fd34e0`) and the retune landed (driver carry 262.6 / 264.6 vs 268), but the Tier A/B calibration harness (QA plan v1.1) has never run. The old 10,000-round gate is deferred, not undecided (§0.1). | n/a — calibration is a repo job, not a box job. | 🔴 Must land before launch; the weekend does not close it. |
 | GL-02 | 7-day soak (§2) | n/a — a soak is a box job by definition. | **Not started.** Soak B runs this weekend; Soak C starts Sunday if B passes. | 🔴 Starts Sunday; verdict 7 days later. |
 | GL-03 | Web build (§3) | **Partial.** Earlier DevTools captures pre-date the clean-screen rebuild; the v11 + mobile/character rebuilds are unaudited; the 3-round DevTools soak (§3.5) has never run. | Frame rate / heap / context-loss on the real 8GB box, inside Soak B. | 🟡 Proved or failed by Soak B. |
 | GL-04 | Graphics & commentary (§4) | **Partial.** NodeCG stub smoke + placeholder checks pass; commentary 34/34 tests + demo pass; live paths (real bus → real graphics, real MLX → real Kokoro) are stub-only. | Full-round recording reviewed; zero G-08/V-03 failures. | 🟡 Proved or failed by Soak B + Step 4.4. |
@@ -764,7 +767,7 @@ These are inconsistencies between the source docs. The runbook resolves each one
 3. **Kokoro Docker command drift.** `commentary/README.md` §3.4 gives a bare `docker run` with no `--name` and no memory limit; ops check 5 needs the container named `kokoro`, and the 8GB box needs the 1 GB cap. Resolution: Step 3.2 gives the corrected command with `--name kokoro --memory=1g --memory-swap=1g`.
 4. **`mlx-verify/README.md` line 21** says `mlx-audit.sh` where it means `mlx-verify.sh`.
 5. **Intermission length.** Local-models §9 caps maintenance intermissions at 15 min; deployment-runbook §4.5 allows ~30 min for the Sunday macOS update. Resolution: 15 min hard cap for everything except the macOS update, which is ~30 min max and announced in advance (§6).
-6. **`sim/constants.py` is stale** (74.6/138, 7,214 yd) versus the v3 rating (76.1/142, 7,602 yd). Owned by the retune agent; do not hand-edit it mid-weekend.
+6. **`sim/constants.py` was stale** (74.6/138, 7,214 yd) versus the v3 rating (76.1/142, 7,602 yd) — **resolved Nov 13**: constants now read 76.1/142, 7,602 yd; full suite re-run in progress to confirm.
 
 ## Appendix B — Quick-reference command cheatsheet (the box, `masgolfs` user)
 
