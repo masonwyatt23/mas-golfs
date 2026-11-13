@@ -93,8 +93,8 @@
 ### 9. The Return — Par 4, 406 yards, downwind to the clubhouse
 - **The question:** Can you finish the nine with a scoring hole?
 - **Ideal line:** Driver at the front-right pot bunker, fading it off the slope, leaving 110 yards in. The fairway is generous; the hole rewards a confident swing, and the firm ground adds 20 yards of run.
-- **Wrong miss:** Left fescue, from which the double green — tucked behind that front-right bunker — is blind. Long is the clubhouse terrace; the gallery sees everything.
-- **Green complex:** The double green, shared with the 1st: wide and shallow, sloping toward the fairway at 2%, with a false front. The front-right pot bunker is the only guard; the green is otherwise open, inviting the attack. The pin on the 9th is on the right lobe, the 1st's on the left.
+- **Wrong miss:** Left fescue, from which the green — tucked behind that front-right bunker — is blind. Long is the clubhouse terrace; the gallery sees everything.
+- **Green complex:** Wide and shallow, sloping toward the fairway at 2%, with a false front. The front-right pot bunker is the only guard; the green is otherwise open, inviting the attack. (Correction: the double green is shared by the 1st and 18th only — see hole 1 and hole 18. An earlier draft wrongly had the 9th sharing it.)
 - **Wind/elevation:** 20 feet downhill; plays ~385. Helping wind. The easiest approach on the front nine — a birdie hole that sets up the turn.
 - **School:** Strategic, gentle. **Template:** none.
 
