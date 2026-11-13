@@ -41,13 +41,16 @@ def sub(kind: str, props: dict) -> str:
 
 
 def mat(color: tuple[float, float, float], roughness: float = 0.9,
-        metallic: float = 0.0) -> str:
+        metallic: float = 0.0, unshaded: bool = False) -> str:
     r, g, b = color
-    return sub("StandardMaterial3D", {
+    props = {
         "albedo_color": f"Color({r}, {g}, {b}, 1)",
         "roughness": str(roughness),
         "metallic": str(metallic),
-    })
+    }
+    if unshaded:
+        props["shading_mode"] = "1"  # SHADING_MODE_UNSHADED: albedo as-is, no lighting
+    return sub("StandardMaterial3D", props)
 
 
 def box(sx: float, sy: float, sz: float) -> str:
@@ -99,10 +102,14 @@ def mesh_node(name: str, mesh: str, material: str, x: float, y: float,
 
 
 # --- Materials ----------------------------------------------------------------
-# Albedos are bright enough to read in golden-hour light: the first frame
-# rendered the ground black because the dark greens (0.16-0.25) crushed to
-# near-black under a low sun + ACES. These are lusher and hold color.
-grass = mat((0.28, 0.58, 0.28))
+# DIAGNOSTIC: grass is UNSHADED for this frame. The ground rendered black
+# under every lighting change (bright albedo, stronger sun, stronger
+# ambient, shadows off, PlaneMesh AND BoxMesh) while Box/Cylinder surfaces
+# in the same light read green. If the ground renders green unshaded, the
+# mesh is present and the problem is lighting; if it is STILL black, the
+# ground mesh is not rendering at all (culled / invisible) and the black
+# is the sky's ground color showing through. Remove unshaded once known.
+grass = mat((0.28, 0.58, 0.28), unshaded=True)
 fairway = mat((0.32, 0.62, 0.30))
 green_mat = mat((0.35, 0.70, 0.32))
 collar_mat = mat((0.22, 0.55, 0.22))
