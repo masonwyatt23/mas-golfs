@@ -7,7 +7,6 @@
 albedo_color = Color(0.28, 0.58, 0.28, 1)
 roughness = 0.9
 metallic = 0.0
-shading_mode = 1
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2"]
 albedo_color = Color(0.32, 0.62, 0.3, 1)
@@ -75,7 +74,7 @@ roughness = 0.3
 metallic = 0.8
 
 [sub_resource type="BoxMesh" id="BoxMesh_15"]
-size = Vector3(120, 0.4, 120)
+size = Vector3(240, 0.4, 360)
 
 [sub_resource type="BoxMesh" id="BoxMesh_16"]
 size = Vector3(12, 0.4, 10)
@@ -180,7 +179,7 @@ script = ExtResource("1")
 script = ExtResource("2")
 
 [node name="Ground" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, -80)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, -160)
 mesh = SubResource("BoxMesh_15")
 surface_material_override/0 = SubResource("StandardMaterial3D_1")
 

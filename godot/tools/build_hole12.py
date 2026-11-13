@@ -102,14 +102,9 @@ def mesh_node(name: str, mesh: str, material: str, x: float, y: float,
 
 
 # --- Materials ----------------------------------------------------------------
-# DIAGNOSTIC: grass is UNSHADED for this frame. The ground rendered black
-# under every lighting change (bright albedo, stronger sun, stronger
-# ambient, shadows off, PlaneMesh AND BoxMesh) while Box/Cylinder surfaces
-# in the same light read green. If the ground renders green unshaded, the
-# mesh is present and the problem is lighting; if it is STILL black, the
-# ground mesh is not rendering at all (culled / invisible) and the black
-# is the sky's ground color showing through. Remove unshaded once known.
-grass = mat((0.28, 0.58, 0.28), unshaded=True)
+# Grass is SHADED again (the v6 unshaded diagnostic proved the mesh
+# renders; the tee/green already prove shaded green reads fine).
+grass = mat((0.28, 0.58, 0.28))
 fairway = mat((0.32, 0.62, 0.30))
 green_mat = mat((0.35, 0.70, 0.32))
 collar_mat = mat((0.22, 0.55, 0.22))
@@ -125,13 +120,15 @@ red = mat((0.80, 0.10, 0.10))
 club_mat = mat((0.60, 0.60, 0.65), metallic=0.8, roughness=0.3)
 
 # --- Meshes -------------------------------------------------------------------
-# Ground is a thin BOX. DIAGNOSTIC v6: shrunk to 120x120 (was 400x400).
-# The 400-wide ground never rendered — not as PlaneMesh, not as BoxMesh,
-# not even UNSHADED (v5 was pixel-identical to v4). Prime suspect now is
-# frustum culling of the huge mesh (camera sits inside its footprint).
-# A 120-wide box centred on the hole is clearly inside the frustum; if
-# it renders green unshaded, the size/culling was the problem.
-ground_mesh = box(120, 0.4, 120)
+# Ground is a thin BOX. v6 PROVED the culling theory: the 400x400 ground
+# never rendered (v5 unshaded was pixel-identical to v4) while a 120x120
+# box renders fine — the huge mesh is frustum-culled because the camera
+# sits inside its footprint. The black trapezoid in v6 is the sky's dark
+# ground showing through beyond the 120-box's far edge (z=-140). Fix: a
+# ground long enough to reach the horizon (z=-340) but whose near edge
+# stays in FRONT of the camera (z=-20), so the camera is outside its
+# footprint and it renders. 240 wide x 360 deep, centred z=-160.
+ground_mesh = box(240, 0.4, 360)
 tee_mesh = box(12, 0.4, 10)
 green_mesh = cyl(GREEN_R, GREEN_R, 0.4, 32)
 collar_mesh = cyl(GREEN_R + 3, GREEN_R + 3, 0.3, 32)
@@ -185,7 +182,9 @@ node("BusClient", "Node", ".", None, ['script = ExtResource("1")'])
 node("Director", "Node", ".", None, ['script = ExtResource("2")'])
 
 # Ground + hole features.
-mesh_node("Ground", ground_mesh, grass, 0, -0.2, -80)
+# Ground centred at z=-160 so it spans z=-340..-20 (near edge in front of
+# the camera at z=15, far edge past the green at -172 to the horizon).
+mesh_node("Ground", ground_mesh, grass, 0, -0.2, -160)
 mesh_node("Tee", tee_mesh, fairway, 0, TEE_Y - 0.2, 0)
 mesh_node("Collar", collar_mesh, collar_mat, 0, -0.15, GREEN_Z)
 mesh_node("Green", green_mesh, green_mat, 0, 0, GREEN_Z)
