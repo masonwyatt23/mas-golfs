@@ -1,0 +1,312 @@
+[gd_scene load_steps=34 format=3]
+
+[ext_resource type="Script" path="res://scripts/bus_client.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/director.gd" id="2"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+albedo_color = Color(0.16, 0.42, 0.16, 1)
+roughness = 0.9
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2"]
+albedo_color = Color(0.2, 0.52, 0.2, 1)
+roughness = 0.9
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3"]
+albedo_color = Color(0.25, 0.62, 0.25, 1)
+roughness = 0.9
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4"]
+albedo_color = Color(0.22, 0.55, 0.22, 1)
+roughness = 0.9
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5"]
+albedo_color = Color(0.85, 0.75, 0.55, 1)
+roughness = 1.0
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6"]
+albedo_color = Color(0.1, 0.35, 0.55, 1)
+roughness = 0.15
+metallic = 0.4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7"]
+albedo_color = Color(0.35, 0.22, 0.12, 1)
+roughness = 0.9
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8"]
+albedo_color = Color(0.08, 0.25, 0.12, 1)
+roughness = 0.9
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_9"]
+albedo_color = Color(0.08, 0.12, 0.3, 1)
+roughness = 0.9
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_10"]
+albedo_color = Color(0.15, 0.15, 0.15, 1)
+roughness = 0.9
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_11"]
+albedo_color = Color(0.85, 0.65, 0.5, 1)
+roughness = 0.9
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_12"]
+albedo_color = Color(0.95, 0.95, 0.95, 1)
+roughness = 0.9
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_13"]
+albedo_color = Color(0.8, 0.1, 0.1, 1)
+roughness = 0.9
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_14"]
+albedo_color = Color(0.6, 0.6, 0.65, 1)
+roughness = 0.3
+metallic = 0.8
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_15"]
+size = Vector2(400, 400)
+
+[sub_resource type="BoxMesh" id="BoxMesh_16"]
+size = Vector3(12, 0.4, 10)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_17"]
+top_radius = 14.0
+bottom_radius = 14.0
+height = 0.4
+radial_segments = 32
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_18"]
+top_radius = 17.0
+bottom_radius = 17.0
+height = 0.3
+radial_segments = 32
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_19"]
+size = Vector2(64, 20)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_20"]
+top_radius = 7
+bottom_radius = 7
+height = 0.3
+radial_segments = 24
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_21"]
+top_radius = 0.06
+bottom_radius = 0.06
+height = 7
+radial_segments = 8
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_22"]
+size = Vector2(2.2, 1.4)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_23"]
+top_radius = 0.5
+bottom_radius = 0.7
+height = 6
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_24"]
+top_radius = 0.0
+bottom_radius = 4.5
+height = 12
+radial_segments = 12
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_25"]
+radius = 0.55
+height = 2.6
+
+[sub_resource type="SphereMesh" id="SphereMesh_26"]
+radius = 0.42
+height = 0.84
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_27"]
+top_radius = 0.22
+bottom_radius = 0.22
+height = 1.6
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_28"]
+top_radius = 0.05
+bottom_radius = 0.05
+height = 3.4
+radial_segments = 8
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_29"]
+sky_top_color = Color(0.25, 0.45, 0.75, 1)
+sky_horizon_color = Color(0.95, 0.65, 0.35, 1)
+ground_bottom_color = Color(0.15, 0.20, 0.12, 1)
+ground_horizon_color = Color(0.85, 0.60, 0.35, 1)
+sun_angle_max = 30.0
+sun_curve = 0.08
+
+[sub_resource type="Sky" id="Sky_30"]
+sky_material = SubResource("ProceduralSkyMaterial_29")
+
+[sub_resource type="Environment" id="Environment_31"]
+background_mode = 2
+sky = SubResource("Sky_30")
+ambient_light_source = 2
+ambient_light_energy = 0.6
+tonemap_mode = 2
+tonemap_exposure = 1.0
+glow_enabled = true
+
+[node name="Hole12" type="Node3D" parent="."]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_31")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, 0.353, 0.353, 0, 0.707, -0.707, -0.5, 0.612, 0.612, 0, 40, 20)
+light_color = Color(1, 0.85, 0.6, 1)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="BusClient" type="Node" parent="."]
+script = ExtResource("1")
+
+[node name="Director" type="Node" parent="."]
+script = ExtResource("2")
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, -80)
+mesh = SubResource("PlaneMesh_15")
+surface_material_override/0 = SubResource("StandardMaterial3D_1")
+
+[node name="Tee" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.1, 0)
+mesh = SubResource("BoxMesh_16")
+surface_material_override/0 = SubResource("StandardMaterial3D_2")
+
+[node name="Collar" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, -172.0)
+mesh = SubResource("CylinderMesh_18")
+surface_material_override/0 = SubResource("StandardMaterial3D_4")
+
+[node name="Green" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -172.0)
+mesh = SubResource("CylinderMesh_17")
+surface_material_override/0 = SubResource("StandardMaterial3D_3")
+
+[node name="Pond" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6, -158.0)
+mesh = SubResource("PlaneMesh_19")
+surface_material_override/0 = SubResource("StandardMaterial3D_6")
+
+[node name="Bunker" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, -186.0)
+mesh = SubResource("CylinderMesh_20")
+surface_material_override/0 = SubResource("StandardMaterial3D_5")
+
+[node name="Flagstick" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.0, 3.5, -166.0)
+mesh = SubResource("CylinderMesh_21")
+surface_material_override/0 = SubResource("StandardMaterial3D_12")
+
+[node name="Flag" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.9, 6.2, -166.0)
+mesh = SubResource("PlaneMesh_22")
+surface_material_override/0 = SubResource("StandardMaterial3D_13")
+
+[node name="PineTrunk0" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 3, -160)
+mesh = SubResource("CylinderMesh_23")
+surface_material_override/0 = SubResource("StandardMaterial3D_7")
+
+[node name="PineCanopy0" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 11, -160)
+mesh = SubResource("CylinderMesh_24")
+surface_material_override/0 = SubResource("StandardMaterial3D_8")
+
+[node name="PineTrunk1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 3, -172)
+mesh = SubResource("CylinderMesh_23")
+surface_material_override/0 = SubResource("StandardMaterial3D_7")
+
+[node name="PineCanopy1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 11, -172)
+mesh = SubResource("CylinderMesh_24")
+surface_material_override/0 = SubResource("StandardMaterial3D_8")
+
+[node name="PineTrunk2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 3, -182)
+mesh = SubResource("CylinderMesh_23")
+surface_material_override/0 = SubResource("StandardMaterial3D_7")
+
+[node name="PineCanopy2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 11, -182)
+mesh = SubResource("CylinderMesh_24")
+surface_material_override/0 = SubResource("StandardMaterial3D_8")
+
+[node name="PineTrunk3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 3, -160)
+mesh = SubResource("CylinderMesh_23")
+surface_material_override/0 = SubResource("StandardMaterial3D_7")
+
+[node name="PineCanopy3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 11, -160)
+mesh = SubResource("CylinderMesh_24")
+surface_material_override/0 = SubResource("StandardMaterial3D_8")
+
+[node name="PineTrunk4" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 3, -172)
+mesh = SubResource("CylinderMesh_23")
+surface_material_override/0 = SubResource("StandardMaterial3D_7")
+
+[node name="PineCanopy4" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 11, -172)
+mesh = SubResource("CylinderMesh_24")
+surface_material_override/0 = SubResource("StandardMaterial3D_8")
+
+[node name="PineTrunk5" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 3, -182)
+mesh = SubResource("CylinderMesh_23")
+surface_material_override/0 = SubResource("StandardMaterial3D_7")
+
+[node name="PineCanopy5" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 11, -182)
+mesh = SubResource("CylinderMesh_24")
+surface_material_override/0 = SubResource("StandardMaterial3D_8")
+
+[node name="Mas" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.3, 2)
+
+[node name="MasBody" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.9, 2)
+mesh = SubResource("CapsuleMesh_25")
+surface_material_override/0 = SubResource("StandardMaterial3D_9")
+
+[node name="MasHead" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10.6, 2)
+mesh = SubResource("SphereMesh_26")
+surface_material_override/0 = SubResource("StandardMaterial3D_11")
+
+[node name="MasLegL" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 8.1, 2)
+mesh = SubResource("CylinderMesh_27")
+surface_material_override/0 = SubResource("StandardMaterial3D_10")
+
+[node name="MasLegR" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 8.1, 2)
+mesh = SubResource("CylinderMesh_27")
+surface_material_override/0 = SubResource("StandardMaterial3D_10")
+
+[node name="MasClub" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 9.0, 1.6)
+mesh = SubResource("CylinderMesh_28")
+surface_material_override/0 = SubResource("StandardMaterial3D_14")
+
+[node name="BroadcastCam" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.985, 0.174, 0, -0.174, 0.985, 0, 9.8, 10)
+fov = 50.0
+current = true
