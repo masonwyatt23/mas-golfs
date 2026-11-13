@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mas Golfs — Clubhouse Coins</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/style.css">
+<style>
+  #coins {
+    position: absolute; left: 48px; bottom: 48px;
+    display: flex; gap: 16px; align-items: stretch;
+  }
+  .coins-panel {
+    background: rgba(6, 42, 31, 0.92);
+    border: 1px solid rgba(201, 162, 39, 0.45);
+    border-radius: 12px;
+    padding: 20px 24px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  }
+  #marketPanel { width: 640px; }
+  #boardPanel { width: 430px; }
+  .coins-head {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 12px;
+  }
+  .coins-head .mark { display: inline-flex; }
+  .coins-title { font-size: 28px; color: var(--cream); letter-spacing: 0.02em; }
+  .free-pill {
+    margin-left: auto;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.08em;
+    color: var(--gold); border: 1px solid var(--gold);
+    border-radius: 999px; padding: 4px 10px; white-space: nowrap;
+  }
+  .market-question { font-size: 34px; color: var(--cream); line-height: 1.15; }
+  .market-question.empty { color: var(--mist); }
+  .odds-rows { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .odds-row {
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(11, 61, 46, 0.85);
+    border-radius: 8px; padding: 10px 14px;
+  }
+  .odds-row .side { font-size: 20px; font-weight: 700; width: 52px; }
+  .odds-row .side.yes { color: var(--gold); }
+  .odds-row .side.no { color: var(--mist); }
+  .odds-row .odds { font-family: 'JetBrains Mono', monospace; font-size: 30px; font-weight: 700; color: var(--cream); }
+  .odds-row .poolbar {
+    flex: 1; height: 8px; border-radius: 999px;
+    background: rgba(157, 184, 166, 0.25); overflow: hidden;
+  }
+  .odds-row .poolbar i { display: block; height: 100%; background: var(--gold); }
+  .odds-row .poolbar.no i { background: var(--mist); }
+  .odds-row .share { font-family: 'JetBrains Mono', monospace; font-size: 15px; color: var(--mist); width: 52px; text-align: right; }
+  .market-meta {
+    margin-top: 12px; display: flex; align-items: center; gap: 12px;
+    font-size: 16px; color: var(--mist);
+  }
+  .status-pill {
+    font-size: 14px; font-weight: 700; letter-spacing: 0.06em;
+    border-radius: 999px; padding: 4px 12px; white-space: nowrap;
+  }
+  .status-pill.open { color: #062a1f; background: var(--gold); }
+  .status-pill.closed { color: var(--cream); background: rgba(157, 184, 166, 0.35); }
+  .status-pill.resolved { color: var(--cream); background: var(--alert); }
+  .status-pill.void { color: var(--mist); background: rgba(157, 184, 166, 0.2); }
+  .cta {
+    margin-top: 14px; font-size: 19px; color: var(--cream);
+    border-top: 1px solid rgba(157, 184, 166, 0.25); padding-top: 12px;
+  }
+  .cta b { color: var(--gold); }
+  .cta .mono { color: var(--gold); }
+  .disclaimer { margin-top: 8px; font-size: 13px; color: var(--mist); }
+  .board-title { font-size: 22px; color: var(--cream); margin-bottom: 4px; }
+  .board-sub { font-size: 14px; color: var(--mist); margin-bottom: 12px; }
+  .board-row {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 19px; padding: 7px 0;
+    border-bottom: 1px solid rgba(157, 184, 166, 0.18);
+  }
+  .board-row:last-child { border-bottom: none; }
+  .board-row .rank { font-family: 'JetBrains Mono', monospace; color: var(--gold); width: 26px; }
+  .board-row .name { flex: 1; color: var(--cream); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .board-row .bal { font-family: 'JetBrains Mono', monospace; color: var(--cream); }
+  .board-row .streak { font-size: 15px; color: var(--gold); width: 44px; text-align: right; }
+  .board-row.top .name, .board-row.top .bal { color: var(--gold); font-weight: 700; }
+  .board-empty { font-size: 17px; color: var(--mist); padding: 12px 0; }
+  .board-foot { margin-top: 12px; font-size: 15px; color: var(--mist); }
+  .board-foot b { color: var(--gold); }
+</style>
+</head>
+<body>
+  <div id="coins">
+    <div class="coins-panel" id="marketPanel">
+      <div class="coins-head">
+        <span class="mark" id="mark"></span>
+        <span class="display coins-title">CLUBHOUSE COINS</span>
+        <span class="free-pill">FREE PLAY MONEY</span>
+      </div>
+      <div class="display market-question" id="marketQuestion"></div>
+      <div class="odds-rows" id="oddsRows"></div>
+      <div class="market-meta">
+        <span class="status-pill open" id="statusPill"></span>
+        <span id="poolLine"></span>
+      </div>
+      <div class="cta" id="ctaLine"></div>
+      <div class="disclaimer">Free play money — no cash value. Payouts split from the pool. 10–100 CC a shot.</div>
+    </div>
+    <div class="coins-panel" id="boardPanel">
+      <div class="display board-title">THIS WEEK'S CLUBHOUSE — TOP 5</div>
+      <div class="board-sub" id="boardSub"></div>
+      <div id="boardRows"></div>
+      <div class="board-foot" id="boardFoot"></div>
+    </div>
+  </div>
+
+<script src="../shared/placeholder.js"></script>
+<script src="../shared/mas-golfs.js"></script>
+<script>
+(function () {
+  document.getElementById('mark').innerHTML = MasGolfs.markSVG(40);
+  var prediction = MasGolfs.makeReplicant('prediction', MasGolfs.placeholder.prediction || {});
+  var coinsMarkets = MasGolfs.makeReplicant('coinsMarkets', MasGolfs.placeholder.coinsMarkets || { markets: [], active_market_id: null });
+  var coinsLeaderboard = MasGolfs.makeReplicant('coinsLeaderboard', MasGolfs.placeholder.coinsLeaderboard || { week_monday: null, weekly: [], alltime: [], champion: null, bonus_pool: 10000 });
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function fmtOdds(v) {
+    return (typeof v === 'number' && isFinite(v)) ? v.toFixed(2) : '—';
+  }
+  function fmtCoins(n) {
+    return (typeof n === 'number' ? n : 0).toLocaleString('en-US');
+  }
+
+  function featuredMarket() {
+    var data = coinsMarkets.value || {};
+    var markets = data.markets || [];
+    var active = null;
+    for (var i = 0; i < markets.length; i++) {
+      if (markets[i].market_id === data.active_market_id) { active = markets[i]; break; }
+    }
+    return active || markets[markets.length - 1] || null;
+  }
+
+  function renderMarket() {
+    var market = featuredMarket();
+    var pred = prediction.value || {};
+    var q = document.getElementById('marketQuestion');
+    var rows = document.getElementById('oddsRows');
+    var pill = document.getElementById('statusPill');
+    var poolLine = document.getElementById('poolLine');
+    var cta = document.getElementById('ctaLine');
+
+    if (!market || !market.question) {
+      q.textContent = 'NO MARKET OPEN';
+      q.classList.add('empty');
+      rows.innerHTML = '';
+      pill.textContent = 'BETWEEN HOLES';
+      pill.className = 'status-pill void';
+      poolLine.textContent = '';
+      cta.innerHTML = 'Next market opens at the next hole — <b>Clubhouse Coins</b> are free to play.';
+      return;
+    }
+    q.classList.remove('empty');
+    q.textContent = market.question;
+
+    var odds = market.odds || pred.odds || {};
+    var pool = typeof market.pool_coins === 'number' ? market.pool_coins : (pred.pool_coins || 0);
+    // Pool split is display-only (the mirror has no stakes); show the
+    // odds-implied split when no pool data is present.
+    var yesShare = 0.5;
+    if (odds.yes && odds.no) {
+      var pYes = 1 / odds.yes, pNo = 1 / odds.no;
+      yesShare = pYes / (pYes + pNo);
+    }
+    rows.innerHTML =
+      '<div class="odds-row"><span class="side yes">YES</span>'
+      + '<span class="odds">' + fmtOdds(odds.yes) + '</span>'
+      + '<span class="poolbar"><i style="width:' + Math.round(yesShare * 100) + '%"></i></span>'
+      + '<span class="share">' + Math.round(yesShare * 100) + '%</span></div>'
+      + '<div class="odds-row"><span class="side no">NO</span>'
+      + '<span class="odds">' + fmtOdds(odds.no) + '</span>'
+      + '<span class="poolbar no"><i style="width:' + Math.round((1 - yesShare) * 100) + '%"></i></span>'
+      + '<span class="share">' + Math.round((1 - yesShare) * 100) + '%</span></div>';
+
+    var status = market.status || (market.open ? 'open' : 'closed');
+    if (status === 'open') {
+      pill.textContent = '● OPEN — CALL IT IN CHAT';
+      pill.className = 'status-pill open';
+      cta.innerHTML = 'Type <span class="mono">!yes 50</span> or <span class="mono">!no 50</span> in chat — <b>10–100 CC a shot</b>.';
+    } else if (status === 'closed') {
+      pill.textContent = 'STAKES LOCKED';
+      pill.className = 'status-pill closed';
+      cta.innerHTML = 'Stakes are locked for this shot — next market opens on the next decision.';
+    } else if (status === 'resolved') {
+      var win = (market.winning_outcome || '').toUpperCase();
+      var winOdds = win === 'YES' ? odds.yes : odds.no;
+      pill.textContent = '✓ ' + (win || '—') + ' WINS' + (winOdds ? ' — ' + fmtOdds(winOdds) + '×' : '');
+      pill.className = 'status-pill resolved';
+      cta.innerHTML = 'Settled from the real result — next market opens on the next decision.';
+    } else {
+      pill.textContent = 'NO ACTION';
+      pill.className = 'status-pill void';
+      cta.innerHTML = 'No action on this market — next market opens on the next decision.';
+    }
+    var closes = market.market_type === 'per_shot' ? 'CLOSES AT THE SWING' : 'CLOSES AT HOLE END';
+    poolLine.textContent = 'POOL ' + fmtCoins(pool) + ' CC · ' + closes;
+  }
+
+  function renderBoard() {
+    var lb = coinsLeaderboard.value || {};
+    var weekly = lb.weekly || [];
+    var sub = document.getElementById('boardSub');
+    var rowsEl = document.getElementById('boardRows');
+    var foot = document.getElementById('boardFoot');
+
+    sub.textContent = lb.week_monday ? ('Week of ' + lb.week_monday + ' · resets Monday 00:00 ET') : 'Weekly board resets Monday 00:00 ET';
+    if (weekly.length === 0) {
+      rowsEl.innerHTML = '<div class="board-empty">No bets yet this week — be the first.</div>';
+    } else {
+      rowsEl.innerHTML = weekly.slice(0, 5).map(function (r, i) {
+        var streak = (typeof r.streak === 'number' && r.streak >= 2) ? ('🔥 ' + r.streak) : '';
+        return '<div class="board-row' + (i === 0 ? ' top' : '') + '">'
+          + '<span class="rank">' + (r.rank || i + 1) + '</span>'
+          + '<span class="name">' + esc(r.display_name || 'Viewer') + '</span>'
+          + '<span class="bal">' + fmtCoins(r.balance) + ' CC</span>'
+          + '<span class="streak">' + streak + '</span></div>';
+      }).join('');
+    }
+    var champion = lb.champion && lb.champion.display_name
+      ? 'Clubhouse Champion: <b>' + esc(lb.champion.display_name) + '</b> · '
+      : '';
+    foot.innerHTML = champion + 'Weekly bonus pool <b>' + fmtCoins(lb.bonus_pool) + ' CC</b>';
+  }
+
+  function render() { renderMarket(); renderBoard(); }
+
+  prediction.on('change', renderMarket);
+  coinsMarkets.on('change', renderMarket);
+  coinsLeaderboard.on('change', renderBoard);
+  render();
+
+  // Standalone preview: cycle the market through open -> closed ->
+  // resolved so the graphic can be seen alive (NodeCG drives it live).
+  if (!MasGolfs.isNodeCG && !MasGolfs.isStatic) {
+    var base = JSON.parse(JSON.stringify(MasGolfs.placeholder.coinsMarkets || { markets: [], active_market_id: null }));
+    var states = [
+      { active: 'r47-h12-hole', patch: { status: 'open', open: true } },
+      { active: 'r47-h12-s1', patch: { status: 'open', open: true } },
+      { active: 'r47-h12-s1', patch: { status: 'closed', open: false } },
+      { active: 'r47-h12-s1', patch: { status: 'resolved', open: false, winning_outcome: 'yes' } },
+      { active: 'r47-h12-hole', patch: { status: 'resolved', open: false, winning_outcome: 'yes' } }
+    ];
+    var si = 0;
+    setInterval(function () {
+      si = (si + 1) % states.length;
+      var st = states[si];
+      var markets = base.markets.map(function (m) {
+        if (m.market_id === st.active) {
+          var copy = JSON.parse(JSON.stringify(m));
+          for (var k in st.patch) copy[k] = st.patch[k];
+          return copy;
+        }
+        return m;
+      });
+      coinsMarkets._demoSet({ markets: markets, active_market_id: st.active });
+      var feat = null;
+      for (var i = 0; i < markets.length; i++) {
+        if (markets[i].market_id === st.active) feat = markets[i];
+      }
+      if (feat) {
+        prediction._demoSet({
+          question: feat.question, odds: feat.odds, pool_coins: feat.pool_coins,
+          closes_in_s: null, open: feat.open, market_id: feat.market_id, status: feat.status
+        });
+      }
+    }, 8000);
+  }
+})();
+</script>
+</body>
+</html>

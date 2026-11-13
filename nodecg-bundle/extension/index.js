@@ -1,8 +1,9 @@
 /* Mas Golfs — NodeCG server extension.
  *
  * Subscribes to the sim event bus (local WebSocket, ws://localhost:4456),
- * writes the four replicants the graphics read (roundState, shotData,
- * prediction, lastShot), and fires one-shot lower-third messages.
+ * writes the replicants the graphics read (roundState, shotData,
+ * prediction, coinsMarkets, coinsLeaderboard, lastShot), and fires
+ * one-shot lower-third messages.
  *
  * If the event bus is unreachable it keeps serving the placeholder data
  * (shared/placeholder-data.json) and retries with backoff. With
@@ -16,6 +17,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { createCoinsBridge } = require('./coins-bridge');
 
 const BUS_URL = process.env.MAS_GOLFS_BUS_URL || 'ws://localhost:4456';
 const DEMO_MODE = process.env.MAS_GOLFS_DEMO === '1';
@@ -37,11 +39,77 @@ module.exports = function (nodecg) {
   const lastShot = nodecg.Replicant('lastShot', { defaultValue: placeholder.lastShot || '' });
   const lowerThird = nodecg.Replicant('lowerThird', { defaultValue: null });
 
+  // --- Clubhouse Coins (mirror only — see extension/coins-bridge.js) --------
+  // The extension mirrors market state for the graphics; it never runs
+  // the economy. The bridge is the single writer of the coins replicants.
+  const coins = createCoinsBridge({ log: nodecg.log });
+  const coinsMarkets = nodecg.Replicant('coinsMarkets', {
+    defaultValue: placeholder.coinsMarkets || { markets: [], active_market_id: null }
+  });
+  const coinsLeaderboard = nodecg.Replicant('coinsLeaderboard', {
+    defaultValue: placeholder.coinsLeaderboard || {
+      week_monday: null, weekly: [], alltime: [], champion: null, bonus_pool: 10000
+    }
+  });
+
+  function syncCoinsReplicants() {
+    prediction.value = coins.toPrediction();
+    coinsMarkets.value = coins.toMarkets();
+    coinsLeaderboard.value = coins.toLeaderboard();
+    // Keep the ticker's coins flag honest: the round-state snapshot's
+    // coins block is stale the moment the bridge moves, so re-apply the
+    // bridge's view after every event (also after round_state writes).
+    const roundCoins = coins.toRoundStateCoins();
+    if (roundCoins) {
+      roundState.value = Object.assign({}, roundState.value, { coins: roundCoins });
+    }
+  }
+
+  // Economy snapshot feed (bridge contract, see README): when
+  // MAS_GOLFS_COINS_SNAPSHOT points at a file, poll it and merge the
+  // economy's snapshot into the mirror. No economy process -> no file ->
+  // the mirror runs standalone with empty pools and an empty board.
+  // (No extra timer is created for the weekly rollover: maybeRollover
+  // runs on every bus event and every snapshot poll, so the Monday 00:00
+  // ET reset fires on the first event after midnight.)
+  const COINS_SNAPSHOT_PATH = process.env.MAS_GOLFS_COINS_SNAPSHOT || null;
+  let coinsSnapshotMtime = null;
+  function pollCoinsSnapshot() {
+    if (!COINS_SNAPSHOT_PATH) return;
+    let stat;
+    try {
+      stat = fs.statSync(COINS_SNAPSHOT_PATH);
+    } catch (e) {
+      return; // no snapshot yet — the mirror carries the screen
+    }
+    const mtime = stat.mtimeMs;
+    if (coinsSnapshotMtime === mtime) return;
+    coinsSnapshotMtime = mtime;
+    let snap;
+    try {
+      snap = JSON.parse(fs.readFileSync(COINS_SNAPSHOT_PATH, 'utf8'));
+    } catch (e) {
+      nodecg.log.warn('Coins snapshot unreadable, keeping mirror state: ' + e.message);
+      return;
+    }
+    try {
+      if (coins.applyEconomySnapshot(snap)) syncCoinsReplicants();
+    } catch (e) {
+      nodecg.log.warn('Coins snapshot merge failed, keeping mirror state: ' + e.message);
+    }
+  }
+  if (COINS_SNAPSHOT_PATH) {
+    setInterval(pollCoinsSnapshot, 2000);
+    pollCoinsSnapshot();
+  }
+
   // --- Event routing --------------------------------------------------------
   // Mirrors the event schema in docs/broadcast-stack.md §1.2 / §1.3.
   function handleEvent(evt) {
     if (!evt || typeof evt !== 'object' || !evt.event) return;
     const data = evt.data || {};
+    // Coins first: the bridge mirrors market state from the same events.
+    coins.onEvent(evt);
     switch (evt.event) {
       case 'round_state':
       case 'round_start':
@@ -61,7 +129,8 @@ module.exports = function (nodecg) {
         }
         break;
       case 'decision':
-        prediction.value = Object.assign({}, prediction.value, { open: true });
+        // The per-shot market opens (and the prediction replicant is
+        // written) by the coins bridge — no direct write here.
         break;
       case 'strike':
         shotData.value = Object.assign({}, shotData.value, {
@@ -129,6 +198,8 @@ module.exports = function (nodecg) {
       default:
         nodecg.log.debug(`Unhandled event: ${evt.event}`);
     }
+    // One write site for the coins replicants, after every event.
+    syncCoinsReplicants();
   }
 
   function scoreName(score, par) {
@@ -209,9 +280,11 @@ module.exports = function (nodecg) {
   function startDemoSimulator() {
     if (demoTimer) return;
     const cycle = [
+      { event: 'hole_start', data: { par: 3, yards: 172, hole_name: 'The Picture', wind_mph: 6 } },
+      { event: 'decision', data: { club: '7-iron', shot_type: 'full', target_yards: 172, lie: 'tee', risk: 'normal' } },
       { event: 'strike', data: { club: '7-iron', ball_speed_mph: 132, launch_deg: 19, spin_rpm: 6800, smash_factor: 1.42, contact: 'pure', target_yards: 172 } },
       { event: 'apex', data: { apex_ft: 78, carry_yds: 166, shape: 'draw' } },
-      { event: 'landing', data: { total_yds: 172, lie: 'green', dist_to_pin_ft: 12, result: 'green_hit' } },
+      { event: 'landing', data: { total_yds: 172, lie: 'green', dist_to_pin_ft: 12, result: 'green_hit', on_green: true } },
       { event: 'hole_end', data: { score: 2, par: 3, score_to_par: -1, putts: 1 } }
     ];
     let i = 0;
@@ -220,7 +293,7 @@ module.exports = function (nodecg) {
       handleEvent(evt);
       i += 1;
     }, 9000);
-    nodecg.log.info('Demo simulator running — one shot cycle every ~36 s.');
+    nodecg.log.info('Demo simulator running — one shot cycle every ~54 s.');
   }
 
   connectBus();

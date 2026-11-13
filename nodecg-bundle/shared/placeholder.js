@@ -57,7 +57,35 @@ window.MAS_PLACEHOLDER = {
     "odds": { "yes": 2.4, "no": 1.6 },
     "pool_coins": 1840,
     "closes_in_s": 45,
-    "open": true
+    "open": true,
+    "market_id": "r47-h12-hole",
+    "status": "open"
+  },
+  "coinsMarkets": {
+    "active_market_id": "r47-h12-hole",
+    "markets": [
+      { "market_id": "r47-h12-hole", "market_type": "per_hole", "question": "Birdie or better on 12?", "outcomes": ["yes", "no"], "odds": { "yes": 2.4, "no": 1.6 }, "pool_coins": 1840, "open": true, "status": "open", "winning_outcome": null, "round_no": 47, "hole": 12, "shot": null, "source": "mirror" },
+      { "market_id": "r47-h12-s1", "market_type": "per_shot", "question": "GIR on 12?", "outcomes": ["yes", "no"], "odds": { "yes": 1.67, "no": 2.5 }, "pool_coins": 0, "open": false, "status": "resolved", "winning_outcome": "yes", "round_no": 47, "hole": 12, "shot": 1, "source": "mirror" }
+    ]
+  },
+  "coinsLeaderboard": {
+    "week_monday": "2026-11-09",
+    "bonus_pool": 9950,
+    "weekly": [
+      { "rank": 1, "display_name": "FairwayFan", "balance": 2616, "streak": 3 },
+      { "rank": 2, "display_name": "BirdieBelle", "balance": 2140, "streak": 1 },
+      { "rank": 3, "display_name": "PuttForDough", "balance": 1875, "streak": 0 },
+      { "rank": 4, "display_name": "SliceDoctor", "balance": 1420, "streak": 2 },
+      { "rank": 5, "display_name": "CaddieShack", "balance": 1105, "streak": 0 }
+    ],
+    "alltime": [
+      { "rank": 1, "display_name": "FairwayFan", "balance": 12480, "streak": 3 },
+      { "rank": 2, "display_name": "BirdieBelle", "balance": 9310, "streak": 1 },
+      { "rank": 3, "display_name": "PuttForDough", "balance": 8205, "streak": 0 },
+      { "rank": 4, "display_name": "SliceDoctor", "balance": 7110, "streak": 2 },
+      { "rank": 5, "display_name": "CaddieShack", "balance": 6900, "streak": 0 }
+    ],
+    "champion": { "display_name": "FairwayFan" }
   },
   "lastShot": "7-iron from 172 — 12 ft, birdie putt",
   "leaderboard": [

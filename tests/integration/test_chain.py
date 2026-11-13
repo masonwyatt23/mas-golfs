@@ -174,6 +174,19 @@ class ChainTestCase(unittest.TestCase):
                         "lastShot replicant is empty")
         self.assertIsNotNone(snap.get("lowerThird"),
                              "no lower-third ever fired")
+        # Coins: the bridge mirrored markets from the same fixture stream.
+        coins_markets = snap.get("coinsMarkets") or {}
+        markets = coins_markets.get("markets") or []
+        self.assertGreater(len(markets), 0,
+                           "coinsMarkets has no markets after the fixture stream")
+        featured = [m for m in markets
+                    if m.get("market_id") == (snap.get("prediction") or {}).get("market_id")]
+        self.assertEqual(len(featured), 1,
+                         "prediction market_id not found in coinsMarkets")
+        self.assertTrue(any(m.get("status") == "resolved" for m in markets),
+                        "no coins market resolved during the fixture stream")
+        self.assertIn("weekly", snap.get("coinsLeaderboard") or {},
+                      "coinsLeaderboard missing from snapshot")
         shown = [m["name"] for m in snap.get("messages", [])]
         self.assertIn("showLowerThird", shown,
                       "extension never sent a showLowerThird message")

@@ -62,6 +62,8 @@ setTimeout(() => {
     roundState: replicants.roundState ? replicants.roundState.value : null,
     shotData: replicants.shotData ? replicants.shotData.value : null,
     prediction: replicants.prediction ? replicants.prediction.value : null,
+    coinsMarkets: replicants.coinsMarkets ? replicants.coinsMarkets.value : null,
+    coinsLeaderboard: replicants.coinsLeaderboard ? replicants.coinsLeaderboard.value : null,
     lastShot: replicants.lastShot ? replicants.lastShot.value : null,
     lowerThird: replicants.lowerThird ? replicants.lowerThird.value : null,
     messages,

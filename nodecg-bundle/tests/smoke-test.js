@@ -3,11 +3,13 @@
  *
  * Runs the extension with a stubbed nodecg object in MAS_GOLFS_DEMO=1 mode
  * (no sim engine, no event bus, no `ws` dependency), drives two full demo
- * shot cycles (strike -> apex -> landing -> hole_end) by invoking the
- * captured interval callback, and asserts the replicant writes — including
- * the Wyatt National v3 yardages and the live-distance counter fields
- * (target_yards on strike, carry on apex, total on landing, outcome fields
- * cleared on the next strike).
+ * shot cycles (hole_start -> decision -> strike -> apex -> landing ->
+ * hole_end) by invoking the captured interval callback, and asserts the
+ * replicant writes — including the Wyatt National v3 yardages, the
+ * live-distance counter fields (target_yards on strike, carry on apex,
+ * total on landing, outcome fields cleared on the next strike), and the
+ * Clubhouse Coins market lifecycle (per-hole open on hole_start, per-shot
+ * open on decision, close on strike, resolve on landing / hole_end).
  *
  * Also verifies the placeholder copies agree (placeholder.js vs
  * placeholder-data.json), the v3 course table sums, and the lower-third
@@ -103,8 +105,34 @@ const tick = intervals[0];
 
 function shotData() { return replicants.shotData.value; }
 function lowerThird() { return replicants.lowerThird.value; }
+function prediction() { return replicants.prediction.value; }
+function coinsMarkets() { return replicants.coinsMarkets.value; }
+function marketById(id) {
+  return (coinsMarkets().markets || []).find((m) => m.market_id === id);
+}
 
-check('strike writes target_yards 172 and clears previous outcome fields', () => {
+check('hole_start opens the per-hole coins market (birdie or better, par 3)', () => {
+  tick(); // hole_start
+  assert.strictEqual(replicants.roundState.value.hole, 12);
+  assert.strictEqual(replicants.roundState.value.hole_par, 3);
+  assert.strictEqual(replicants.roundState.value.current_hole.name, 'The Picture');
+  assert.strictEqual(prediction().question, 'Birdie or better on 12?');
+  assert.strictEqual(prediction().open, true);
+  assert.deepStrictEqual(prediction().odds, { yes: 8.33, no: 1.14 });
+  assert.strictEqual(coinsMarkets().active_market_id, 'r47-h12-hole');
+  assert.strictEqual(marketById('r47-h12-hole').status, 'open');
+  assert.strictEqual(replicants.roundState.value.coins.prediction_open, true);
+  assert.strictEqual(replicants.roundState.value.coins.question, 'Birdie or better on 12?');
+});
+check('decision opens the per-shot coins market (GIR on the par-3 tee shot)', () => {
+  tick(); // decision
+  assert.strictEqual(prediction().question, 'GIR on 12?');
+  assert.strictEqual(prediction().open, true);
+  assert.deepStrictEqual(prediction().odds, { yes: 1.67, no: 2.5 });
+  assert.strictEqual(coinsMarkets().active_market_id, 'r47-h12-s1');
+  assert.strictEqual(marketById('r47-h12-s1').status, 'open');
+});
+check('strike writes target_yards 172, clears previous outcome fields, and closes the per-shot market', () => {
   tick(); // strike
   assert.strictEqual(shotData().club, '7-iron');
   assert.strictEqual(shotData().ball_speed_mph, 132);
@@ -113,6 +141,10 @@ check('strike writes target_yards 172 and clears previous outcome fields', () =>
   assert.strictEqual(shotData().total_yds, null);
   assert.strictEqual(lowerThird().variant, 'shot');
   assert.ok(lowerThird().title.includes('172 YDS'), lowerThird().title);
+  assert.strictEqual(marketById('r47-h12-s1').status, 'closed');
+  assert.strictEqual(marketById('r47-h12-s1').open, false);
+  // Featured market falls back to the open per-hole market.
+  assert.strictEqual(prediction().question, 'Birdie or better on 12?');
 });
 check('apex writes the real carry (166) and apex height', () => {
   tick(); // apex
@@ -120,21 +152,32 @@ check('apex writes the real carry (166) and apex height', () => {
   assert.strictEqual(shotData().carry_yds, 166);
   assert.strictEqual(shotData().shape, 'draw');
 });
-check('landing writes total 172 and the lastShot line', () => {
+check('landing writes total 172 and the lastShot line, and resolves the GIR market yes', () => {
   tick(); // landing
   assert.strictEqual(shotData().total_yds, 172);
   assert.strictEqual(shotData().lie, 'green');
   assert.strictEqual(shotData().dist_to_pin_ft, 12);
   assert.ok(replicants.lastShot.value.includes('172'), replicants.lastShot.value);
+  assert.strictEqual(marketById('r47-h12-s1').status, 'resolved');
+  assert.strictEqual(marketById('r47-h12-s1').winning_outcome, 'yes');
+  assert.strictEqual(marketById('r47-h12-hole').status, 'open');
 });
-check('hole_end advances the round and fires the hole-result lower-third', () => {
+check('hole_end advances the round, fires the hole-result lower-third, and resolves the per-hole market yes (birdie)', () => {
   const thruBefore = replicants.roundState.value.thru;
   tick(); // hole_end
   assert.strictEqual(replicants.roundState.value.thru, thruBefore + 1);
   assert.strictEqual(lowerThird().variant, 'holeResult');
   assert.ok(lowerThird().title.includes('HOLE 12'), lowerThird().title);
+  assert.strictEqual(marketById('r47-h12-hole').status, 'resolved');
+  assert.strictEqual(marketById('r47-h12-hole').winning_outcome, 'yes');
+  assert.strictEqual(prediction().open, false);
+  assert.strictEqual(replicants.roundState.value.coins.prediction_open, false);
 });
-check('second strike clears the previous shot carry/total (counter restarts)', () => {
+check('second cycle reopens the markets and the second strike clears the previous shot carry/total (counter restarts)', () => {
+  tick(); // hole_start, second cycle
+  assert.strictEqual(marketById('r47-h12-hole').status, 'open');
+  tick(); // decision, second cycle
+  assert.strictEqual(marketById('r47-h12-s2').status, 'open');
   tick(); // strike, second cycle
   assert.strictEqual(shotData().carry_yds, null);
   assert.strictEqual(shotData().total_yds, null);
@@ -152,7 +195,25 @@ check('lower-third.html has the live-distance counter', () => {
   assert.ok(html.includes('8000'), 'shot variant should hold 8 s');
 });
 
-// --- 5. No stale v1/v2 yardage left in the bundle ----------------------------
+// --- 6. Coins graphic is wired and registered -------------------------------
+check('coins.html subscribes to the coins replicants and package.json registers it', () => {
+  const html = fs.readFileSync(path.join(ROOT, 'graphics', 'coins.html'), 'utf8');
+  assert.ok(html.includes("makeReplicant('prediction'"), 'coins.html not subscribed to prediction');
+  assert.ok(html.includes("makeReplicant('coinsMarkets'"), 'coins.html not subscribed to coinsMarkets');
+  assert.ok(html.includes("makeReplicant('coinsLeaderboard'"), 'coins.html not subscribed to coinsLeaderboard');
+  assert.ok(html.includes('CLUBHOUSE COINS'), 'missing Clubhouse Coins title');
+  assert.ok(html.includes('FREE PLAY MONEY'), 'missing free-play label');
+  assert.ok(html.includes('!yes 50'), 'missing chat call-to-action');
+  assert.ok(html.includes('no cash value'), 'missing no-cash-value disclaimer');
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
+  assert.ok(pkg.nodecg.graphics.some((g) => g.file === 'coins.html'), 'coins.html not registered in package.json');
+  const json = JSON.parse(fs.readFileSync(path.join(ROOT, 'shared', 'placeholder-data.json'), 'utf8'));
+  assert.ok(json.coinsMarkets && Array.isArray(json.coinsMarkets.markets), 'placeholder missing coinsMarkets');
+  assert.ok(json.coinsLeaderboard && Array.isArray(json.coinsLeaderboard.weekly), 'placeholder missing coinsLeaderboard');
+  assert.ok(!JSON.stringify(json.coinsMarkets).includes('payout'), 'placeholder coins data must not carry payouts');
+});
+
+// --- 7. No stale v1/v2 yardage left in the bundle ----------------------------
 check('no stale 164-yard hole 12 references remain', () => {
   const hits = [];
   function walk(dir) {
