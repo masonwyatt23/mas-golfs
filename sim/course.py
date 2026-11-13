@@ -328,6 +328,187 @@ def build_wyatt_national():
     ]
 
 
+def build_dunmore_links():
+    """Dunmore Links, par 72, 7,195 yd (course-two.md).
+
+    The second course: a seaside links on the Outer Banks, NC — Wyatt
+    National's opposite on purpose. Parkland vs links, aerial game vs
+    ground game, pines and water vs wind, firm ground, and pot bunkers.
+    Front 3,591 / back 3,604, two par 3s and two par 5s per nine.
+
+    How the spec was applied here:
+    - Yardages, pars, names, and templates per the doc's hole briefs.
+      Par 3s: 3 (Biarritz), 7, 12 (Punchbowl), 16 (Double Plateau).
+      Par 5s: 2, 6 (Sahara), 11, 15. Par 4s: 1, 4, 5 (Principal's
+      Nose), 8, 9, 10, 13, 14, 17 (Alps, signature), 18.
+    - Azimuths from the doc's wind rotation: the morning sea breeze
+      (NE) helps 1, 5, 9, 15, 18 (azimuth ~210-240, playing SW),
+      hurts 4, 6, 11, 13 (azimuth ~30-50, playing NE), crosses
+      3, 8, 10, 16, 17 (azimuth ~125-140 or ~310-320). No two
+      consecutive holes share an azimuth.
+    - Elevations per the hole briefs (tee -> green, ft): 4th +25,
+      11th +40, 13th +35, 18th +20 uphill; 8th -15, 9th -20, 10th
+      -25, 12th -20 downhill; 17th -10 net (the 45 ft crest is
+      mid-hole — the linear elevation model cannot represent it, so
+      the tee sits high and the green low; the crest itself is a
+      broadcast feature, not a sim number).
+    - Fairways are wide on a links (38 yd default; 13th narrowed to
+      30, 4th 34, 17th 34) — width is the welcome, the wind is the
+      punishment.
+    - Pot bunkers: 115 revetted pots, all small (rx 12-16 ft,
+      ry 10-12 ft) — one shot in, one shot out. Every greenside pot
+      is placed outside the green circle (its centre more than the
+      green radius + 3 yd from the green centre), because
+      determine_lie() tests the green first; a pot inside the circle
+      would never register. No bunker has s > yardage: project()
+      clamps s to the green, so a "long" pot behind the green is
+      undetectable — long pots sit beside the green instead.
+    - The burn crosses 2 (at 170 and 300) and 14 (at 280, diagonal),
+      modelled as narrow Water ellipses (20 ft along s, 90-100 ft
+      across). The 2nd's second crossing at 300 is the decision the
+      hole is built around: carry it or lay up short of it.
+    - The sea is OB on the right of 8, 10, and 18 for the whole hole,
+      and on the right of 17 (over the dune and right): ob_right_yd
+      55.0 on those four holes (default 90 elsewhere).
+    - No trees anywhere — a links has nothing to stop the wind.
+    - Double green: holes 1 and 18 share one physical double green
+      (left lobe = 1st pin, right lobe = 18th pin, spine between),
+      each modelled with green_radius_ft 52 — the engine assumes one
+      green per hole, so each hole gets its own centre on its own
+      lobe. DOC INCONSISTENCY, flagged not fixed: hole 9's brief and
+      the "Green complexes" section say the double green is shared by
+      9 and 18 (and 9's brief says 9 and 1), while the "name and
+      place" section and the 1st/18th briefs agree on 1 and 18 (the
+      St. Andrews touch: 1st tee and 18th green in front of the
+      clubhouse). This build follows 1 and 18; hole 9 gets its own
+      wide, shallow green.
+    - The Biarritz 3rd has a 60 yd deep green; the engine models
+      greens as circles, so its green_radius_ft is 85 (~28 yd radius)
+      to cover the depth — the front plateau must read as green, not
+      fairway. The Punchbowl 12th (28 yd wide) and the Double
+      Plateau 16th keep normal radii; the Alps 17th green is narrow
+      (36 ft).
+    - Rating: compute_rating_slope() is calibrated for Wyatt National
+      (see its docstring) — the Dunmore number it returns is an
+      estimate, not a USGA-method recompute like course-rating-v3.md.
+      A proper Dunmore rating recompute is still owed.
+    """
+    return [
+        _h(1, 4, 398, "The First Light", 210, 0, 0,
+           bunkers=[Bunker(260, -12, 14, 10), Bunker(280, 14, 14, 10),
+                    Bunker(300, -18, 12, 10), Bunker(320, 18, 12, 10),
+                    Bunker(385, 18, 14, 10), Bunker(388, -20, 14, 10)],
+           hazard_label="double_green", green_radius_ft=52.0),
+        _h(2, 5, 562, "The Burn", 175, 0, -6,
+           dogleg_at_yd=280, dogleg_angle_deg=25,
+           water=[Water(170, 0, 20, 90), Water(300, 0, 20, 100)],
+           bunkers=[Bunker(322, -16, 14, 10), Bunker(325, 16, 14, 10),
+                    Bunker(340, -18, 12, 10), Bunker(380, 18, 12, 10),
+                    Bunker(540, 0, 16, 12), Bunker(545, -18, 14, 10),
+                    Bunker(548, 18, 14, 10)],
+           hazard_label="burn_twice", drop_zone=(270, 10),
+           green_radius_ft=51.0),
+        _h(3, 3, 178, "The Biarritz", 130, 0, 0,
+           bunkers=[Bunker(172, 33, 14, 10), Bunker(150, 30, 14, 10),
+                    Bunker(148, -20, 12, 10), Bunker(158, 24, 12, 10)],
+           hazard_label="biarritz", green_radius_ft=85.0),
+        _h(4, 4, 445, "The Gauntlet", 40, 0, 25,
+           bunkers=[Bunker(250, -8, 14, 10), Bunker(240, 18, 14, 10),
+                    Bunker(300, -18, 12, 10), Bunker(320, 18, 12, 10),
+                    Bunker(425, -18, 14, 10), Bunker(430, 18, 14, 10),
+                    Bunker(438, -20, 14, 10)],
+           hazard_label="into_the_wind", fairway_width_yd=34.0,
+           green_radius_ft=49.0),
+        _h(5, 4, 372, "The Nose", 240, 0, 0,
+           bunkers=[Bunker(280, -8, 12, 10), Bunker(280, 0, 12, 10),
+                    Bunker(280, 8, 12, 10), Bunker(300, -16, 12, 10),
+                    Bunker(330, 16, 12, 10), Bunker(355, -18, 12, 10),
+                    Bunker(358, 18, 12, 10), Bunker(366, -18, 12, 10)],
+           hazard_label="principals_nose", green_radius_ft=40.0),
+        _h(6, 5, 585, "The Gales", 30, 0, 0,
+           bunkers=[Bunker(270, -16, 14, 10), Bunker(290, 16, 14, 10),
+                    Bunker(310, -14, 14, 10), Bunker(330, 16, 14, 10),
+                    Bunker(360, -18, 12, 10), Bunker(400, 18, 12, 10),
+                    Bunker(560, -18, 14, 10), Bunker(565, 18, 14, 10),
+                    Bunker(578, -18, 14, 10)],
+           hazard_label="sahara", green_radius_ft=42.0),
+        _h(7, 3, 214, "The Hollow", 60, 0, 0,
+           bunkers=[Bunker(200, 14, 14, 10), Bunker(208, -20, 14, 10),
+                    Bunker(195, -14, 12, 10), Bunker(205, 20, 12, 10)],
+           hazard_label="dune_hollow", green_radius_ft=42.0),
+        _h(8, 4, 431, "The Shore", 320, 0, -15,
+           dogleg_at_yd=280, dogleg_angle_deg=-25,
+           bunkers=[Bunker(260, 16, 14, 10), Bunker(290, -16, 14, 10),
+                    Bunker(310, 16, 14, 10), Bunker(330, -16, 12, 10),
+                    Bunker(350, 16, 12, 10), Bunker(415, 18, 14, 10),
+                    Bunker(420, -18, 12, 10)],
+           hazard_label="sea_right", ob_right_yd=55.0,
+           green_radius_ft=42.0),
+        _h(9, 4, 406, "The Return", 220, 0, -20,
+           bunkers=[Bunker(270, -14, 14, 10), Bunker(290, 14, 14, 10),
+                    Bunker(320, -18, 12, 10), Bunker(340, 18, 12, 10),
+                    Bunker(385, 18, 14, 10), Bunker(395, -18, 12, 10)],
+           hazard_label="front_right_pot", green_radius_ft=46.0),
+        _h(10, 4, 424, "The Dunes", 140, 0, -25,
+           dogleg_at_yd=260, dogleg_angle_deg=-20,
+           bunkers=[Bunker(250, 16, 14, 10), Bunker(280, -14, 14, 10),
+                    Bunker(300, 16, 14, 10), Bunker(320, -16, 12, 10),
+                    Bunker(350, 18, 12, 10), Bunker(405, 18, 14, 10),
+                    Bunker(410, -18, 12, 10)],
+           hazard_label="sea_right", ob_right_yd=55.0,
+           green_radius_ft=40.0),
+        _h(11, 5, 578, "The Second Wind", 50, 0, 40,
+           bunkers=[Bunker(270, -14, 14, 10), Bunker(290, 14, 14, 10),
+                    Bunker(300, -16, 14, 10), Bunker(300, 16, 14, 10),
+                    Bunker(340, -18, 12, 10), Bunker(380, 18, 12, 10),
+                    Bunker(555, -18, 14, 10), Bunker(560, 18, 14, 10),
+                    Bunker(570, -18, 14, 10)],
+           hazard_label="wind_uphill", green_radius_ft=45.0),
+        _h(12, 3, 165, "The Punchbowl", 185, 0, -20,
+           bunkers=[Bunker(160, -24, 14, 10), Bunker(150, -12, 12, 10),
+                    Bunker(152, 12, 12, 10), Bunker(158, 20, 12, 10)],
+           hazard_label="punchbowl", green_radius_ft=42.0),
+        _h(13, 4, 452, "The Anvil", 35, 0, 35,
+           bunkers=[Bunker(240, -16, 14, 10), Bunker(240, 16, 14, 10),
+                    Bunker(300, -18, 12, 10), Bunker(320, 18, 12, 10),
+                    Bunker(432, -18, 14, 10), Bunker(438, 18, 14, 10),
+                    Bunker(445, -18, 14, 10)],
+           hazard_label="hardest_par4", fairway_width_yd=30.0,
+           semi_rough_yd=5.0, green_radius_ft=42.0),
+        _h(14, 4, 384, "The Dare", 95, 0, 0,
+           water=[Water(280, 0, 20, 100)],
+           bunkers=[Bunker(250, -16, 12, 10), Bunker(300, -16, 12, 10),
+                    Bunker(330, 16, 12, 10), Bunker(368, -16, 12, 10),
+                    Bunker(370, 16, 12, 10)],
+           hazard_label="burn_280", drop_zone=(240, 10),
+           green_radius_ft=38.0),
+        _h(15, 5, 548, "The Downwinder", 230, 0, -8,
+           bunkers=[Bunker(270, 16, 14, 10), Bunker(300, -14, 14, 10),
+                    Bunker(320, 16, 14, 10), Bunker(340, -18, 12, 10),
+                    Bunker(380, 18, 12, 10), Bunker(520, -16, 14, 10),
+                    Bunker(525, 0, 14, 10), Bunker(530, 16, 14, 10)],
+           hazard_label="downwind_eagle", green_radius_ft=48.0),
+        _h(16, 3, 196, "The Plateau", 125, 0, 0,
+           bunkers=[Bunker(176, 0, 16, 12), Bunker(190, -18, 12, 10),
+                    Bunker(192, 18, 12, 10), Bunker(188, 24, 12, 10),
+                    Bunker(170, -20, 12, 10)],
+           hazard_label="double_plateau", green_radius_ft=42.0),
+        _h(17, 4, 439, "The Alps", 310, 0, -10,
+           bunkers=[Bunker(300, -12, 14, 10), Bunker(320, 14, 14, 10),
+                    Bunker(340, -16, 12, 10), Bunker(380, 16, 12, 10),
+                    Bunker(420, -16, 14, 10), Bunker(432, 14, 12, 10)],
+           hazard_label="alps", ob_right_yd=55.0,
+           fairway_width_yd=34.0, semi_rough_yd=5.0,
+           green_radius_ft=36.0),
+        _h(18, 4, 418, "The Homecoming", 215, 0, 20,
+           bunkers=[Bunker(280, 16, 14, 10), Bunker(300, -14, 14, 10),
+                    Bunker(320, -18, 12, 10), Bunker(340, 18, 12, 10),
+                    Bunker(400, -18, 12, 10), Bunker(405, 18, 12, 10)],
+           hazard_label="sea_right_home", ob_right_yd=55.0,
+           green_radius_ft=52.0),
+    ]
+
+
 def compute_rating_slope(holes, par):
     """USGA-style course rating and slope, computed from the design.
 
@@ -631,3 +812,5 @@ def championship_variant():
 
 
 WYATT_NATIONAL = Course()
+DUNMORE_LINKS = Course(course_id="dunmore_links", name="Dunmore Links",
+                       holes=build_dunmore_links())
