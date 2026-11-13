@@ -99,7 +99,11 @@ class WebSocketBus:
             sock.close()
             raise BusError(f"bus handshake failed: {response[:200]!r}")
         self.sock = sock
-        self._buf = bytearray()
+        # Any bytes after the header terminator belong to the next frame
+        # (the server sends the round_state snapshot immediately) — keep
+        # them in the read buffer instead of dropping them.
+        _head, _sep, tail = response.partition(b"\r\n\r\n")
+        self._buf = bytearray(tail)
 
     def _read_exact(self, count: int) -> bytes:
         while len(self._buf) < count:

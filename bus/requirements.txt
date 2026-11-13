@@ -1,0 +1,2 @@
+# No third-party dependencies — the bus is stdlib-only by design.
+# (Python 3.10+; developed against 3.12.)
