@@ -196,8 +196,11 @@ run_check() {
     ensure_python || return $?
     start_server "$MODEL" || return $?
     # Smoke generation through the real pipeline path.
+    # NOTE: --out-dir must come BEFORE the subcommand — it is a main-
+    # parser flag, and argparse rejects it after `latency` (caught on
+    # the box 2026-11-13: "unrecognized arguments: --out-dir ...").
     "$PY" "$PACK_DIR/mlx_verify.py" --base-url "$BASE_URL" --model "$MODEL" \
-        latency --n 1 --out-dir "$RESULTS_DIR/smoke" >/dev/null
+        --out-dir "$RESULTS_DIR/smoke" latency --n 1 >/dev/null
     log "Smoke generation OK: 1 real prompt through $MODEL."
     log "CHECK PASS."
 }
