@@ -123,15 +123,14 @@ red = mat((0.80, 0.10, 0.10))
 club_mat = mat((0.60, 0.60, 0.65), metallic=0.8, roughness=0.3)
 
 # --- Meshes -------------------------------------------------------------------
-# Ground: THREE side-by-side tiles, each 120 wide x 300 deep, centred
-# z=-170 (spans z=-320..-20). v10 proved one 120x300 tile renders (dark
-# green, unshaded) but is too NARROW to fill the frame at distance — the
-# black trapezoid is the sky's dark ground showing on the sides beyond
-# x=±60, where the 120-wide ground doesn't reach. At the green (170 yd)
-# the frame is ~260 yd wide, so the ground needs ~360 yd of width. Three
-# 120-wide tiles side by side (x=-120/0/+120) give 360 yd of width while
-# each tile stays at the proven 120-wide size. One row only (v8/v9's 3x3
-# grid rendered nothing — the z=-40 row contained the camera).
+# Ground: ONE tile, 120 wide x 300 deep, centred z=-170 (spans z=-320..-20).
+# v11 proved side-by-side tiles do NOT render — only the single centre
+# tile renders (the x=±120 tiles contribute nothing; v11 is identical to
+# v10). So the ground stays one 120-wide tile. It is too narrow to fill
+# the frame at the green (~287 yd wide there), so the sides beyond x=±60
+# show the sky's dark ground as a black trapezoid. That is fixed with
+# depth FOG (below), not with more ground: the far field fades to warm
+# golden-hour haze, which is the cinematic look anyway.
 ground_mesh = box(120, 0.4, 300)
 tee_mesh = box(12, 0.4, 10)
 green_mesh = cyl(GREEN_R, GREEN_R, 0.4, 32)
@@ -151,7 +150,11 @@ club_mesh = cyl(0.05, 0.05, 3.4, 8)
 sky_mat = sub("ProceduralSkyMaterial", {
     "sky_top_color": "Color(0.25, 0.45, 0.75, 1)",
     "sky_horizon_color": "Color(0.95, 0.65, 0.35, 1)",
-    "ground_bottom_color": "Color(0.15, 0.20, 0.12, 1)",
+    # v2: ground_bottom brightened (0.15,0.20,0.12) -> (0.30,0.38,0.24).
+    # The v1 frame read black past the 120-wide ground tile's edges, where
+    # the sky's dark ground shows; the tile itself is unshaded mid-green,
+    # so the black is the sky ground, not the sun (sun elevation is ~38deg).
+    "ground_bottom_color": "Color(0.30, 0.38, 0.24, 1)",
     "ground_horizon_color": "Color(0.85, 0.60, 0.35, 1)",
     "sun_angle_max": "30.0",
     "sun_curve": "0.08",
@@ -161,10 +164,28 @@ env = sub("Environment", {
     "background_mode": "2",
     "sky": f'SubResource("{sky}")',
     "ambient_light_source": "2",
-    "ambient_light_energy": "1.0",
+    # v2: ambient 1.0 -> 1.25 and exposure 1.0 -> 1.1 to lift the dark
+    # ground read in the v1 frame; small, reversible, re-check on capture.
+    "ambient_light_energy": "1.25",
     "tonemap_mode": "2",
-    "tonemap_exposure": "1.0",
+    "tonemap_exposure": "1.1",
     "glow_enabled": "true",
+    # Depth fog: the 120-wide ground cannot fill the frame at the green
+    # (~287 yd wide there), so the sides beyond x=±60 show the sky's dark
+    # ground as a black trapezoid. Fog fades the far field to warm
+    # golden-hour haze instead — the cinematic look, and it hides the
+    # narrow-ground edge.
+    # v2: end 220 -> 300 yd, density 0.01 -> 0.007. The camera pulled back
+    # to z=38, so the green is now ~210 yd away; at the old end of 220 it
+    # would have been ~94% fogged out. Begin stays 60 yd.
+    "fog_enabled": "true",
+    "fog_mode": "1",
+    "fog_light_color": "Color(0.9, 0.65, 0.4, 1)",
+    "fog_light_energy": "1.0",
+    "fog_sun_scatter": "0.3",
+    "fog_density": "0.007",
+    "fog_depth_begin": "60.0",
+    "fog_depth_end": "300.0",
 })
 
 # --- Scene ---------------------------------------------------------------------
@@ -186,10 +207,8 @@ node("BusClient", "Node", ".", None, ['script = ExtResource("1")'])
 node("Director", "Node", ".", None, ['script = ExtResource("2")'])
 
 # Ground + hole features.
-# Three side-by-side ground tiles, 120 wide each, x=-120/0/+120, all
-# centred z=-170 (each spans z -320..-20; together x -180..+180).
-for gx in (-120.0, 0.0, 120.0):
-    mesh_node(f"Ground_{int(gx)}", ground_mesh, grass, gx, -0.2, -170)
+# One ground tile, 120 wide x 300 deep, centred z=-170 (z -320..-20).
+mesh_node("Ground", ground_mesh, grass, 0, -0.2, -170)
 mesh_node("Tee", tee_mesh, fairway, 0, TEE_Y - 0.2, 0)
 mesh_node("Collar", collar_mesh, collar_mat, 0, -0.15, GREEN_Z)
 mesh_node("Green", green_mesh, green_mat, 0, 0, GREEN_Z)
@@ -219,12 +238,16 @@ mesh_node("MasLegR", leg_mesh, pants, 0.3, TEE_Y + 0.8, 2)
 mesh_node("MasClub", club_mesh, club_mat, 0.9, TEE_Y + 1.7, 1.6)
 
 # Broadcast camera — always behind the golfer, looking down the hole.
-# v2 pulled too far (Mas left the frame). This is the middle: back and up
-# enough that Mas is a small figure and the hole reads, close enough that
-# he is still in the shot. Tilted down 15 deg.
+# v2 (Nov 13, after the first real frame): the v1 camera at (0,11,15)
+# put Mas at 13.1 yd, subtending ~16 deg — 32% of the 50-deg vertical
+# FOV, centred, blocking the hole. Pulled back to (0,14,38), FOV 55,
+# tilt down 10 deg: Mas is 36.3 yd out, ~5.8 deg, ~11% of frame height,
+# and the green (3.8 deg below horizontal from the camera) sits in the
+# upper third. Framing math checked in the v2 note; the Mac frame
+# capture is the real verdict, not this arithmetic.
 node("BroadcastCam", "Camera3D", ".",
-     "Transform3D(1, 0, 0, 0, 0.966, 0.259, 0, -0.259, 0.966, 0, 11, 15)",
-     ["fov = 50.0", "current = true"])
+     "Transform3D(1, 0, 0, 0, 0.985, 0.174, 0, -0.174, 0.985, 0, 14, 38)",
+     ["fov = 55.0", "current = true"])
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 header = ['[gd_scene load_steps=%d format=3]' % (sub_id[0] + 3), "",
