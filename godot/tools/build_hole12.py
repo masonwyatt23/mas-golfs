@@ -102,9 +102,12 @@ def mesh_node(name: str, mesh: str, material: str, x: float, y: float,
 
 
 # --- Materials ----------------------------------------------------------------
-# Grass is SHADED again (the v6 unshaded diagnostic proved the mesh
-# renders; the tee/green already prove shaded green reads fine).
-grass = mat((0.28, 0.58, 0.28))
+# Grass is UNSHADED again (diagnostic): v8's SHADED tiled ground rendered
+# black while v6's UNSHADED single tile rendered dark green. If the tiled
+# ground renders green unshaded, the problem is shading/lighting on the
+# ground tiles specifically (not culling); if still black, the tiles are
+# not rendering at all. The tee/green prove shaded green CAN read.
+grass = mat((0.28, 0.58, 0.28), unshaded=True)
 fairway = mat((0.32, 0.62, 0.30))
 green_mat = mat((0.35, 0.70, 0.32))
 collar_mat = mat((0.22, 0.55, 0.22))
