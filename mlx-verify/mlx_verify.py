@@ -383,14 +383,48 @@ def run_latency(client: ChatClient, events: list[dict], n: int = LATENCY_N) -> d
             "model": client.model, "rows": rows}
 
 
+def _clean_line_fn():
+    """Production normalizer (commentary/normalize.py clean_line), or None.
+
+    The audition judges the line as it would air, not the raw
+    generation: production truncates over-long lines at the last
+    sentence boundary under 280 chars and drops unreadable ones
+    (normalize.py cap_length / apply_hard_filter). Validating the raw
+    line would fail lines the broadcast handles correctly.
+    """
+    try:
+        repo_root = os.path.join(os.path.dirname(__file__), "..")
+        if repo_root not in sys.path:
+            sys.path.insert(0, repo_root)
+        from commentary.normalize import clean_line  # noqa: PLC0415
+        return clean_line
+    except Exception:
+        return None
+
+
 def run_audition(client: ChatClient, events: list[dict], n: int = 20) -> dict:
-    """Local-models §10 step 4: 20 generated lines, all within the rules."""
+    """Local-models §10 step 4: 20 generated lines, all within the rules.
+
+    Each line is judged after the production normalizer (clean_line):
+    a line that truncates to a good first sentence passes; a line the
+    normalizer drops, or whose aired portion breaks a rule (invented
+    number, banned word, think leak), fails.
+    """
+    clean_line = _clean_line_fn()
     rows = []
     for ev in events[:n]:
         result = client.generate(ev["speaker"], ev["user_prompt"])
-        check = validate_line(result["text"], ev["user_prompt"])
+        raw = result["text"]
+        aired = clean_line(raw) if clean_line is not None else raw
+        if aired is None:
+            check = {"ok": False,
+                     "failures": ["dropped by normalizer (unreadable after "
+                                  "filter / no sentence boundary under 280)"],
+                     "chars": len(raw)}
+        else:
+            check = validate_line(aired, ev["user_prompt"])
         rows.append({"event_id": ev["id"], "event_type": ev["event_type"],
-                     "speaker": ev["speaker"], "text": result["text"],
+                     "speaker": ev["speaker"], "text": raw, "aired": aired,
                      **check})
     failed = [r for r in rows if not r["ok"]]
     verdict = "PASS" if not failed else "FAIL"
