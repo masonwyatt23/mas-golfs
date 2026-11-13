@@ -50,6 +50,10 @@ def mat(color: tuple[float, float, float], roughness: float = 0.9,
     }
     if unshaded:
         props["shading_mode"] = "1"  # SHADING_MODE_UNSHADED: albedo as-is, no lighting
+        # v14: the ground tile's TOP face renders black while its SIDE face
+        # renders the albedo (magenta diagnostic) — the top face is being
+        # culled as a backface. Disable culling so both faces render.
+        props["cull_mode"] = "2"  # CULL_DISABLED
     return sub("StandardMaterial3D", props)
 
 
