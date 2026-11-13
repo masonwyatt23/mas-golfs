@@ -10,6 +10,8 @@
 
 **The one honest MLX caveat:** Ollama's MLX backend — the easy path — auto-activates only on Macs with 32GB+ RAM. It will not activate on the 8GB box. The MLX path here is therefore **mlx-lm directly** (Apple's reference implementation, with its built-in OpenAI-compatible server), not Ollama. That is a little more setup than `ollama pull`, and it is the right call: it is the fastest runtime *and* the lightest on memory, which is exactly what an 8GB box needs. llama.cpp stays as the fallback because it is the most battle-tested engine and Ollama makes it a one-command install.
 
+**oMLX considered and set aside (Mason, Nov 12, 2026):** oMLX (github.com/jundot/omlx) is a local inference server built on MLX — OpenAI/Anthropic-compatible API, menu-bar app, continuous batching, tiered SSD KV cache. Mason has used it before for other work. Decision: plain mlx-lm. Our workload is one 4B model writing one short line per event — batching and long-context KV caching buy almost nothing here, and oMLX's extra server overhead and 16GB documented minimum cut against an 8GB box. oMLX stays an option if multi-model serving is ever needed; switching would be a `base_url` change in `commentary/config.yaml`, since the commentary service is already an OpenAI-compatible client.
+
 **Related docs:** `docs/commentary-prompts.md` (the prompts the LLM runs), `docs/voice-options.md` (Kokoro TTS, the voices), `docs/broadcast-stack.md` §5 (the commentary pipeline), `docs/sim-engine.md` (the decision engine), `docs/deployment-runbook.md` (the box, the watchdog, no scheduled restart), `docs/self-improvement.md` (the learning loop this stack serves), `docs/qa-plan.md` (the verification gates).
 
 ---

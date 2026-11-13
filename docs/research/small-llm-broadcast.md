@@ -46,7 +46,7 @@ MLX is 15–30% faster than llama.cpp on dense models under ~30B, widening to ~2
 
 Two MLX caveats: it does full prefill before emitting any token, so TTFT grows with prompt length (keep prompts short — ours are); and it has no layer-splitting equivalent to llama.cpp's CPU offload — if a model does not fit in unified memory, it does not run.
 
-**First verification step before anything else: confirm the 8GB MacBook Pro is Apple Silicon.** MLX does not run on Intel Macs. If the box is Intel, the entire MLX plan fails and the fallback is llama.cpp on CPU at a fraction of the speed. Check `About This Mac → Chip`.
+**First verification step before anything else: confirm the 8GB MacBook Pro is Apple Silicon.** MLX does not run on Intel Macs. If the box is Intel, the entire MLX plan fails and the fallback is llama.cpp on CPU at a fraction of the speed. Check `About This Mac → Chip`. **CONFIRMED Nov 12, 2026 (Mason): the 8GB MacBook Pro is Apple Silicon. The MLX plan stands; the Intel fallback is not needed.**
 
 Sources: https://blog.starmorph.com/blog/apple-silicon-llm-inference-optimization-guide ; https://localmodel.run/tools ; https://llmcheck.net/guides/mlx-framework-apple-silicon/
 
@@ -238,7 +238,7 @@ Runtime also changes: vLLM/Ollama on CUDA replaces mlx-lm, speculative decoding 
 
 ### Verification steps (on the actual 8GB box, in order)
 
-1. Confirm the box is Apple Silicon (`About This Mac → Chip`). If Intel, the MLX plan fails — fall back to llama.cpp on CPU.
+1. Confirm the box is Apple Silicon (`About This Mac → Chip`). If Intel, the MLX plan fails — fall back to llama.cpp on CPU. **DONE Nov 12, 2026: confirmed Apple Silicon by Mason.**
 2. `mlx_lm.benchmark --model mlx-community/Qwen3-4B-Instruct-2507-4bit -p 512 -g 128 -n 5` — record TTFT, decode tok/s, peak memory.
 3. Run the 24-hour soak from the QA plan with the full stack (OBS + browser + NodeCG + Kokoro + MLX) and watch swap. If swap stays at zero, #1 is confirmed; if it grows, drop to #4.
 4. A/B #1 vs #2 on 50 real commentary events, scored by a human on format compliance, factual grounding, and voice. Pick the winner on evidence, not benchmarks.
