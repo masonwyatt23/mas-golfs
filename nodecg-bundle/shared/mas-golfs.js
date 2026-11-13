@@ -67,9 +67,9 @@
   function startDemo(replicants) {
     if (isNodeCG || isStatic) return;
     var shots = [
-      { club: '7-iron', ball_speed_mph: 132, launch_deg: 19, spin_rpm: 6800, apex_ft: 78, carry_yds: 158, total_yds: 164, shape: 'draw', contact: 'pure', dist_to_pin_ft: 12, lie: 'green' },
-      { club: 'Driver', ball_speed_mph: 164, launch_deg: 12, spin_rpm: 2400, apex_ft: 96, carry_yds: 272, total_yds: 291, shape: 'fade', contact: 'pure', dist_to_pin_ft: 142, lie: 'fairway' },
-      { club: 'Pitching wedge', ball_speed_mph: 98, launch_deg: 26, spin_rpm: 9100, apex_ft: 54, carry_yds: 121, total_yds: 128, shape: 'straight', contact: 'thin', dist_to_pin_ft: 9, lie: 'green' }
+      { club: '7-iron', ball_speed_mph: 132, launch_deg: 19, spin_rpm: 6800, apex_ft: 78, carry_yds: 166, total_yds: 172, target_yards: 172, shape: 'draw', contact: 'pure', dist_to_pin_ft: 12, lie: 'green' },
+      { club: 'Driver', ball_speed_mph: 164, launch_deg: 12, spin_rpm: 2400, apex_ft: 96, carry_yds: 272, total_yds: 291, target_yards: 291, shape: 'fade', contact: 'pure', dist_to_pin_ft: 142, lie: 'fairway' },
+      { club: 'Pitching wedge', ball_speed_mph: 98, launch_deg: 26, spin_rpm: 9100, apex_ft: 54, carry_yds: 121, total_yds: 128, target_yards: 128, shape: 'straight', contact: 'thin', dist_to_pin_ft: 9, lie: 'green' }
     ];
     var idx = 0;
     demoState = { shotIdx: 0 };

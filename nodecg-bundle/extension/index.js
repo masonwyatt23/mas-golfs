@@ -70,7 +70,17 @@ module.exports = function (nodecg) {
           launch_deg: data.launch_deg,
           spin_rpm: data.spin_rpm,
           smash_factor: data.smash_factor,
-          contact: data.contact
+          contact: data.contact,
+          target_yards: data.target_yards,
+          // New shot: clear the previous shot's outcome fields so the
+          // live-distance counter (lower-third) starts from zero instead
+          // of showing the last shot's carry/total.
+          apex_ft: null,
+          carry_yds: null,
+          total_yds: null,
+          shape: null,
+          lie: null,
+          dist_to_pin_ft: null
         });
         showLowerThird({
           variant: 'shot',
@@ -199,9 +209,9 @@ module.exports = function (nodecg) {
   function startDemoSimulator() {
     if (demoTimer) return;
     const cycle = [
-      { event: 'strike', data: { club: '7-iron', ball_speed_mph: 132, launch_deg: 19, spin_rpm: 6800, smash_factor: 1.42, contact: 'pure', target_yards: 164 } },
-      { event: 'apex', data: { apex_ft: 78, carry_yds: 158, shape: 'draw' } },
-      { event: 'landing', data: { total_yds: 164, lie: 'green', dist_to_pin_ft: 12, result: 'green_hit' } },
+      { event: 'strike', data: { club: '7-iron', ball_speed_mph: 132, launch_deg: 19, spin_rpm: 6800, smash_factor: 1.42, contact: 'pure', target_yards: 172 } },
+      { event: 'apex', data: { apex_ft: 78, carry_yds: 166, shape: 'draw' } },
+      { event: 'landing', data: { total_yds: 172, lie: 'green', dist_to_pin_ft: 12, result: 'green_hit' } },
       { event: 'hole_end', data: { score: 2, par: 3, score_to_par: -1, putts: 1 } }
     ];
     let i = 0;

@@ -33,10 +33,46 @@ nodecg-bundle/
 | Replicant | Written on | Contents |
 |---|---|---|
 | `roundState` | Every event | Full round snapshot (score, thru, handicap, scorecard, stats, streak, coins) |
-| `shotData` | `strike`, `apex`, `landing` | Club, ball speed, launch, spin, apex, carry, shape, contact, distance to pin, lie |
+| `shotData` | `strike`, `apex`, `landing` | Club, ball speed, launch, spin, target carry (intended carry at strike), apex, carry, shape, contact, distance to pin, lie, total distance |
 | `prediction` | `hole_start`, `decision` | Coins question, odds, pool, close timer, open flag |
 | `lastShot` | `landing` | One-line result for the ticker |
 | `lowerThird` | `strike`, `hole_end`, `milestone` | Current lower-third payload (also sent as a `showLowerThird` message) |
+
+## Course data — Wyatt National v3
+
+The course is **par 72, 7,602 yards** (front 3,808 / back 3,794), per
+`docs/course-design-v3.md`. The full 18-hole table (name, par, yards per hole)
+lives in `shared/placeholder-data.json` and `shared/placeholder.js` under
+`course` — keep both copies in sync. The placeholder round is on hole 12,
+"The Picture", a par 3 of **172 yards** (22 ft downhill).
+
+Hole-by-hole yardages are **not** hardcoded into the graphics: the hole card,
+scorebug, and ticker read the current hole from `roundState.current_hole`,
+which the extension writes from `hole_start` bus events. The `course` table
+is the single reference copy for previews and for any graphic that needs the
+full routing.
+
+## Live distance counter (lower-third, shot variant)
+
+The bus fans a shot out as `strike` → `apex` → `landing`, and the extension
+mirrors each phase into `shotData`. The shot lower-third turns those three
+discrete updates into a live readout:
+
+- **Strike:** the counter starts at 0 and counts up over an estimated flight
+  time (ballistic estimate from ball speed + launch angle, stretched 15% for
+  drag — close enough for a counter, and corrected the moment real data
+  arrives). The estimate aims at `target_yards`, the intended carry the
+  extension stores from the `strike` event.
+- **Apex:** `carry_yds` arrives and the counter snaps its target to the real
+  carry, so the number on screen is never an estimate for long.
+- **Landing:** `total_yds` arrives and the line locks in:
+  `CARRIED 166 YDS · TOTAL 172 YDS`.
+
+Because the extension clears the previous shot's outcome fields (`apex_ft`,
+`carry_yds`, `total_yds`, `shape`, `lie`, `dist_to_pin_ft`) on every `strike`,
+a new shot always restarts the counter from zero instead of flashing the last
+shot's numbers. The shot lower-third holds **8 s** (other variants hold 5 s)
+so the flight and the landing result stay on screen.
 
 ## Install in NodeCG
 

@@ -17,6 +17,10 @@
   #lowerThird.show { opacity: 1; transform: translateX(0); }
   #lowerThird .lt-title { font-size: 34px; color: var(--cream); }
   #lowerThird .lt-body { font-size: 20px; color: var(--mist); margin-top: 6px; }
+  #lowerThird .lt-dist {
+    font-size: 24px; font-weight: 700; color: var(--gold); margin-top: 8px;
+    letter-spacing: 0.02em; font-variant-numeric: tabular-nums;
+  }
   #lowerThird .lt-tag {
     display: inline-block; font-size: 14px; letter-spacing: 0.12em;
     color: var(--gold); margin-bottom: 6px; text-transform: uppercase;
@@ -29,6 +33,7 @@
     <div class="lt-tag display" id="ltTag">Shot data</div>
     <div class="display lt-title" id="ltTitle"></div>
     <div class="mono lt-body" id="ltBody"></div>
+    <div class="mono lt-dist" id="ltDist" style="display: none"></div>
   </div>
 
 <script src="../shared/placeholder.js"></script>
@@ -36,20 +41,121 @@
 <script>
 (function () {
   var el = document.getElementById('lowerThird');
+  var distEl = document.getElementById('ltDist');
   var hideTimer = null;
   var lowerThird = MasGolfs.makeReplicant('lowerThird', null);
+  var shotData = MasGolfs.makeReplicant('shotData', MasGolfs.placeholder.shotData || {});
+  var currentVariant = null;
 
   var TAGS = { shot: 'Shot data', holeResult: 'Hole result', milestone: 'Milestone' };
+  // The shot lower-third holds 8 s (not 5) so the flight + landing result
+  // stay on screen; the other variants hold 5 s as before.
+  var HOLD_MS = { shot: 8000, holeResult: 5000, milestone: 5000 };
 
   function show(payload) {
     if (!payload) return;
+    currentVariant = payload.variant || null;
     document.getElementById('ltTag').textContent = TAGS[payload.variant] || 'Mas Golfs';
     document.getElementById('ltTitle').textContent = payload.title || '';
     document.getElementById('ltBody').textContent = payload.body || '';
     el.className = 'panel show' + (payload.variant === 'milestone' ? ' milestone' : '');
+    if (payload.variant === 'shot') {
+      distEl.style.display = '';
+      renderDist();
+    } else {
+      distEl.style.display = 'none';
+    }
     clearTimeout(hideTimer);
-    hideTimer = setTimeout(function () { el.classList.remove('show'); }, 5000);
+    hideTimer = setTimeout(function () { el.classList.remove('show'); },
+      HOLD_MS[payload.variant] || 5000);
   }
+
+  // --- Live distance counter ------------------------------------------------
+  // The bus fans a shot out as strike -> apex -> landing, and the extension
+  // mirrors each phase into the shotData replicant. This turns those three
+  // discrete updates into a live "CARRIED x YDS · TOTAL y YDS" readout:
+  // it counts up from the strike over an estimated flight time, snaps to
+  // the real carry when the apex event lands, and locks in the total on
+  // landing. The flight-time estimate is ballistic (2·v·sinθ/g, stretched
+  // 15% for drag) — close enough for a counter, and every number it shows
+  // is corrected the moment the real event arrives.
+  var flight = null; // { key, startTs, durationMs, carryTarget, totalYds, raf }
+
+  function shotKey(s) {
+    if (!s) return '';
+    return (s.club || '') + '|' + (s.ball_speed_mph || '') + '|' + (s.launch_deg || '');
+  }
+
+  function estimateFlightMs(ballMph, launchDeg) {
+    if (!ballMph || !launchDeg) return 4000;
+    var v = ballMph * 1.46667; // mph -> ft/s
+    var t = 2 * v * Math.sin(launchDeg * Math.PI / 180) / 32.2 * 1.15;
+    return Math.max(2000, Math.min(8000, Math.round(t * 1000)));
+  }
+
+  function stopFlight() {
+    if (flight && flight.raf) cancelAnimationFrame(flight.raf);
+    flight = null;
+  }
+
+  function startFlight(s) {
+    stopFlight();
+    flight = {
+      key: shotKey(s),
+      startTs: Date.now(),
+      durationMs: estimateFlightMs(s.ball_speed_mph, s.launch_deg),
+      carryTarget: (s.target_yards != null ? s.target_yards
+        : (s.carry_yds != null ? s.carry_yds : null)),
+      totalYds: (s.total_yds != null ? s.total_yds : null)
+    };
+    tickFlight();
+  }
+
+  function tickFlight() {
+    if (!flight) return;
+    if (flight.totalYds != null) {
+      // Landed: final line, stop ticking.
+      distEl.textContent = 'CARRIED ' + (flight.carryTarget != null ? flight.carryTarget : '—')
+        + ' YDS · TOTAL ' + flight.totalYds + ' YDS';
+      return;
+    }
+    var p = Math.min(1, (Date.now() - flight.startTs) / flight.durationMs);
+    if (flight.carryTarget != null) {
+      // Fast early, flattening late — like a real ball slowing through the air.
+      var carried = Math.round(flight.carryTarget * (1 - Math.pow(1 - p, 1.5)));
+      distEl.textContent = 'CARRIED ' + carried + ' YDS';
+    } else {
+      distEl.textContent = 'BALL IN FLIGHT…';
+    }
+    if (p < 1) {
+      flight.raf = requestAnimationFrame(tickFlight);
+    } else if (flight.carryTarget != null) {
+      distEl.textContent = 'CARRIED ' + flight.carryTarget + ' YDS';
+    }
+  }
+
+  function renderDist() {
+    if (currentVariant !== 'shot') return;
+    var s = shotData.value;
+    if (!s) { distEl.textContent = ''; return; }
+    if (!flight) { startFlight(s); return; }
+    tickFlight();
+  }
+
+  shotData.on('change', function (s) {
+    if (!s) return;
+    var key = shotKey(s);
+    if (key && (!flight || key !== flight.key)) {
+      // New shot struck: restart the counter from zero.
+      startFlight(s);
+      return;
+    }
+    if (!flight) { startFlight(s); return; }
+    // Same shot, later phase: apex brings the real carry, landing the total.
+    if (s.carry_yds != null) flight.carryTarget = s.carry_yds;
+    if (s.total_yds != null) flight.totalYds = s.total_yds;
+    tickFlight();
+  });
 
   // NodeCG messages (extension sends 'showLowerThird' on strike / hole_end / milestone).
   MasGolfs.listenFor('showLowerThird', show);

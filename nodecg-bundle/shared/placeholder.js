@@ -16,7 +16,7 @@ window.MAS_PLACEHOLDER = {
     "all_time_score": -41,
     "course_record": 63,
     "best_round": 64,
-    "current_hole": { "name": "The Picture", "par": 3, "yards": 164 },
+    "current_hole": { "name": "The Picture", "par": 3, "yards": 172 },
     "scorecard": [
       { "hole": 1, "par": 4, "score": 4, "putts": 2 },
       { "hole": 2, "par": 5, "score": 5, "putts": 2 },
@@ -44,8 +44,9 @@ window.MAS_PLACEHOLDER = {
     "launch_deg": 19,
     "spin_rpm": 6800,
     "apex_ft": 78,
-    "carry_yds": 158,
-    "total_yds": 164,
+    "carry_yds": 166,
+    "total_yds": 172,
+    "target_yards": 172,
     "shape": "draw",
     "contact": "pure",
     "dist_to_pin_ft": 12,
@@ -58,7 +59,7 @@ window.MAS_PLACEHOLDER = {
     "closes_in_s": 45,
     "open": true
   },
-  "lastShot": "7-iron from 164 — 12 ft, birdie putt",
+  "lastShot": "7-iron from 172 — 12 ft, birdie putt",
   "leaderboard": [
     { "rank": 1, "round": 41, "score": 63, "to_par": -9, "date": "Nov 10" },
     { "rank": 2, "round": 38, "score": 64, "to_par": -8, "date": "Nov 9" },
@@ -87,17 +88,46 @@ window.MAS_PLACEHOLDER = {
     "hole": 12,
     "name": "The Picture",
     "par": 3,
-    "yards": 164,
+    "yards": 172,
     "wind_mph": 12,
     "wind_dir": "→",
     "pin": "back-left",
-    "elevation_ft": -18
+    "elevation_ft": -22
+  },
+  // Wyatt National v3 — par 72, 7,602 yards (front 3,808 / back 3,794).
+  // Full course table, so every graphic can read hole data from one place.
+  "course": {
+    "name": "Wyatt National",
+    "par": 72,
+    "yards": 7602,
+    "front_yards": 3808,
+    "back_yards": 3794,
+    "holes": [
+      { "hole": 1, "name": "The Handshake", "par": 4, "yards": 432 },
+      { "hole": 2, "name": "The Reach", "par": 5, "yards": 612 },
+      { "hole": 3, "name": "The Postage Stamp", "par": 3, "yards": 196 },
+      { "hole": 4, "name": "The Examination", "par": 4, "yards": 476 },
+      { "hole": 5, "name": "The Temptation", "par": 4, "yards": 392 },
+      { "hole": 6, "name": "The Dogleg", "par": 4, "yards": 452 },
+      { "hole": 7, "name": "The Valley", "par": 5, "yards": 586 },
+      { "hole": 8, "name": "The Long One", "par": 3, "yards": 238 },
+      { "hole": 9, "name": "The Return", "par": 4, "yards": 424 },
+      { "hole": 10, "name": "The Turn", "par": 4, "yards": 440 },
+      { "hole": 11, "name": "The Monster", "par": 5, "yards": 624 },
+      { "hole": 12, "name": "The Picture", "par": 3, "yards": 172 },
+      { "hole": 13, "name": "The Grind", "par": 4, "yards": 482 },
+      { "hole": 14, "name": "The Gambler", "par": 4, "yards": 406 },
+      { "hole": 15, "name": "The Eagle Chance", "par": 5, "yards": 578 },
+      { "hole": 16, "name": "The Test", "par": 3, "yards": 214 },
+      { "hole": 17, "name": "The Penultimate", "par": 4, "yards": 448 },
+      { "hole": 18, "name": "The Closer", "par": 4, "yards": 430 }
+    ]
   },
   "lowerThirds": {
     "shot": {
       "variant": "shot",
-      "title": "7-IRON · 164 YDS",
-      "body": "Ball 132 mph · Launch 19° · Spin 6,800 · Apex 78 ft · Carry 158"
+      "title": "7-IRON · 172 YDS",
+      "body": "Ball 132 mph · Launch 19° · Spin 6,800 · Apex 78 ft"
     },
     "holeResult": {
       "variant": "holeResult",
