@@ -118,7 +118,11 @@ red = mat((0.80, 0.10, 0.10))
 club_mat = mat((0.60, 0.60, 0.65), metallic=0.8, roughness=0.3)
 
 # --- Meshes -------------------------------------------------------------------
-ground_mesh = plane(400, 400)
+# Ground is a thin BOX, not a PlaneMesh: the v1-v3 frames rendered the
+# PlaneMesh ground black under every lighting change (bright albedo,
+# stronger sun, stronger ambient, shadows off) while BoxMesh/CylinderMesh
+# surfaces in the same light read green. A thin box is the robust ground.
+ground_mesh = box(400, 0.4, 400)
 tee_mesh = box(12, 0.4, 10)
 green_mesh = cyl(GREEN_R, GREEN_R, 0.4, 32)
 collar_mesh = cyl(GREEN_R + 3, GREEN_R + 3, 0.3, 32)

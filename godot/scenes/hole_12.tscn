@@ -73,8 +73,8 @@ albedo_color = Color(0.6, 0.6, 0.65, 1)
 roughness = 0.3
 metallic = 0.8
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_15"]
-size = Vector2(400, 400)
+[sub_resource type="BoxMesh" id="BoxMesh_15"]
+size = Vector3(400, 0.4, 400)
 
 [sub_resource type="BoxMesh" id="BoxMesh_16"]
 size = Vector3(12, 0.4, 10)
@@ -180,7 +180,7 @@ script = ExtResource("2")
 
 [node name="Ground" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, -80)
-mesh = SubResource("PlaneMesh_15")
+mesh = SubResource("BoxMesh_15")
 surface_material_override/0 = SubResource("StandardMaterial3D_1")
 
 [node name="Tee" type="MeshInstance3D" parent="."]
