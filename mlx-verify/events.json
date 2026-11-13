@@ -1,0 +1,710 @@
+[
+  {
+    "id": "ev01",
+    "event_type": "decision",
+    "speaker": "color",
+    "fields": {
+      "hole": 3,
+      "par": 3,
+      "score_to_par": "1 under par",
+      "thru": 2,
+      "club": "7-iron",
+      "shot_type": "full",
+      "target_yards": 187,
+      "aim": "middle of the green",
+      "lie": "tee",
+      "wind_mph": 8,
+      "wind_dir": "into",
+      "reason": "the pin is back left and the miss is short",
+      "risk": "low"
+    },
+    "user_prompt": "Mas is on hole 3 (par 3), 1 under par through 2.\nHe has chosen 7-iron, full, target 187 yards,\naiming middle of the green. Lie: tee. Wind: 8 mph into.\nThe reason for this choice is: the pin is back left and the miss is short. Risk level: low.\nExplain the decision in one or two sentences: what he is trying to do,\nand what the shot asks of him."
+  },
+  {
+    "id": "ev02",
+    "event_type": "decision",
+    "speaker": "color",
+    "fields": {
+      "hole": 12,
+      "par": 3,
+      "score_to_par": "2 under par",
+      "thru": 11,
+      "club": "8-iron",
+      "shot_type": "full",
+      "target_yards": 164,
+      "aim": "right edge of the green",
+      "lie": "tee",
+      "wind_mph": 6,
+      "wind_dir": "helping",
+      "reason": "downhill over the pond, the safe side is long",
+      "risk": "medium"
+    },
+    "user_prompt": "Mas is on hole 12 (par 3), 2 under par through 11.\nHe has chosen 8-iron, full, target 164 yards,\naiming right edge of the green. Lie: tee. Wind: 6 mph helping.\nThe reason for this choice is: downhill over the pond, the safe side is long. Risk level: medium.\nExplain the decision in one or two sentences: what he is trying to do,\nand what the shot asks of him."
+  },
+  {
+    "id": "ev03",
+    "event_type": "decision",
+    "speaker": "color",
+    "fields": {
+      "hole": 5,
+      "par": 4,
+      "score_to_par": "even par",
+      "thru": 4,
+      "club": "driver",
+      "shot_type": "full",
+      "target_yards": 278,
+      "aim": "left center of the fairway",
+      "lie": "tee",
+      "wind_mph": 12,
+      "wind_dir": "left to right",
+      "reason": "the drivable green tempts, but the bunker guards the front",
+      "risk": "high"
+    },
+    "user_prompt": "Mas is on hole 5 (par 4), even par through 4.\nHe has chosen driver, full, target 278 yards,\naiming left center of the fairway. Lie: tee. Wind: 12 mph left to right.\nThe reason for this choice is: the drivable green tempts, but the bunker guards the front. Risk level: high.\nExplain the decision in one or two sentences: what he is trying to do,\nand what the shot asks of him."
+  },
+  {
+    "id": "ev04",
+    "event_type": "decision",
+    "speaker": "color",
+    "fields": {
+      "hole": 17,
+      "par": 4,
+      "score_to_par": "3 under par",
+      "thru": 16,
+      "club": "5-iron",
+      "shot_type": "knockdown",
+      "target_yards": 198,
+      "aim": "front edge",
+      "lie": "fairway",
+      "wind_mph": 15,
+      "wind_dir": "into",
+      "reason": "into the wind, take one more club and flight it down",
+      "risk": "medium"
+    },
+    "user_prompt": "Mas is on hole 17 (par 4), 3 under par through 16.\nHe has chosen 5-iron, knockdown, target 198 yards,\naiming front edge. Lie: fairway. Wind: 15 mph into.\nThe reason for this choice is: into the wind, take one more club and flight it down. Risk level: medium.\nExplain the decision in one or two sentences: what he is trying to do,\nand what the shot asks of him."
+  },
+  {
+    "id": "ev05",
+    "event_type": "decision",
+    "speaker": "color",
+    "fields": {
+      "hole": 8,
+      "par": 3,
+      "score_to_par": "even par",
+      "thru": 7,
+      "club": "5-iron",
+      "shot_type": "full",
+      "target_yards": 226,
+      "aim": "front right",
+      "lie": "tee",
+      "wind_mph": 11,
+      "wind_dir": "into",
+      "reason": "the longest par 3 on the course, take plenty of club",
+      "risk": "medium"
+    },
+    "user_prompt": "Mas is on hole 8 (par 3), even par through 7.\nHe has chosen 5-iron, full, target 226 yards,\naiming front right. Lie: tee. Wind: 11 mph into.\nThe reason for this choice is: the longest par 3 on the course, take plenty of club. Risk level: medium.\nExplain the decision in one or two sentences: what he is trying to do,\nand what the shot asks of him."
+  },
+  {
+    "id": "ev06",
+    "event_type": "decision",
+    "speaker": "color",
+    "fields": {
+      "hole": 15,
+      "par": 5,
+      "score_to_par": "4 under par",
+      "thru": 14,
+      "club": "3-wood",
+      "shot_type": "full",
+      "target_yards": 248,
+      "aim": "left side of the green",
+      "lie": "fairway",
+      "wind_mph": 4,
+      "wind_dir": "helping",
+      "reason": "going for the green in two, the eagle chance is real",
+      "risk": "high"
+    },
+    "user_prompt": "Mas is on hole 15 (par 5), 4 under par through 14.\nHe has chosen 3-wood, full, target 248 yards,\naiming left side of the green. Lie: fairway. Wind: 4 mph helping.\nThe reason for this choice is: going for the green in two, the eagle chance is real. Risk level: high.\nExplain the decision in one or two sentences: what he is trying to do,\nand what the shot asks of him."
+  },
+  {
+    "id": "ev07",
+    "event_type": "apex",
+    "speaker": "color",
+    "fields": {
+      "club": "7-iron",
+      "apex_ft": 92,
+      "carry_yds": 178,
+      "shape": "draw",
+      "curve_yds": 6
+    },
+    "user_prompt": "The 7-iron is at its apex, 92 feet high, carrying\n178 yards, shape draw, curving 6 yards.\nRead the flight in one short sentence. If it is straight and on line,\nsay nothing — return the word SILENCE."
+  },
+  {
+    "id": "ev08",
+    "event_type": "apex",
+    "speaker": "color",
+    "fields": {
+      "club": "driver",
+      "apex_ft": 118,
+      "carry_yds": 262,
+      "shape": "straight",
+      "curve_yds": 1
+    },
+    "user_prompt": "The driver is at its apex, 118 feet high, carrying\n262 yards, shape straight, curving 1 yards.\nRead the flight in one short sentence. If it is straight and on line,\nsay nothing — return the word SILENCE."
+  },
+  {
+    "id": "ev09",
+    "event_type": "apex",
+    "speaker": "color",
+    "fields": {
+      "club": "5-iron",
+      "apex_ft": 74,
+      "carry_yds": 196,
+      "shape": "fade",
+      "curve_yds": 8
+    },
+    "user_prompt": "The 5-iron is at its apex, 74 feet high, carrying\n196 yards, shape fade, curving 8 yards.\nRead the flight in one short sentence. If it is straight and on line,\nsay nothing — return the word SILENCE."
+  },
+  {
+    "id": "ev10",
+    "event_type": "apex",
+    "speaker": "color",
+    "fields": {
+      "club": "3-wood",
+      "apex_ft": 96,
+      "carry_yds": 229,
+      "shape": "draw",
+      "curve_yds": 11
+    },
+    "user_prompt": "The 3-wood is at its apex, 96 feet high, carrying\n229 yards, shape draw, curving 11 yards.\nRead the flight in one short sentence. If it is straight and on line,\nsay nothing — return the word SILENCE."
+  },
+  {
+    "id": "ev11",
+    "event_type": "landing",
+    "speaker": "host",
+    "fields": {
+      "club": "7-iron",
+      "total_yds": 181,
+      "lie": "green",
+      "dist_to_pin_ft": 12,
+      "result": "on the green",
+      "score_to_par": "1 under par",
+      "thru": 3
+    },
+    "user_prompt": "The 7-iron finished 181 yards, in the green,\n12 feet from the pin. Result: on the green.\nMas is 1 under par through 3. State the result in one or\ntwo sentences: where it finished and what it leaves him."
+  },
+  {
+    "id": "ev12",
+    "event_type": "landing",
+    "speaker": "host",
+    "fields": {
+      "club": "driver",
+      "total_yds": 278,
+      "lie": "fairway",
+      "dist_to_pin_ft": 142,
+      "result": "in the fairway",
+      "score_to_par": "2 under par",
+      "thru": 11
+    },
+    "user_prompt": "The driver finished 278 yards, in the fairway,\n142 feet from the pin. Result: in the fairway.\nMas is 2 under par through 11. State the result in one or\ntwo sentences: where it finished and what it leaves him."
+  },
+  {
+    "id": "ev13",
+    "event_type": "landing",
+    "speaker": "host",
+    "fields": {
+      "club": "8-iron",
+      "total_yds": 166,
+      "lie": "green",
+      "dist_to_pin_ft": 4,
+      "result": "on the green",
+      "score_to_par": "3 under par",
+      "thru": 12
+    },
+    "user_prompt": "The 8-iron finished 166 yards, in the green,\n4 feet from the pin. Result: on the green.\nMas is 3 under par through 12. State the result in one or\ntwo sentences: where it finished and what it leaves him."
+  },
+  {
+    "id": "ev14",
+    "event_type": "landing",
+    "speaker": "host",
+    "fields": {
+      "club": "5-iron",
+      "total_yds": 201,
+      "lie": "rough",
+      "dist_to_pin_ft": 38,
+      "result": "in the rough",
+      "score_to_par": "even par",
+      "thru": 17
+    },
+    "user_prompt": "The 5-iron finished 201 yards, in the rough,\n38 feet from the pin. Result: in the rough.\nMas is even par through 17. State the result in one or\ntwo sentences: where it finished and what it leaves him."
+  },
+  {
+    "id": "ev15",
+    "event_type": "landing",
+    "speaker": "host",
+    "fields": {
+      "club": "5-iron",
+      "total_yds": 228,
+      "lie": "green",
+      "dist_to_pin_ft": 18,
+      "result": "on the green",
+      "score_to_par": "even par",
+      "thru": 8
+    },
+    "user_prompt": "The 5-iron finished 228 yards, in the green,\n18 feet from the pin. Result: on the green.\nMas is even par through 8. State the result in one or\ntwo sentences: where it finished and what it leaves him."
+  },
+  {
+    "id": "ev16",
+    "event_type": "landing",
+    "speaker": "host",
+    "fields": {
+      "club": "3-wood",
+      "total_yds": 252,
+      "lie": "green",
+      "dist_to_pin_ft": 9,
+      "result": "on the green",
+      "score_to_par": "5 under par",
+      "thru": 15
+    },
+    "user_prompt": "The 3-wood finished 252 yards, in the green,\n9 feet from the pin. Result: on the green.\nMas is 5 under par through 15. State the result in one or\ntwo sentences: where it finished and what it leaves him."
+  },
+  {
+    "id": "ev17",
+    "event_type": "putt_result",
+    "speaker": "host",
+    "fields": {
+      "dist_ft": 12,
+      "made_word": "made",
+      "putts_this_hole": 1,
+      "score_to_par": "2 under par",
+      "thru": 3
+    },
+    "user_prompt": "Putt from 12 feet: made.\nThat is putt number 1 on this hole. Mas is\n2 under par through 3. Call the result in one short\nsentence. If it was made, name the score it gives him. If it was\nmissed, say only what is left."
+  },
+  {
+    "id": "ev18",
+    "event_type": "putt_result",
+    "speaker": "host",
+    "fields": {
+      "dist_ft": 22,
+      "made_word": "missed",
+      "putts_this_hole": 1,
+      "score_to_par": "1 under par",
+      "thru": 7
+    },
+    "user_prompt": "Putt from 22 feet: missed.\nThat is putt number 1 on this hole. Mas is\n1 under par through 7. Call the result in one short\nsentence. If it was made, name the score it gives him. If it was\nmissed, say only what is left."
+  },
+  {
+    "id": "ev19",
+    "event_type": "putt_result",
+    "speaker": "host",
+    "fields": {
+      "dist_ft": 6,
+      "made_word": "made",
+      "putts_this_hole": 2,
+      "score_to_par": "3 under par",
+      "thru": 12
+    },
+    "user_prompt": "Putt from 6 feet: made.\nThat is putt number 2 on this hole. Mas is\n3 under par through 12. Call the result in one short\nsentence. If it was made, name the score it gives him. If it was\nmissed, say only what is left."
+  },
+  {
+    "id": "ev20",
+    "event_type": "putt_result",
+    "speaker": "host",
+    "fields": {
+      "dist_ft": 31,
+      "made_word": "missed",
+      "putts_this_hole": 1,
+      "score_to_par": "4 under par",
+      "thru": 15
+    },
+    "user_prompt": "Putt from 31 feet: missed.\nThat is putt number 1 on this hole. Mas is\n4 under par through 15. Call the result in one short\nsentence. If it was made, name the score it gives him. If it was\nmissed, say only what is left."
+  },
+  {
+    "id": "ev21",
+    "event_type": "hole_end",
+    "speaker": "host",
+    "fields": {
+      "hole": 3,
+      "hole_name": "The Postage Stamp",
+      "score": 3,
+      "fairway_hit": "n/a",
+      "gir": "yes",
+      "putts": 1,
+      "up_and_down": "n/a",
+      "score_to_par": "1 under par"
+    },
+    "user_prompt": "Hole 3, The Postage Stamp, finished in 3 strokes.\nFairway: n/a. Green in regulation: yes.\nPutts: 1. Up and down: n/a. Mas is\n1 under par through 3. Give the hole summary in one or\ntwo sentences, with the score first."
+  },
+  {
+    "id": "ev22",
+    "event_type": "hole_end",
+    "speaker": "host",
+    "fields": {
+      "hole": 12,
+      "hole_name": "The Picture",
+      "score": 2,
+      "fairway_hit": "n/a",
+      "gir": "yes",
+      "putts": 1,
+      "up_and_down": "n/a",
+      "score_to_par": "3 under par"
+    },
+    "user_prompt": "Hole 12, The Picture, finished in 2 strokes.\nFairway: n/a. Green in regulation: yes.\nPutts: 1. Up and down: n/a. Mas is\n3 under par through 12. Give the hole summary in one or\ntwo sentences, with the score first."
+  },
+  {
+    "id": "ev23",
+    "event_type": "hole_end",
+    "speaker": "host",
+    "fields": {
+      "hole": 7,
+      "hole_name": "The Valley",
+      "score": 5,
+      "fairway_hit": "yes",
+      "gir": "yes",
+      "putts": 2,
+      "up_and_down": "no",
+      "score_to_par": "even par"
+    },
+    "user_prompt": "Hole 7, The Valley, finished in 5 strokes.\nFairway: yes. Green in regulation: yes.\nPutts: 2. Up and down: no. Mas is\neven par through 7. Give the hole summary in one or\ntwo sentences, with the score first."
+  },
+  {
+    "id": "ev24",
+    "event_type": "hole_end",
+    "speaker": "color",
+    "fields": {
+      "strokes_gained_summary": "three straight birdies, +0.8 strokes gained on approach"
+    },
+    "user_prompt": "The story of this hole: three straight birdies, +0.8 strokes gained on approach. Say in one\nsentence what this hole means for the round — a streak, a save, a\nmissed chance. If nothing changed, return the word SILENCE."
+  },
+  {
+    "id": "ev25",
+    "event_type": "hole_end",
+    "speaker": "color",
+    "fields": {
+      "strokes_gained_summary": "a recovery from the trees saved par, +0.4 strokes gained on the short game"
+    },
+    "user_prompt": "The story of this hole: a recovery from the trees saved par, +0.4 strokes gained on the short game. Say in one\nsentence what this hole means for the round — a streak, a save, a\nmissed chance. If nothing changed, return the word SILENCE."
+  },
+  {
+    "id": "ev26",
+    "event_type": "round_end",
+    "speaker": "host",
+    "fields": {
+      "score": 70,
+      "score_to_par": "2 under par",
+      "fairways": "8 of 14",
+      "gir": "12 of 18",
+      "putts": 29,
+      "up_and_downs": "4 of 6",
+      "new_handicap": "+3.1",
+      "rank": 2
+    },
+    "user_prompt": "Round complete. Mas shot 70, 2 under par.\nFairways 8 of 14, greens 12 of 18,\nputts 29, up and downs 4 of 6.\nNew handicap +3.1. All-time rank 2.\nSummarize the round in one or two sentences."
+  },
+  {
+    "id": "ev27",
+    "event_type": "round_end",
+    "speaker": "host",
+    "fields": {
+      "score": 64,
+      "score_to_par": "8 under par",
+      "fairways": "10 of 14",
+      "gir": "15 of 18",
+      "putts": 26,
+      "up_and_downs": "5 of 5",
+      "new_handicap": "+3.4",
+      "rank": 1
+    },
+    "user_prompt": "Round complete. Mas shot 64, 8 under par.\nFairways 10 of 14, greens 15 of 18,\nputts 26, up and downs 5 of 5.\nNew handicap +3.4. All-time rank 1.\nSummarize the round in one or two sentences."
+  },
+  {
+    "id": "ev28",
+    "event_type": "round_end",
+    "speaker": "color",
+    "fields": {
+      "leak": "approaches from 125 to 150 yards missing left",
+      "strokes_lost": 0.6,
+      "adjustment": "aim five yards right of the pin"
+    },
+    "user_prompt": "The one thing to work on from this round: approaches from 125 to 150 yards missing left,\ncosting 0.6 strokes. The adjustment is:\naim five yards right of the pin. Explain it in one or two sentences in\nplain language, as the single takeaway from the round. Never add a\nsecond fix."
+  },
+  {
+    "id": "ev29",
+    "event_type": "round_end",
+    "speaker": "color",
+    "fields": {
+      "leak": "three-putts from over 30 feet",
+      "strokes_lost": 0.5,
+      "adjustment": "leave the first putt below the hole"
+    },
+    "user_prompt": "The one thing to work on from this round: three-putts from over 30 feet,\ncosting 0.5 strokes. The adjustment is:\nleave the first putt below the hole. Explain it in one or two sentences in\nplain language, as the single takeaway from the round. Never add a\nsecond fix."
+  },
+  {
+    "id": "ev30",
+    "event_type": "milestone",
+    "speaker": "host",
+    "fields": {
+      "type": "birdie streak",
+      "detail": "three straight birdies, holes 10 through 12",
+      "score_to_par": "3 under par",
+      "thru": 12
+    },
+    "user_prompt": "Milestone: birdie streak. Detail: three straight birdies, holes 10 through 12. Mas is 3 under par\nthrough 12. State the milestone in one sentence, plainly."
+  },
+  {
+    "id": "ev31",
+    "event_type": "milestone",
+    "speaker": "host",
+    "fields": {
+      "type": "season best round",
+      "detail": "a 64, eight under par, best round of the season",
+      "score_to_par": "8 under par",
+      "thru": 18
+    },
+    "user_prompt": "Milestone: season best round. Detail: a 64, eight under par, best round of the season. Mas is 8 under par\nthrough 18. State the milestone in one sentence, plainly."
+  },
+  {
+    "id": "ev32",
+    "event_type": "milestone",
+    "speaker": "color",
+    "fields": {
+      "type": "birdie streak",
+      "detail": "three straight birdies, holes 10 through 12",
+      "score_to_par": "3 under par",
+      "thru": 12
+    },
+    "user_prompt": "Milestone: birdie streak. Detail: three straight birdies, holes 10 through 12. Say in one sentence what\nthis means for the round or the season. If it is a record pace, name\nthe record it is chasing, using only the numbers in the detail."
+  },
+  {
+    "id": "ev33",
+    "event_type": "milestone",
+    "speaker": "color",
+    "fields": {
+      "type": "eagle",
+      "detail": "eagle on the par-5 15th, holed the second shot from 212 yards",
+      "score_to_par": "5 under par",
+      "thru": 15
+    },
+    "user_prompt": "Milestone: eagle. Detail: eagle on the par-5 15th, holed the second shot from 212 yards. Say in one sentence what\nthis means for the round or the season. If it is a record pace, name\nthe record it is chasing, using only the numbers in the detail."
+  },
+  {
+    "id": "ev34",
+    "event_type": "fifty_nine_watch",
+    "speaker": "host",
+    "fields": {
+      "status": "on_pace",
+      "score_to_par": "8 under par",
+      "thru": 12,
+      "holes_left": 6,
+      "strokes_remaining": 1,
+      "probability": 34
+    },
+    "user_prompt": "59 Watch, status on_pace. Mas is 8 under par through 12,\nwith 6 holes left. He can afford to drop 1\nmore strokes and still break 60. Live probability 34%.\nState the 59 Watch position in one or two sentences. On the 18th, when\nthe status is on_the_line, say exactly what he needs on this hole."
+  },
+  {
+    "id": "ev35",
+    "event_type": "fifty_nine_watch",
+    "speaker": "host",
+    "fields": {
+      "status": "on_the_line",
+      "score_to_par": "8 under par",
+      "thru": 17,
+      "holes_left": 1,
+      "strokes_remaining": 0,
+      "probability": 58
+    },
+    "user_prompt": "59 Watch, status on_the_line. Mas is 8 under par through 17,\nwith 1 holes left. He can afford to drop 0\nmore strokes and still break 60. Live probability 58%.\nState the 59 Watch position in one or two sentences. On the 18th, when\nthe status is on_the_line, say exactly what he needs on this hole."
+  },
+  {
+    "id": "ev36",
+    "event_type": "fifty_nine_watch",
+    "speaker": "host",
+    "fields": {
+      "status": "off_pace",
+      "score_to_par": "2 over par",
+      "thru": 14,
+      "holes_left": 4,
+      "strokes_remaining": 0,
+      "probability": 0
+    },
+    "user_prompt": "59 Watch, status off_pace. Mas is 2 over par through 14,\nwith 4 holes left. He can afford to drop 0\nmore strokes and still break 60. Live probability 0%.\nState the 59 Watch position in one or two sentences. On the 18th, when\nthe status is on_the_line, say exactly what he needs on this hole."
+  },
+  {
+    "id": "ev37",
+    "event_type": "fifty_nine_watch",
+    "speaker": "color",
+    "fields": {
+      "status": "on_pace",
+      "holes_left": 6,
+      "strokes_remaining": 1
+    },
+    "user_prompt": "59 Watch, status on_pace. 6 holes left, and he can\nafford 1 more dropped strokes. Say in one sentence\nwhat the remaining holes ask of him. Keep it calm — the moment is\nalready loud enough."
+  },
+  {
+    "id": "ev38",
+    "event_type": "fifty_nine_watch",
+    "speaker": "color",
+    "fields": {
+      "status": "on_the_line",
+      "holes_left": 1,
+      "strokes_remaining": 0
+    },
+    "user_prompt": "59 Watch, status on_the_line. 1 holes left, and he can\nafford 0 more dropped strokes. Say in one sentence\nwhat the remaining holes ask of him. Keep it calm — the moment is\nalready loud enough."
+  },
+  {
+    "id": "ev39",
+    "event_type": "bad_miss",
+    "speaker": "host",
+    "fields": {
+      "club": "driver",
+      "lie": "right rough",
+      "dist_to_pin_ft": 96,
+      "result": "missed_right"
+    },
+    "user_prompt": "The driver finished in the right rough, 96 feet from\nthe pin. Result: missed_right. State where it finished and what it\nleaves him, in one short sentence. No diagnosis, no judgment."
+  },
+  {
+    "id": "ev40",
+    "event_type": "bad_miss",
+    "speaker": "host",
+    "fields": {
+      "club": "9-iron",
+      "lie": "front bunker",
+      "dist_to_pin_ft": 21,
+      "result": "short"
+    },
+    "user_prompt": "The 9-iron finished in the front bunker, 21 feet from\nthe pin. Result: short. State where it finished and what it\nleaves him, in one short sentence. No diagnosis, no judgment."
+  },
+  {
+    "id": "ev41",
+    "event_type": "bad_miss",
+    "speaker": "host",
+    "fields": {
+      "club": "3-wood",
+      "lie": "left trees",
+      "dist_to_pin_ft": 154,
+      "result": "in_trees"
+    },
+    "user_prompt": "The 3-wood finished in the left trees, 154 feet from\nthe pin. Result: in_trees. State where it finished and what it\nleaves him, in one short sentence. No diagnosis, no judgment."
+  },
+  {
+    "id": "ev42",
+    "event_type": "recovery",
+    "speaker": "color",
+    "fields": {
+      "lie": "right rough",
+      "club": "pitching wedge",
+      "shot_type": "punch",
+      "target_yards": 96,
+      "reason": "keep it low under the branches and run it up the front"
+    },
+    "user_prompt": "Mas is in the right rough and has chosen pitching wedge, punch,\ntarget 96 yards. The reason: keep it low under the branches and run it up the front. Explain in\none sentence what a good recovery looks like from here."
+  },
+  {
+    "id": "ev43",
+    "event_type": "recovery",
+    "speaker": "color",
+    "fields": {
+      "lie": "front bunker",
+      "club": "sand wedge",
+      "shot_type": "flop",
+      "target_yards": 21,
+      "reason": "open the face and land it soft past the lip"
+    },
+    "user_prompt": "Mas is in the front bunker and has chosen sand wedge, flop,\ntarget 21 yards. The reason: open the face and land it soft past the lip. Explain in\none sentence what a good recovery looks like from here."
+  },
+  {
+    "id": "ev44",
+    "event_type": "recovery",
+    "speaker": "host",
+    "fields": {
+      "dist_to_pin_ft": 8
+    },
+    "user_prompt": "The recovery finished 8 feet from the pin.\nState the result in one short sentence. If it saved par, say so."
+  },
+  {
+    "id": "ev45",
+    "event_type": "recovery",
+    "speaker": "host",
+    "fields": {
+      "dist_to_pin_ft": 3
+    },
+    "user_prompt": "The recovery finished 3 feet from the pin.\nState the result in one short sentence. If it saved par, say so."
+  },
+  {
+    "id": "ev46",
+    "event_type": "round_start",
+    "speaker": "host",
+    "fields": {
+      "round": 47,
+      "course": "Wyatt National",
+      "par": 72,
+      "target_score": 59,
+      "handicap": "+3.1",
+      "last10_avg": 70.1
+    },
+    "user_prompt": "Round 47 at Wyatt National. Par 72. Target score 59.\nHandicap +3.1. Last ten rounds averaged 70.1.\nOpen the round in one or two sentences: where he is, and what he is chasing."
+  },
+  {
+    "id": "ev47",
+    "event_type": "round_start",
+    "speaker": "host",
+    "fields": {
+      "round": 48,
+      "course": "Wyatt National",
+      "par": 72,
+      "target_score": 59,
+      "handicap": "+3.1",
+      "last10_avg": 69.8
+    },
+    "user_prompt": "Round 48 at Wyatt National. Par 72. Target score 59.\nHandicap +3.1. Last ten rounds averaged 69.8.\nOpen the round in one or two sentences: where he is, and what he is chasing."
+  },
+  {
+    "id": "ev48",
+    "event_type": "hole_start",
+    "speaker": "host",
+    "fields": {
+      "hole": 12,
+      "hole_name": "The Picture",
+      "par": 3,
+      "yards": 164,
+      "pin": "back left, over the pond",
+      "wind_mph": 6,
+      "wind_dir": "helping",
+      "elevation_ft": -18
+    },
+    "user_prompt": "Hole 12, The Picture. Par 3, 164 yards, back left, over the pond.\nWind: 6 mph helping. Elevation: -18 feet.\nIntroduce the hole in one sentence: the name, the distance, and the question it asks."
+  },
+  {
+    "id": "ev49",
+    "event_type": "hole_start",
+    "speaker": "host",
+    "fields": {
+      "hole": 8,
+      "hole_name": "The Long One",
+      "par": 3,
+      "yards": 226,
+      "pin": "front right",
+      "wind_mph": 11,
+      "wind_dir": "into",
+      "elevation_ft": 6
+    },
+    "user_prompt": "Hole 8, The Long One. Par 3, 226 yards, front right.\nWind: 11 mph into. Elevation: 6 feet.\nIntroduce the hole in one sentence: the name, the distance, and the question it asks."
+  },
+  {
+    "id": "ev50",
+    "event_type": "hole_start",
+    "speaker": "host",
+    "fields": {
+      "hole": 15,
+      "hole_name": "The Eagle Chance",
+      "par": 5,
+      "yards": 545,
+      "pin": "middle, reachable in two",
+      "wind_mph": 4,
+      "wind_dir": "left to right",
+      "elevation_ft": -12
+    },
+    "user_prompt": "Hole 15, The Eagle Chance. Par 5, 545 yards, middle, reachable in two.\nWind: 4 mph left to right. Elevation: -12 feet.\nIntroduce the hole in one sentence: the name, the distance, and the question it asks."
+  }
+]
