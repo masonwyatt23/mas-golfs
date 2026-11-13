@@ -99,9 +99,12 @@ def mesh_node(name: str, mesh: str, material: str, x: float, y: float,
 
 
 # --- Materials ----------------------------------------------------------------
-grass = mat((0.16, 0.42, 0.16))
-fairway = mat((0.20, 0.52, 0.20))
-green_mat = mat((0.25, 0.62, 0.25))
+# Albedos are bright enough to read in golden-hour light: the first frame
+# rendered the ground black because the dark greens (0.16-0.25) crushed to
+# near-black under a low sun + ACES. These are lusher and hold color.
+grass = mat((0.28, 0.58, 0.28))
+fairway = mat((0.32, 0.62, 0.30))
+green_mat = mat((0.35, 0.70, 0.32))
 collar_mat = mat((0.22, 0.55, 0.22))
 sand = mat((0.85, 0.75, 0.55), roughness=1.0)
 water = mat((0.10, 0.35, 0.55), roughness=0.15, metallic=0.4)
@@ -144,7 +147,7 @@ env = sub("Environment", {
     "background_mode": "2",
     "sky": f'SubResource("{sky}")',
     "ambient_light_source": "2",
-    "ambient_light_energy": "0.6",
+    "ambient_light_energy": "1.0",
     "tonemap_mode": "2",
     "tonemap_exposure": "1.0",
     "glow_enabled": "true",
@@ -157,10 +160,11 @@ node("Hole12", "Node3D", None)
 node("WorldEnvironment", "WorldEnvironment", ".", None,
      [f'environment = SubResource("{env}")'])
 # Golden-hour sun: low, warm, from behind-left so the golfer is rim-lit.
+# Energy raised so the ground reads green instead of crushing to black.
 node("Sun", "DirectionalLight3D", ".",
      "Transform3D(0.866, 0.353, 0.353, 0, 0.707, -0.707, -0.5, 0.612, 0.612, 0, 40, 20)",
      ["light_color = Color(1, 0.85, 0.6, 1)",
-      "light_energy = 1.2",
+      "light_energy = 1.6",
       "shadow_enabled = true"])
 node("BusClient", "Node", ".", None, ['script = ExtResource("1")'])
 node("Director", "Node", ".", None, ['script = ExtResource("2")'])
@@ -196,8 +200,11 @@ mesh_node("MasLegR", leg_mesh, pants, 0.3, TEE_Y + 0.8, 2)
 mesh_node("MasClub", club_mesh, club_mat, 0.9, TEE_Y + 1.7, 1.6)
 
 # Broadcast camera — always behind the golfer, looking down the hole.
+# Pulled back and up (was 9.8/10, too close: Mas filled the frame and
+# blocked the hole) and tilted down 20 deg so the fairway, pond, and
+# green read in one shot. Mas is a small figure; the hole is the subject.
 node("BroadcastCam", "Camera3D", ".",
-     "Transform3D(1, 0, 0, 0, 0.985, 0.174, 0, -0.174, 0.985, 0, 9.8, 10)",
+     "Transform3D(1, 0, 0, 0, 0.940, 0.342, 0, -0.342, 0.940, 0, 13, 20)",
      ["fov = 50.0", "current = true"])
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
