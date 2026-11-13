@@ -189,6 +189,21 @@ class TestCache(unittest.TestCase):
         line = standard_line("hole_end", {}, {"thru": 11, "score_to_par": -2})
         self.assertEqual(line, "Mas is 2 under par through 11.")
 
+    def test_standard_line_tolerates_display_string_score(self):
+        # Regression: _template_fields formats score_to_par into a display
+        # string ('—' when unknown); standard_line must treat a
+        # non-numeric score as unknown, never int() it.
+        line = standard_line("putt_result", {
+            "made": True, "score_to_par": "—", "thru": 1}, {})
+        self.assertEqual(line, "The putt drops.")
+        # Display forms that do carry a value still read right.
+        line = standard_line("putt_result", {
+            "made": True, "score_to_par": "−1", "thru": 1}, {})
+        self.assertEqual(line, "The putt drops. Mas is one under par through 1.")
+        line = standard_line("putt_result", {
+            "made": True, "score_to_par": "E", "thru": 1}, {})
+        self.assertEqual(line, "The putt drops. Mas is even par through 1.")
+
     def test_standard_round_opener(self):
         line = standard_line("round_start", {
             "round_no": 47, "course": "Wyatt National", "target_score": 59},
@@ -342,6 +357,61 @@ class TestServiceDecisions(unittest.TestCase):
         self.assertEqual(len(played), 4)
         decisions = read_jsonl(service.cfg["paths"]["decision_log"])
         self.assertEqual(decisions[-1]["drop_reason"], "rate_limited")
+
+    def test_made_putt_on_hole_1_before_any_hole_end(self):
+        # Regression (found by tests/integration): the service thread died
+        # on the first made putt of a round, before any hole_end, with
+        # ValueError: invalid literal for int() with base 10: '—'.
+        # Two halves: _update_round_state stored the raw round_state
+        # snapshot envelope, so score_to_par was None until the first
+        # hole_end; and _template_fields had already formatted it into
+        # the display string '—', which standard_line int()ed.
+        service, clock, tmp = make_service()
+        service.cfg["limits"]["min_seconds_between_lines"] = 0
+        # Exactly what the bus sends on connect: the snapshot envelope.
+        service.handle_event({
+            "event": "round_state", "seq": 1, "round": 47, "hole": 0,
+            "data": {"round_state": {
+                "golfer": "Mas", "round": 47, "hole": 0, "hole_par": 4,
+                "score_to_par": 0, "thru": 0, "target_score": 59,
+                "handicap": "+3.1", "last10_avg": 72.4}}})
+        # The snapshot is unwrapped: the score is reachable from state.
+        self.assertEqual(service.round_state.get("score_to_par"), 0)
+        service.handle_event({
+            "type": "round_start", "seq": 2, "round_no": 47,
+            "course": "Wyatt National", "target_score": 59})
+        service.handle_event({
+            "type": "hole_start", "seq": 3, "round_no": 47, "hole": 1,
+            "par": 4, "yards": 432, "hole_name": "The Handshake"})
+        # First made putt of the round, no hole_end yet: must not raise,
+        # and must produce a line with the score from the snapshot.
+        # (thru counts completed holes, so it reads 0 here — the hole
+        # hasn't ended yet; see the note in the fix report.)
+        service.handle_event({
+            "type": "putt_result", "seq": 4, "round_no": 47, "hole": 1,
+            "made": True, "dist_ft": 12.0, "putts_this_hole": 1})
+        played = read_jsonl(service.cfg["paths"]["output_log"])
+        putt_lines = [p for p in played if p["event"] == "putt_result"]
+        self.assertEqual(len(putt_lines), 1)
+        self.assertTrue(
+            putt_lines[0]["text"].startswith("The putt drops. Mas is even par"),
+            putt_lines[0]["text"])
+        # The service keeps running for the rest of the round.
+        service.handle_event({
+            "type": "hole_end", "seq": 5, "round_no": 47, "hole": 1,
+            "score_to_par": -1, "score": 3})
+        service.handle_event({
+            "type": "hole_start", "seq": 6, "round_no": 47, "hole": 2,
+            "par": 5, "yards": 612, "hole_name": "The Reach"})
+        service.handle_event({
+            "type": "putt_result", "seq": 7, "round_no": 47, "hole": 2,
+            "made": True, "dist_ft": 8.0, "putts_this_hole": 2})
+        played = read_jsonl(service.cfg["paths"]["output_log"])
+        putt_lines = [p for p in played if p["event"] == "putt_result"]
+        self.assertEqual(len(putt_lines), 2)
+        self.assertTrue(
+            putt_lines[1]["text"].startswith("The putt drops. Mas is one under par"),
+            putt_lines[1]["text"])
 
     def test_59_watch_lines_are_fresh_never_cached(self):
         service, clock, tmp = make_service()

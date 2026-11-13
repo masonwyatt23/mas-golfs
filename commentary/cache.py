@@ -44,6 +44,31 @@ def _score_words(score_to_par: int) -> str:
     return f"{word} under par" if score_to_par < 0 else f"{word} over par"
 
 
+def _score_as_int(value) -> int | None:
+    """Coerce a score-to-par value to int, or None when unknown.
+
+    The value may arrive as a number (the snapshot) or as a display
+    string from _template_fields: '—' unknown, 'E' even par, '−1'/'+1'
+    signed. Anything unparseable is unknown — a display string must
+    never raise inside a standard line.
+    """
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return int(value)
+    if isinstance(value, str):
+        text = value.strip().replace("−", "-").replace("–", "-")
+        if text == "E":
+            return 0
+        try:
+            return int(text)
+        except ValueError:
+            return None
+    return None
+
+
 def standard_line(event_type: str, fields: dict, round_state: dict | None) -> str | None:
     """Render a pre-seeded standard line, or None when there is none.
 
@@ -53,7 +78,7 @@ def standard_line(event_type: str, fields: dict, round_state: dict | None) -> st
     """
     state = round_state or {}
     thru = state.get("thru", fields.get("thru"))
-    score = state.get("score_to_par", fields.get("score_to_par"))
+    score = _score_as_int(state.get("score_to_par", fields.get("score_to_par")))
 
     if event_type == "hole_start":
         hole = fields.get("hole", state.get("hole"))
@@ -78,7 +103,7 @@ def standard_line(event_type: str, fields: dict, round_state: dict | None) -> st
     if event_type == "hole_end":
         if thru is None or score is None:
             return None
-        return f"Mas is {_score_words(int(score))} through {thru}."
+        return f"Mas is {_score_words(score)} through {thru}."
 
     if event_type == "landing":
         result = fields.get("result")
@@ -93,7 +118,7 @@ def standard_line(event_type: str, fields: dict, round_state: dict | None) -> st
     if event_type == "putt_result":
         if fields.get("made"):
             if thru is not None and score is not None:
-                return f"The putt drops. Mas is {_score_words(int(score))} through {thru}."
+                return f"The putt drops. Mas is {_score_words(score)} through {thru}."
             return "The putt drops."
         dist = fields.get("dist_ft")
         if dist is not None:
@@ -109,7 +134,7 @@ def standard_line(event_type: str, fields: dict, round_state: dict | None) -> st
         score_value = fields.get("score")
         if score_value is None or score is None:
             return None
-        return f"Mas finishes with a {score_value}, {_score_words(int(score))}."
+        return f"Mas finishes with a {score_value}, {_score_words(score)}."
 
     return None
 

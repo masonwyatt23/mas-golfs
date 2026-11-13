@@ -147,7 +147,20 @@ class CommentaryService:
     def _update_round_state(self, event: dict) -> None:
         event_type = event.get("type")
         if event_type == "round_state":
-            self.round_state = dict(event)
+            nested = event.get("round_state")
+            if isinstance(nested, dict):
+                # Bus snapshot (bus/translate.py snapshot_event): the real
+                # state lives in the nested dict. Storing the raw envelope
+                # left score_to_par/thru unreachable, so the first made
+                # putt of a round crashed in standard_line (int('—')).
+                self.round_state = dict(nested)
+            else:
+                # Flat form (commentary/demo.py): the event itself is the
+                # state; keep its fields, minus the routing keys.
+                self.round_state = {
+                    k: v for k, v in event.items()
+                    if k not in ("type", "seq", "event")
+                }
             return
         if "score_to_par" in event:
             self.round_state["score_to_par"] = event["score_to_par"]

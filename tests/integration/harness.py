@@ -193,6 +193,11 @@ class CommentaryRunner:
         self._bus = None
         self._thread: threading.Thread | None = None
         self.error: str | None = None
+        # Set by stop() before the bus socket is closed: an exception the
+        # service thread raises after this point is our own shutdown
+        # (the close frame / closed socket landing in its recv), not a
+        # crash. Anything raised before stop() began is still recorded.
+        self._stopping = False
 
     def __enter__(self) -> "CommentaryRunner":
         from commentary.bus import WebSocketBus
@@ -222,12 +227,22 @@ class CommentaryRunner:
         try:
             self._service.run(self._bus)
         except Exception as exc:  # noqa: BLE001 - thread boundary; recorded
-            self.error = f"{type(exc).__name__}: {exc}"
+            # A close we asked for is a clean shutdown, not a crash:
+            # stop() closes the bus socket, which raises in the thread's
+            # blocked recv (BusError "bus closed the connection", or
+            # OSError EBADF if the fd goes first). The service logs the
+            # __service_stop__ record itself; the runner must not also
+            # report it as a failure. This was masked until the putt
+            # crash was fixed, because the thread always died mid-fixture
+            # first and never lived to see teardown.
+            if not self._stopping:
+                self.error = f"{type(exc).__name__}: {exc}"
 
     def __exit__(self, *exc) -> None:
         self.stop()
 
     def stop(self, timeout: float = 5.0) -> None:
+        self._stopping = True
         if self._bus is not None:
             try:
                 self._bus.close()
