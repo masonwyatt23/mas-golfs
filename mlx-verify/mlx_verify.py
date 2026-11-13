@@ -79,6 +79,18 @@ _WORD_TO_NUM = {w: n for w, n in _NUMBER_WORDS.items()}
 _INT_RE = re.compile(r"-?\d+")
 _WORD_RE = re.compile(r"[a-z]+(?:-[a-z]+)?")
 
+# Numeric context for a bare number word (mirrors
+# commentary/normalize.py _WORDS_BEFORE / _UNITS_AFTER). A number word
+# only counts as a number when it sits in a numeric phrase: a
+# hyphenated compound ("fifty-nine"), after through/hole/putt/number/on
+# ("putt number two"), or before a unit ("twelve feet", "two under
+# par"). Without that context it is prose, not a stat.
+_WORDS_BEFORE = {"through", "hole", "putt", "number", "on"}
+_UNITS_AFTER = {
+    "yards", "yard", "feet", "foot", "under", "over", "strokes",
+    "stroke", "putts", "putt", "holes", "hole", "par", "iron", "irons",
+}
+
 
 # --- System prompts ------------------------------------------------------
 # Prefer the single source of truth (commentary/prompts.py). The embedded
@@ -189,15 +201,36 @@ def find_banned_words(text: str) -> list[str]:
 
 
 def _numbers_in(text: str) -> set[int]:
-    """Integers in text, as digits or as English words (incl. hyphenated)."""
+    """Integers in text, as digits or as English words in numeric context.
+
+    Digits always count. A number word counts only in a numeric phrase
+    (see _WORDS_BEFORE / _UNITS_AFTER): the prose word "zero" in "zero
+    tolerance" or "one" in "the next one" is an idiom, not a stat
+    (caught 2026-11-13: ev06 failed on "zero tolerance", which invents
+    no number). A hyphenated compound ("fifty-nine") always counts.
+    """
     nums = {int(m) for m in _INT_RE.findall(text)}
-    for word in _WORD_RE.findall(text.lower()):
-        if word in _WORD_TO_NUM:
-            nums.add(_WORD_TO_NUM[word])
-        elif "-" in word:
+    lowered = text.lower()
+    # Pure word tokens (punctuation stripped, hyphens split) so the
+    # before/after context check sees "feet", not "feet." — a trailing
+    # period otherwise defeats the unit match (caught 2026-11-13:
+    # "fifteen feet." was not counted, so an invented 15 went unflagged).
+    tokens = re.findall(r"[a-z]+", lowered)
+    for match in _WORD_RE.finditer(lowered):
+        word = match.group(0)
+        if "-" in word:
             parts = word.split("-")
             if all(p in _WORD_TO_NUM for p in parts):
                 nums.add(sum(_WORD_TO_NUM[p] for p in parts))
+            continue
+        if word not in _WORD_TO_NUM:
+            continue
+        start = len(re.findall(r"[a-z]+", lowered[:match.start()]))
+        before = tokens[start - 1] if start > 0 else ""
+        end = start + 1
+        after = tokens[end] if end < len(tokens) else ""
+        if before in _WORDS_BEFORE or after in _UNITS_AFTER:
+            nums.add(_WORD_TO_NUM[word])
     return nums
 
 
@@ -415,6 +448,20 @@ def run_audition(client: ChatClient, events: list[dict], n: int = 20) -> dict:
     for ev in events[:n]:
         result = client.generate(ev["speaker"], ev["user_prompt"])
         raw = result["text"]
+        # SILENCE is a pass, not a drop: the apex prompt tells the model
+        # to return the word SILENCE when the shot is on line, and the
+        # production service intercepts it before the normalizer
+        # (service.py: llm_returned_silence) to say nothing. The
+        # normalizer's fragment rule would drop it, which is the wrong
+        # verdict for a line that did exactly what it was asked.
+        # "SILENCE." counts too — it also ends silent in production
+        # (via the drop path).
+        if raw.strip().upper().rstrip(".") == "SILENCE":
+            rows.append({"event_id": ev["id"], "event_type": ev["event_type"],
+                         "speaker": ev["speaker"], "text": raw,
+                         "aired": "SILENCE", "ok": True, "failures": [],
+                         "chars": len(raw)})
+            continue
         aired = clean_line(raw) if clean_line is not None else raw
         if aired is None:
             check = {"ok": False,
