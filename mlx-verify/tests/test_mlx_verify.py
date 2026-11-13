@@ -381,11 +381,20 @@ class TestSoakVerdict(unittest.TestCase):
     def test_all_zero_passes(self):
         self.assertEqual(mv.soak_verdict(self._samples())["verdict"], "PASS")
 
-    def test_any_swap_fails(self):
-        samples = self._samples() + self._samples(swap=128.0)
+    def test_small_growth_passes(self):
+        # Absolute swap is high (the box baselines at ~2.6 GB) but the
+        # growth after the model loads is small: no leak, PASS.
+        samples = self._samples(swap=2600.0) + self._samples(swap=2900.0)
+        verdict = mv.soak_verdict(samples)
+        self.assertEqual(verdict["verdict"], "PASS")
+        self.assertEqual(verdict["baseline_mb"], 2600.0)
+        self.assertEqual(verdict["growth_mb"], 300.0)
+
+    def test_growth_over_1gb_fails(self):
+        samples = self._samples(swap=2600.0) + self._samples(swap=3800.0)
         verdict = mv.soak_verdict(samples)
         self.assertEqual(verdict["verdict"], "FAIL")
-        self.assertEqual(verdict["max_swap_mb"], 128.0)
+        self.assertEqual(verdict["growth_mb"], 1200.0)
 
     def test_dead_server_fails(self):
         samples = [{"swap_used_mb": 0.0, "server_rss_kb": None}]

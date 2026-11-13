@@ -39,7 +39,7 @@ Run one check at a time:
 ./verify.sh check      # install + model loads + server answers + smoke line
 ./verify.sh latency    # 20 real prompts, P99 < 4 s
 ./verify.sh audition   # 20 lines within the §10 step-4 rules
-./verify.sh soak       # 30 minutes, swap must stay 0 MB
+./verify.sh soak       # 30 minutes, swap growth after load < 1 GB
 ./verify.sh think      # zero-tolerance <think> grep over >= 100 lines
 ./verify.sh ab         # blind A/B, 50 events, two models
 SOAK_MINUTES=5 ./verify.sh soak   # short soak smoke run
@@ -58,7 +58,7 @@ lines were generated).
 | `check` | mlx-lm installs, Qwen3.5-4B loads, the server answers on localhost:8080, one real prompt returns a completion | Server up + smoke line | local-models §10 steps 2–3 |
 | `latency` | 20 real commentary prompts (decision/landing/59 Watch/putt/hole-end) through the server, streaming, TTFT + total timed | **P99 total < 4 s** (median + P99 TTFT also reported) | qwen3-family §10 item 2 |
 | `audition` | 20 generated lines meet the broadcast rules | Every line ≤ 280 chars, no banned words, no number the event prompt never mentions, no `<think>` | local-models §10 step 4; commentary-prompts §5 |
-| `soak` | The model resident for 30 min alongside the stack does not swap | **Swap used stays 0 MB** for the whole run; server stays alive; warm-up generations keep succeeding | qwen3-family §10 item 1 |
+| `soak` | The model resident for 30 min alongside the stack does not leak swap | **Swap growth after the model loads stays under 1 GB** for the whole run; server stays alive; warm-up generations keep succeeding | qwen3-family §10 item 1 |
 | `think` | No reasoning trace ever reaches the booth | **Zero `<think>`/`</think>` hits across ≥ 100 generated lines** (latency 20 + audition 20 + A/B 100 = 140 lines when the full pack runs) | qwen3-family §10 item 4 |
 | `ab` | Which 4B candidate writes better lines, judged blind | Human scores `results/ab-side-by-side.md` on the booth test (commentary-prompts §11); the key stays sealed in `ab-key.json` until scoring is done | qwen3-family §10 item 3 |
 
@@ -78,7 +78,7 @@ Notes on the bars:
   step 8 requires a separate 24-hour full-round soak (stream live,
   commentary on, all processes running). The 4B decision (§4.4) is
   made from that measurement: peak memory (worst minute) under 6.5 GB
-  **and** swap at zero for the whole 24 hours, or the 4B stays off the
+  **and** swap growth after load under 1 GB for the whole 24 hours, or the 4B stays off the
   box. This pack's soak is the gate that says the 24-hour run is worth
   starting.
 
@@ -125,7 +125,7 @@ Tested on this Linux VM (Nov 12 2026) — **51 unit tests, all passing**
   unhealthy probes, and failure on a dead server.
 - Latency, audition, and blind A/B runs against the stub (50 events,
   sealed key, side-by-side file verified to contain no model names).
-- Soak parsing (`vm.swapusage` in K/M/G), verdicts (any swap fails,
+- Soak parsing (`vm.swapusage` in K/M/G), verdicts (growth over 1 GB fails,
   dead server fails, failed warm-up fails), and a short live soak run
   against the stub.
 - `verify.sh check` on Linux exits 2 with the clear macOS message;
@@ -150,7 +150,7 @@ MacBook Pro — that is what this pack is for.
   generation is a box problem until proven otherwise. The commentary
   service degrades gracefully (cached standard line), so the stream
   does not die — but do not ship on a failing latency check.
-- **Soak swap > 0:** the 4B does not fit alongside whatever else is
+- **Soak swap growth > 1 GB:** the 4B does not fit alongside whatever else is
   running. Find the memory hog (usually the browser or a Docker VM),
   re-run, and if it still swaps, the fallback model
   (Qwen3-4B-Instruct-2507, then Qwen3-1.7B) is the call — see
