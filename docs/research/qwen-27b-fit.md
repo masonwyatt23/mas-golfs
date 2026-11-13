@@ -129,8 +129,9 @@ The largest Qwen that can run on an 8GB Mac, and what it costs in the stack:
 | Model | Download (Q4) | Loads on 8GB Mac? | Loads alongside the broadcast stack? |
 |---|---|---|---|
 | Qwen3-0.6B | 0.5 GB | Yes | Yes |
-| Qwen3-1.7B | 1.4 GB | Yes | **Yes — current default (~2.0 GB in MLX)** |
-| Qwen3-4B | 2.5 GB | Yes | **Yes — the stretch goal, decided by measurement** |
+| Qwen3.5-4B | 2.5 GB | Yes | **Yes — current default (~2.5 GB in MLX, `mlx-community/Qwen3.5-4B-4bit`)** |
+| Qwen3-4B-Instruct-2507 | 2.5 GB | Yes | **Yes — the fallback** |
+| Qwen3-1.7B | 1.4 GB | Yes | **Yes — emergency fallback only (~2.0 GB in MLX)** |
 | Qwen3.5-9B | 6.6 GB | Barely, alone | No |
 | Qwen3-8B | 5.2 GB | Yes, alone (8–10 GB needed) | **No — 5.2 + ~3.9 GB of stack = ~9.1 GB > 8 GB** |
 | Qwen3-14B | 9.3 GB | No | No |
@@ -138,7 +139,7 @@ The largest Qwen that can run on an 8GB Mac, and what it costs in the stack:
 | Qwen3-32B | 20 GB | No | No |
 | Qwen3-30B-A3B (MoE) | 18.6 GB | No | No — only 3B active per token, but all 30B must be resident |
 
-So the honest ladder on this box is: **Qwen3-1.7B today, Qwen3-4B if the 24-hour soak proves the headroom, and nothing bigger without new hardware.** Qwen3-8B is the largest Qwen that loads on an 8GB Mac at all — but only with nothing else running, which is not our situation.
+So the honest ladder on this box is: **Qwen3.5-4B today (Qwen3-4B-Instruct-2507 fallback, Qwen3-1.7B emergency), and nothing bigger without new hardware.** Qwen3-8B is the largest Qwen that loads on an 8GB Mac at all — but only with nothing else running, which is not our situation.
 
 One nuance worth knowing: Qwen3-8B is not a weak model. Per Qwen's own scaling table, Qwen3-8B performs like a Qwen2.5-14B, and Qwen3-4B like a Qwen2.5-7B. The small models punch above their size (see §5 for why).
 
@@ -162,7 +163,7 @@ This is exactly the fine-tuning path gated in `docs/local-models.md` §7 (90 day
 
 | Path | What it gets you | Cost | When |
 |---|---|---|---|
-| **A. Stay on the 8GB box** | Qwen3-1.7B now, Qwen3-4B if the soak proves it | $0 | Now |
+| **A. Stay on the 8GB box** | Qwen3.5-4B now (Qwen3-4B-Instruct-2507 fallback, Qwen3-1.7B emergency) | $0 | Now |
 | **B. Custom distillation (teacher → student)** | A 1.7B/4B student that writes like the 27B teacher, on the same box | GPU rental for the teacher run only (~tens of dollars) | After 90 days of event logs (per the local-models gating) |
 | **C. Rent a cloud GPU** | Qwen3.8-27B at Q4, live, ~60 tok/s ceiling on an RTX 4090 | RunPod Community RTX 4090 ~$0.34/hr (~$248/mo at 24/7) | When the show needs the big voice live |
 | **D. Own an RTX 4090 box** | Qwen3.8-27B at Q4 (and Qwen3-32B) locally, plus the Unreal build | ~$2,500–3,000 one-time + ~$35–52/mo power | The Unreal upgrade (see `docs/unreal-vertical-slice.md`) |
@@ -176,7 +177,7 @@ Also worth knowing for path D: the MoE alternative Qwen3-30B-A3B (18.6 GB at Q4)
 
 ## 7. Recommendation for Mas Golfs
 
-1. **Now:** keep Qwen3-1.7B as the commentary LLM on the 8GB box, with Qwen3-4B as the measured stretch goal. Both are already distilled from Qwen's biggest teachers — we are already running a distilled model.
+1. **Now:** run Qwen3.5-4B-4bit MLX as the commentary LLM on the 8GB box (fallback Qwen3-4B-Instruct-2507, emergency Qwen3-1.7B) — updated Nov 12, 2026 to match `docs/local-models.md`. All three are already distilled from Qwen's biggest teachers — we are already running a distilled model.
 2. **Next (no new hardware):** plan the custom distillation — Qwen3.8-27B as teacher, Qwen3-4B as student, trained on our own commentary corpus once 90 days of event logs exist. That is the highest-leverage way to get 27B-quality writing onto an 8GB box.
 3. **Later (when the GPU box arrives for Unreal):** run Qwen3.8-27B at Q4 on the RTX 4090 for the live commentary, and keep the distilled student as the fallback. The box is bought for Unreal; the model upgrade rides along for free.
 4. **Do not chase the 27B onto the 8GB box.** There is no quantization, runtime flag, or context trick that makes 16 GB of weights fit in ~2 GB of free memory. The 16GB Air proves the point: even double the RAM is not enough.

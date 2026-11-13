@@ -7,10 +7,15 @@ proximity use absolute bands from the spec tables).
 Usage:
     python -m sim.calibrate [--rounds N] [--mc N] [--fast] [--seed N]
 
---fast (default) uses the rule-based decision path so 1,000 rounds run in
-~1-2 minutes. That validates the physics, dispersion, putting, and course
-models — not the Monte Carlo decision quality. Use --mc 120 with a small
---rounds (e.g. 10) to sanity-check the Monte Carlo path end to end.
+The default path is Monte Carlo (fast_mode=False): calibration must measure
+the decision quality the broadcast actually uses. --fast uses the rule-based
+decision path as a smoke test only — it validates the physics, dispersion,
+putting, and course models, not the Monte Carlo decision quality, and it
+scores materially worse (mean ~81 over 12 rounds vs ~74 for MC, Nov 12 2026),
+so a fast-mode run must never be presented as a calibration result. Fast
+rounds cost ~5s each (measured Nov 12, 2026), so 1,000 fast rounds take
+~80 minutes, not ~1-2 minutes. Use --mc 120 with a small --rounds (e.g. 10)
+to sanity-check the Monte Carlo path end to end.
 """
 
 from __future__ import annotations
@@ -24,7 +29,7 @@ from .engine import RoundEngine
 
 
 def run_calibration(rounds: int = 1000, mc_n: int = 120,
-                    fast_mode: bool = True, seed: int = 0,
+                    fast_mode: bool = False, seed: int = 0,
                     course=None) -> dict:
     engine = RoundEngine(mc_n=mc_n, fast_mode=fast_mode, seed_offset=seed,
                          course=course)
@@ -95,7 +100,9 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--rounds", type=int, default=1000)
     parser.add_argument("--mc", type=int, default=120)
-    parser.add_argument("--fast", action="store_true", default=True)
+    parser.add_argument("--fast", action="store_true", default=False,
+                        help="Smoke test only: rule-based decisions. "
+                             "Never use for calibration.")
     parser.add_argument("--no-fast", dest="fast", action="store_false")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--course", choices=["wyatt", "black"],
