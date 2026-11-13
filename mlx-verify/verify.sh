@@ -199,8 +199,13 @@ run_check() {
     # NOTE: --out-dir must come BEFORE the subcommand — it is a main-
     # parser flag, and argparse rejects it after `latency` (caught on
     # the box 2026-11-13: "unrecognized arguments: --out-dir ...").
+    # NOTE: --timeout 180 — this is the first generation after a fresh
+    # model load, so it pays the cold-start cost (Metal kernel compile
+    # + prefill; the server log showed prefill alone at ~5s and the
+    # 30s default timed out). Warm generations are measured by the
+    # latency check, so the long timeout here does not hide slowness.
     "$PY" "$PACK_DIR/mlx_verify.py" --base-url "$BASE_URL" --model "$MODEL" \
-        --out-dir "$RESULTS_DIR/smoke" latency --n 1 >/dev/null
+        --timeout 180 --out-dir "$RESULTS_DIR/smoke" latency --n 1 >/dev/null
     log "Smoke generation OK: 1 real prompt through $MODEL."
     log "CHECK PASS."
 }

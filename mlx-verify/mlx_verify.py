@@ -292,6 +292,11 @@ class ChatClient:
                 text = body["choices"][0]["message"]["content"]
             except (KeyError, IndexError, TypeError) as exc:
                 raise LLMError(f"{self.model} unusable response: {body!r}") from exc
+            if text is None:
+                # The server can answer 200 with a null content (e.g. the
+                # generation was cut short); that is an unusable response,
+                # not a string to strip (caught on the box 2026-11-13).
+                raise LLMError(f"{self.model} unusable response: {body!r}")
             return {"text": text.strip(), "ttft_s": round(total, 3),
                     "total_s": round(total, 3), "streamed": False}
 
@@ -644,6 +649,11 @@ def main(argv: list[str] | None = None) -> int:
         os.path.dirname(__file__), "events.json"))
     parser.add_argument("--out-dir", default=os.path.join(
         os.path.dirname(__file__), "results"))
+    parser.add_argument("--timeout", type=float, default=30.0,
+                        help="per-request timeout in seconds (the first "
+                             "generation after a fresh model load is slow — "
+                             "Metal kernel compile + prefill — so the smoke "
+                             "step passes a much longer one)")
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("gate", help="Apple Silicon platform check")
@@ -679,7 +689,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if verdict == "PASS" else (3 if verdict == "INCOMPLETE" else 1)
 
     events = _events_arg(args)
-    client = ChatClient(args.base_url, args.model)
+    client = ChatClient(args.base_url, args.model,
+                        timeout_seconds=args.timeout)
     if not client.healthy():
         print(f"FAIL: no OpenAI-compatible server answering at {args.base_url}",
               file=sys.stderr)
