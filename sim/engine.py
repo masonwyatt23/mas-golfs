@@ -25,27 +25,24 @@ from .decisions import (Candidate, Situation, decide, resolve_hole_wind,
 from .events import EventEmitter
 from .fifty_nine_watch import (FiftyNineRecordBook, FiftyNineWatch,
                                STATUS_ON_THE_LINE, STATUS_SECURED)
+from .greens import from_green_local, green_for_hole, to_green_local
 from .handicap import RecordBook, differential, form_from_scores, whs_index
 from .learning import GolferModel, LearningLoop, ShotRecord
 from .physics import (apply_roll, classify_contact, delivery_to_launch,
                       draw_delivery, fly_shot)
-from .putting import make_probability, putt as putt_model
+from .pins import (ZONE_DIFFICULTY, pin_difficulty_for, pin_zone_for,
+                   rotation_index_for_round, rotation_profile_name)
+from .putting import (build_putt_read, build_putt_result, make_probability,
+                      putt as putt_model)
 from .rng import Rng, seed_for_round
 from .strokes_gained import baseline_strokes, categorize_shot, strokes_gained
 
-PIN_ZONES = ["front_left", "front_center", "front_right",
-             "mid_left", "mid_center", "mid_right",
-             "back_left", "back_center", "back_right"]
 PIN_OFFSETS = {  # (x_ft lateral, y_ft front/back) relative to green centre
     "front_left": (-15, -20), "front_center": (0, -20), "front_right": (15, -20),
     "mid_left": (-15, 0), "mid_center": (0, 0), "mid_right": (15, 0),
     "back_left": (-15, 20), "back_center": (0, 20), "back_right": (15, 20),
 }
-PIN_DIFFICULTY = {  # 0-1, combines pin depth, tier, nearby hazards
-    "front_left": 0.45, "front_center": 0.35, "front_right": 0.55,
-    "mid_left": 0.50, "mid_center": 0.40, "mid_right": 0.60,
-    "back_left": 0.65, "back_center": 0.55, "back_right": 0.71,
-}
+PIN_DIFFICULTY = ZONE_DIFFICULTY  # alias; the table lives in sim/pins.py
 
 def score_name(score: int, par: int) -> str:
     d = score - par
@@ -64,6 +61,23 @@ def score_name(score: int, par: int) -> str:
     if d == 2:
         return "double"
     return "triple_plus"
+
+
+def _putt_endpoint_yards(hole, ball_ft, pin_ft, framed_path):
+    """Last point of a putt-frame path -> hole-frame yards.
+
+    The solver returns paths in putt frame (origin at the ball, +x
+    toward the pin); rotate back into green-local feet, then into
+    hole-frame yards with ``from_green_local``. Returns None for an
+    empty path.
+    """
+    if not framed_path:
+        return None
+    x, y = framed_path[-1]
+    phi = math.atan2(pin_ft[1] - ball_ft[1], pin_ft[0] - ball_ft[0])
+    gx = ball_ft[0] + x * math.cos(phi) - y * math.sin(phi)
+    gy = ball_ft[1] + x * math.sin(phi) + y * math.cos(phi)
+    return from_green_local(hole, gx, gy)
 
 
 @dataclass
@@ -126,12 +140,6 @@ class RoundEngine:
         self.total_decisions_ms = 0.0
         self.total_decisions = 0
 
-    def _draw_pin(self, rng: Rng, prev_zone: str | None):
-        zone = rng.choice(PIN_ZONES)
-        while zone == prev_zone:
-            zone = rng.choice(PIN_ZONES)
-        return zone
-
     def _pin_position(self, hole, zone: str):
         """Pin world coords (hole frame) from its zone (§1.2)."""
         gx, gy = hole.green_centre()
@@ -182,7 +190,9 @@ class RoundEngine:
         all_records: list[ShotRecord] = []
         sg_total = {"ott": 0.0, "app": 0.0, "arg": 0.0, "putt": 0.0, "total": 0.0}
         score_so_far = 0
-        prev_zone: str | None = None
+        # Pin rotation (sim/pins.py): pins move every 2 rounds, never
+        # mid-round. The rotation is fixed for the whole round.
+        rotation_index = rotation_index_for_round(self.round_no)
         birdie_streak = 0
         bogey_free = True
         front9 = 0
@@ -198,18 +208,30 @@ class RoundEngine:
                                  changes={k: v for k, v in changes.items()
                                           if k != "hole"},
                                  conditions=dict(cond))
-            zone = self._draw_pin(rng, prev_zone)
-            prev_zone = zone
+            # Pin rotation (sim/pins.py): the zone is deterministic
+            # from (course_id, hole_no, rotation_index) — no PRNG
+            # draw, so the pin does not depend on the round's draws.
+            zone = pin_zone_for(self.course.id, hole_no, rotation_index)
+            pin_difficulty = pin_difficulty_for(
+                self.course.id, hole_no, rotation_index)
             pin_x, pin_y = self._pin_position(hole, zone)
+            # Putting v2: one heightfield per green, shipped in
+            # hole_start so the broadcast renders from the same array
+            # the ball rolls on (putting-model-v2.md §1.6).
+            green = green_for_hole(hole_no, hole.green_radius_ft)
             w_along, w_lat, w_effect = resolve_hole_wind(
                 cond["wind_mph"], cond["wind_dir_deg"], hole.azimuth_deg, rng)
             pace = watch.state
             emitter.emit(
                 "hole_start", hole=hole_no, par=hole.par,
                 yardage=hole.yardage, name=hole.name, tee="back",
+                green=green.payload(),
                 pin={"x_ft": PIN_OFFSETS[zone][0],
                      "y_ft": PIN_OFFSETS[zone][1], "zone": zone,
-                     "difficulty": PIN_DIFFICULTY[zone]},
+                     "difficulty": pin_difficulty,
+                     "rotation": rotation_index,
+                     "rotation_name": rotation_profile_name(
+                         rotation_index)},
                 hole_wind={"mph": round(math.hypot(w_along, w_lat), 1),
                            "dir_deg": round(cond["wind_dir_deg"]),
                            "effect": w_effect},
@@ -227,7 +249,8 @@ class RoundEngine:
                                  STATUS_ON_THE_LINE else "59_secured")
             hr, records = self._play_hole(
                 emitter, rng, hole_no, hole, pin_x, pin_y, zone, cond,
-                w_along, w_lat, w_effect, watch.state.strokes_vs_pace)
+                w_along, w_lat, w_effect, watch.state.strokes_vs_pace,
+                green=green, pin_difficulty=pin_difficulty)
             hole_results.append(hr)
             all_records.extend(records)
             for k in ("ott", "app", "arg", "putt"):
@@ -341,7 +364,13 @@ class RoundEngine:
 
     # ------------------------------------------------------------------- hole --
     def _play_hole(self, emitter, rng, hole_no, hole, pin_x, pin_y, zone,
-                   cond, w_along, w_lat, w_effect, strokes_vs_59_pace):
+                   cond, w_along, w_lat, w_effect, strokes_vs_59_pace,
+                   green=None, pin_difficulty: float = 0.5):
+        # Putting v2: the hole's Green, built in play_round (or lazily
+        # here for direct callers) — one heightfield per green, the
+        # single source of truth for every putt on the hole.
+        if green is None:
+            green = green_for_hole(hole_no, hole.green_radius_ft)
         pos = (0.0, 0.0)            # tee
         lie = "tee"
         strokes = 0
@@ -370,15 +399,29 @@ class RoundEngine:
                 putts += 1
                 dist_ft = math.hypot(pin_x - pos[0], pin_y - pos[1]) * 3.0
                 start_base = baseline_strokes("green", 0, dist_ft)
+                # Putting v2: the read is computed from the ideal line
+                # BEFORE the outcome is drawn, so the preview can never
+                # leak the result (predicted_path takes no RNG and
+                # cannot advance the PRNG state).
+                ball_ft = to_green_local(hole, pos[0], pos[1])
+                pin_ft = to_green_local(hole, pin_x, pin_y)
+                form_mult = C.FORM_PUTT_MULT[self.model.form]
+                read = build_putt_read(green, ball_ft, pin_ft, dist_ft,
+                                       cond["green_speed"], form_mult,
+                                       is_comebacker=(putts > 1),
+                                       pin_difficulty=pin_difficulty)
+                emitter.emit("putt_read", hole=hole_no, putt=read,
+                             fifty_nine_watch={
+                                 # "On" = under the 59-pace line at the
+                                 # hole start (strokes_vs_59_pace <= 0).
+                                 "on": strokes_vs_59_pace <= 0})
                 res = putt_model(rng, dist_ft, cond["green_speed"],
-                                 C.FORM_PUTT_MULT[self.model.form])
+                                 form_mult)
+                ext = build_putt_result(green, ball_ft, pin_ft, res,
+                                        cond["green_speed"],
+                                        make_pct=read["make_pct"])
                 emitter.emit("putt_result", hole=hole_no, shot_no=strokes,
-                             putt={"distance_ft": round(dist_ft, 1),
-                                   "break_ft": round(res["break_ft"], 1),
-                                   "break_dir": res["break_dir"],
-                                   "speed": res["speed"],
-                                   "made": res["made"],
-                                   "leave_ft": round(res["leave_ft"], 1)},
+                             putt=ext,
                              putts_on_hole=putts,
                              commentary=self._putt_commentary(res, dist_ft))
                 if res["made"]:
@@ -387,12 +430,12 @@ class RoundEngine:
                 else:
                     sg_shot = start_base - (1.0 + baseline_strokes(
                         "green", 0, res["leave_ft"]))
-                    # Move toward the pin by the putt's roll-out.
-                    dx, dy = pin_x - pos[0], pin_y - pos[1]
-                    d = math.hypot(dx, dy) or 1.0
-                    move_yd = max(0.0, dist_ft / 3.0 - res["leave_ft"] / 3.0)
-                    pos = (pos[0] + dx / d * move_yd,
-                           pos[1] + dy / d * move_yd)
+                    # Move to the integrated path's endpoint, not the
+                    # straight-line roll-out v1 did.
+                    end = _putt_endpoint_yards(hole, ball_ft, pin_ft,
+                                               ext["path"])
+                    if end is not None:
+                        pos = end
                 sg["putt"] += sg_shot
                 records.append(ShotRecord(
                     "putt", self._putt_bucket(dist_ft), sg_shot, 0.0, 0.0))
@@ -400,12 +443,22 @@ class RoundEngine:
 
             # Full-shot decision + execution (§5.2, §2.1).
             strokes += 1
+            # The shot number is fixed here: a water/OB penalty adds a
+            # stroke to the score AFTER the decision, and the result must
+            # still carry the number of the shot that was actually hit.
+            shot_no = strokes
             along, straight = self.course.distance_to_pin(hole, *pos)
+            # Shot distance: tee shots follow the hole's routing (along),
+            # but every other shot flies directly at the pin (straight).
+            # `along` is centreline arc remaining, so it collapses to ~0
+            # for a ball past the green — which once made the engine hit
+            # 11-yd pitches at a pin 37 yd away, and GIR 0/18.
+            dist = along if lie == "tee" else straight
             elev = hole.elevation_at(hole.yardage) - hole.elevation_at(
                 self.course.hole(hole_no).project(*pos)[0])
             sit = Situation(
                 hole=hole, ball_x=pos[0], ball_y=pos[1], lie=lie,
-                distance_yd=along, distance_straight_yd=straight,
+                distance_yd=dist, distance_straight_yd=straight,
                 elevation_ft=elev, wind_mph=math.hypot(w_along, w_lat),
                 wind_effect=w_effect, wind_along_mph=w_along,
                 wind_lateral_mph=w_lat, hazard=hole.hazard_label,
@@ -421,8 +474,8 @@ class RoundEngine:
             self.total_decisions_ms += (time.perf_counter() - t_dec) * 1000.0
             self.total_decisions += 1
             emitter.emit(
-                "shot_decision", hole=hole_no, shot_no=strokes,
-                situation={"lie": lie, "distance_yd": round(along),
+                "shot_decision", hole=hole_no, shot_no=shot_no,
+                situation={"lie": lie, "distance_yd": round(dist),
                            "elevation_ft": round(elev),
                            "wind_mph": round(sit.wind_mph, 1),
                            "wind_effect": w_effect,
@@ -445,21 +498,29 @@ class RoundEngine:
                     "confidence": round(chosen.confidence, 2)})
             is_tee_shot = (lie == "tee")
             start_base = baseline_strokes(
-                lie, along, math.hypot(pin_x - pos[0], pin_y - pos[1]) * 3.0,
+                lie, dist, math.hypot(pin_x - pos[0], pin_y - pos[1]) * 3.0,
                 self.model.baseline_adjustments)
-            cat = categorize_shot(strokes, hole.par, lie, along,
+            cat = categorize_shot(strokes, hole.par, lie, dist,
                                   False, is_tee_shot)
             if chosen.shot_type == "putt":  # putter from the fringe
                 dist_ft = math.hypot(pin_x - pos[0], pin_y - pos[1]) * 3.0
+                ball_ft = to_green_local(hole, pos[0], pos[1])
+                pin_ft = to_green_local(hole, pin_x, pin_y)
+                form_mult = C.FORM_PUTT_MULT[self.model.form]
+                read = build_putt_read(green, ball_ft, pin_ft, dist_ft,
+                                       cond["green_speed"], form_mult,
+                                       is_comebacker=(putts > 0),
+                                       pin_difficulty=pin_difficulty)
+                emitter.emit("putt_read", hole=hole_no, putt=read,
+                             fifty_nine_watch={
+                                 "on": strokes_vs_59_pace <= 0})
                 res = putt_model(rng, dist_ft, cond["green_speed"],
-                                 C.FORM_PUTT_MULT[self.model.form])
+                                 form_mult)
+                ext = build_putt_result(green, ball_ft, pin_ft, res,
+                                        cond["green_speed"],
+                                        make_pct=read["make_pct"])
                 emitter.emit("putt_result", hole=hole_no, shot_no=strokes,
-                             putt={"distance_ft": round(dist_ft, 1),
-                                   "break_ft": round(res["break_ft"], 1),
-                                   "break_dir": res["break_dir"],
-                                   "speed": res["speed"],
-                                   "made": res["made"],
-                                   "leave_ft": round(res["leave_ft"], 1)},
+                             putt=ext,
                              putts_on_hole=putts,
                              commentary=self._putt_commentary(res, dist_ft))
                 putts += 1
@@ -469,11 +530,10 @@ class RoundEngine:
                 else:
                     sg["putt"] += start_base - (1.0 + baseline_strokes(
                         "green", 0, res["leave_ft"]))
-                    dx, dy = pin_x - pos[0], pin_y - pos[1]
-                    d = math.hypot(dx, dy) or 1.0
-                    move_yd = max(0.0, dist_ft / 3.0 - res["leave_ft"] / 3.0)
-                    pos = (pos[0] + dx / d * move_yd,
-                           pos[1] + dy / d * move_yd)
+                    end = _putt_endpoint_yards(hole, ball_ft, pin_ft,
+                                               ext["path"])
+                    if end is not None:
+                        pos = end
                     lie = "green"
                 continue
 
@@ -568,7 +628,7 @@ class RoundEngine:
             if lie == "green" and first_green_strokes is None:
                 first_green_strokes = strokes
                 approach_ft = round(dist_pin_ft, 1)
-                approach_dist_yd = along
+                approach_dist_yd = dist
                 if strokes <= hole.par - 2:
                     gir = True
             if first_green_strokes is not None:
@@ -585,13 +645,13 @@ class RoundEngine:
             # Miss direction for the learning loop (ft, + = right of pin).
             miss_ft = self._miss_ft(prev_pos, (pin_x, pin_y), (fx_yd, fy_yd))
             records.append(ShotRecord(
-                cat, self._bucket(cat, along), sg_shot, miss_ft, along))
+                cat, self._bucket(cat, dist), sg_shot, miss_ft, dist))
             quality_score = self._shot_quality(quality, carry_yd,
                                                chosen.intended_carry_yd,
                                                float(flight.offline_ft[0]))
             drama = self._drama(sg_shot, holed, shot_penalty, chosen)
             emitter.emit(
-                "shot_result", hole=hole_no, shot_no=strokes,
+                "shot_result", hole=hole_no, shot_no=shot_no,
                 club=chosen.club, shot_type=chosen.shot_type,
                 contact={"quality": quality,
                          "strike_x_mm": round(delivery.strike_x_mm, 1),
@@ -645,9 +705,14 @@ class RoundEngine:
 
     # -------------------------------------------------------------- helpers --
     def _baseline_args(self, hole, pos, pin_x, pin_y):
-        """(distance_yd, distance_ft) for the baseline table at a position."""
-        along, straight = self.course.distance_to_pin(hole, *pos)
-        return along, math.hypot(pin_x - pos[0], pin_y - pos[1]) * 3.0
+        """(distance_yd, distance_ft) for the baseline table at a position.
+
+        The distance is the straight-line (laser) distance to the pin: the
+        expected strokes to hole out from here depend on how far the ball
+        actually has to travel, not on centreline arc remaining.
+        """
+        _, straight = self.course.distance_to_pin(hole, *pos)
+        return straight, math.hypot(pin_x - pos[0], pin_y - pos[1]) * 3.0
 
     def _miss_ft(self, prev_pos, pin, final_pos):
         """Signed lateral miss vs the pin, feet (+ = right of the pin)."""
@@ -815,7 +880,7 @@ class RoundEngine:
         }
         if flags["course_record"]:
             emitter.emit("milestone", hole=18, kind="course_record",
-                         text=f"New course record — {score} at Wyatt National!",
+                         text=f"New course record — {score} at {self.course.name}!",
                          value=score, previous_best=prev_best)
         if self.record_book.rounds_played in (50, 100):
             emitter.emit("milestone", hole=18,

@@ -71,7 +71,7 @@ Conditions flow through everything:
 `course.compute_rating_slope()` derives rating/slope from the design:
 effective length (yardage + elevation + prevailing wind) and obstacle
 strokes (bunkers, water, trees, OB, narrow fairways, small greens). The
-constants are calibrated so Wyatt National computes **74.6 / 138** — the
+constants are calibrated so Wyatt National v3 computes **76.1 / 142** — the
 spec's stated values. `course.championship_variant()` builds the Black
 Tees (longer, narrower, smaller greens, extra bunkers) and its rating/slope
 come out harder automatically, so difficulty is a variable: the handicap
@@ -148,6 +148,13 @@ proved it — so they were corrected, with the evidence in the code:
    (target 50%, tiny 6-round sample). Per the harness's own rule the
    next step is a §3.2 sigma retune, never another physics change —
    and 6 rounds is a sanity sample, not the 10,000-round gate.
+   Independent verification (Nov 13, 2026, `python -m sim.verify_carry`,
+   300-shot drawn samples): driver mean carry 262.6 yd (sd 16.9) vs the
+   262.1 claimed above; pure driver 269.1 yd at the gapping condition
+   (110 mph × 1.49 smash = 163.9 mph ball speed), 264.6 yd at exactly
+   161 mph / 12° / 2,900 rpm; 3-wood drawn mean 244.8 yd (target 245);
+   14-club gapping mean error 1.80% — every refit number above confirmed
+   by an independent run, not just re-quoted.
 
 Everything else follows the spec exactly, and `calibrate.py` re-checks
 the §3.1 targets on every run.

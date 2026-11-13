@@ -82,7 +82,11 @@ def putt(rng: Rng, distance_ft: float, green_speed: float = 11.0,
     """Simulate one putt. Returns made / leave_ft / speed / break info."""
     break_ft, break_dir = draw_break(rng, distance_ft)
     p_make = make_probability(distance_ft, break_ft, green_speed)
-    p_make = min(0.995, p_make * form_putt_mult)
+    # Spec §3.6 (design doc §4.5): the form multiplier applies only to
+    # putts over 10 ft — a cold putter still makes a 3-footer.
+    if distance_ft > 10:
+        p_make *= form_putt_mult
+    p_make = min(0.995, p_make)
     made = rng.random() < p_make
     if made:
         return dict(made=True, leave_ft=0.0, speed="good",
@@ -134,6 +138,11 @@ MAX_PATH_POINTS = 60      # event paths: one point per foot, capped (§2.2)
 # ft/s^2, so mu = a / g = 1.64 / 32.174 = 0.051. Faster greens roll
 # further on the same pace, so mu scales as 11.0 / green_speed (§1.5).
 ROLL_MU_STIMP11 = 0.05
+
+# How much the pin's difficulty moves the putt_read make % (see
+# build_putt_read): make_pct *= 1 - PIN_READ_WEIGHT * (difficulty - 0.5).
+# ESTIMATE — a display/read judgment, not a calibrated table change.
+PIN_READ_WEIGHT = 0.20
 
 
 def roll_mu(green_speed: float) -> float:
@@ -708,7 +717,8 @@ def _solved(green, ball_ft, pin_ft, res, i, made, start_dir, v0,
 
 def build_putt_read(green: Green, ball_ft, pin_ft, distance_ft: float,
                     green_speed: float, form_putt_mult: float = 1.0,
-                    is_comebacker: bool = False) -> dict:
+                    is_comebacker: bool = False,
+                    pin_difficulty: float | None = None) -> dict:
     """The ``putt_read`` putt dict (§2.2), emitted before the stroke.
 
     The predicted path and the measured break come from the ideal line
@@ -716,12 +726,22 @@ def build_putt_read(green: Green, ball_ft, pin_ft, distance_ft: float,
     probability from ``make_probability()`` with the measured break; the
     form multiplier applies only to putts over 10 ft (spec §3.6 — the
     >10 ft gate lives here, in this one place, so the read and the
-    result can never disagree about it).
+    result can never disagree about it). A tucked pin reads harder:
+    when ``pin_difficulty`` is given (the rotation's effective pin
+    difficulty, ``sim/pins.py``), the read is scaled by
+    ``1 - PIN_READ_WEIGHT * (difficulty - 0.5)`` on putts over 6 ft —
+    a Sunday corner pin reads ~8% harder than the raw distance, an
+    accessible centre pin ~4% easier. ESTIMATE, and a read/display
+    effect only: the outcome draw still uses the calibrated table, so
+    the read is the caddie's judgment that a tucked pin plays harder
+    than the yardage, not a second table. Tap-ins (<= 6 ft) read true.
     """
     pred = predicted_path(green, ball_ft, pin_ft, green_speed)
     p = make_probability(distance_ft, pred["break_ft"], green_speed)
     if distance_ft > 10:
         p *= form_putt_mult
+    if pin_difficulty is not None and distance_ft > 6:
+        p *= (1.0 - PIN_READ_WEIGHT * (pin_difficulty - 0.5))
     p = min(0.995, max(0.001, p))
     return {
         "distance_ft": round(float(distance_ft), 1),

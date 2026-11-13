@@ -20,8 +20,9 @@ The mapping (``translate_event``):
   into one event; the director (§3 of the broadcast doc) needs the three
   phases separately — strike cuts to TRACER, landing cuts to PIN/CATCH.
 * ``hole_complete`` -> ``hole_end``; ``round_complete`` -> ``round_end``.
-* ``putt_result``, ``fifty_nine_watch``, ``milestone``, ``round_start``,
-  ``hole_start`` -> same type, reshaped ``data`` per the broadcast spec.
+* ``putt_result``, ``putt_read``, ``fifty_nine_watch``, ``milestone``,
+  ``round_start``, ``hole_start`` -> same type, reshaped ``data`` per
+  the broadcast spec.
 * ``conditions_change`` -> passed through unchanged (no broadcast
   equivalent; consumers ignore unknown types).
 * An event that already arrives in envelope form (``event`` + ``data``)
@@ -222,6 +223,25 @@ def translate_event(raw: dict) -> list[dict]:
         })
         return [strike, apex, landing]
 
+    if event_type == "putt_read":
+        # Putting v2 (putting-model-v2.md §2.2): the pre-stroke read —
+        # distance to the inch, measured break, live make %, predicted
+        # path. Same type, reshaped data; nothing else changes.
+        env = _base_envelope("putt_read", raw)
+        putt = raw.get("putt") or {}
+        env["data"] = _trace(raw, {
+            "dist_ft": putt.get("distance_ft"),
+            "distance_in": putt.get("distance_in"),
+            "break_ft": putt.get("break_ft"),
+            "break_dir": putt.get("break_dir"),
+            "make_pct": putt.get("make_pct"),
+            "green_speed": putt.get("green_speed"),
+            "predicted_path": putt.get("predicted_path"),
+            "is_comebacker": putt.get("is_comebacker"),
+            "fifty_nine_watch": raw.get("fifty_nine_watch"),
+        })
+        return [env]
+
     if event_type == "putt_result":
         env = _base_envelope("putt_result", raw)
         putt = raw.get("putt") or {}
@@ -230,6 +250,18 @@ def translate_event(raw: dict) -> list[dict]:
             "made": putt.get("made"),
             "putts_this_hole": raw.get("putts_on_hole"),
             "leave_ft": putt.get("leave_ft"),
+            # Putting v2 (additive, §2.3): the integrated actual path
+            # and its measurements ride the same event, unchanged.
+            "break_ft": putt.get("break_ft"),
+            "break_dir": putt.get("break_dir"),
+            "speed": putt.get("speed"),
+            "make_pct": putt.get("make_pct"),
+            "path": putt.get("path"),
+            "pace_ft_s": putt.get("pace_ft_s"),
+            "past_hole_ft": putt.get("past_hole_ft"),
+            "lip": putt.get("lip"),
+            "closest_in": putt.get("closest_in"),
+            "edge_class": putt.get("edge_class"),
         })
         return [env]
 
@@ -246,6 +278,10 @@ def translate_event(raw: dict) -> list[dict]:
             "wind_dir": wind.get("dir_deg"),
             "wind_effect": wind.get("effect"),
             "elevation_ft": raw.get("elevation_ft"),
+            # Putting v2 (§1.6): the green heightfield rides hole_start
+            # so the broadcast renders from the same array the ball
+            # rolls on. Additive — absent on old events.
+            "green": raw.get("green"),
         })
         return [env]
 

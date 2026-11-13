@@ -344,9 +344,9 @@ class TestDecisions(unittest.TestCase):
 
 class TestHandicap(unittest.TestCase):
     def test_differential(self):
-        # 69 at Wyatt National: (69-74.6)*113/138 = -4.59
-        self.assertAlmostEqual(differential(69), -4.59, delta=0.05)
-        self.assertAlmostEqual(differential(74), -0.49, delta=0.05)
+        # 69 at Wyatt National v3: (69-76.1)*113/142 = -5.65
+        self.assertAlmostEqual(differential(69), -5.65, delta=0.05)
+        self.assertAlmostEqual(differential(74), -1.67, delta=0.05)
 
     def test_whs_index_needs_3_rounds(self):
         self.assertIsNone(whs_index([-2.0, -3.0]))

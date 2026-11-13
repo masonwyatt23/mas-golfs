@@ -322,7 +322,6 @@ class TestFormMultiplier(unittest.TestCase):
                                  form_putt_mult=1.0)
         self.assertLess(long_a["make_pct"], long_b["make_pct"])
 
-    @unittest.expectedFailure
     def test_v1_putt_still_applies_form_to_tap_ins(self):
         # DRIFT (design doc §2.5): v1 ``putt()`` applies
         # ``form_putt_mult`` to ALL putts, including tap-ins — spec §3.6

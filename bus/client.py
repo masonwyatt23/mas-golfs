@@ -159,13 +159,49 @@ class BusPublisher:
         self.send_text(json.dumps({"type": "request_round_state"}))
 
     def close(self) -> None:
-        if self.sock is not None:
-            try:
-                self._send_frame(0x8, b"")
-                self.sock.close()
-            except OSError:
-                pass
-            self.sock = None
+        if self.sock is None:
+            return
+        try:
+            # Drain anything already in the receive buffer first: the bus
+            # sends a round_state snapshot to every connection on connect,
+            # and a publish-only client never reads it. Closing a socket
+            # with unread data in its buffer makes the kernel send RST
+            # instead of FIN, which kills the server-side handler while
+            # our queued publishes are still unread — a burst publisher
+            # loses its tail (harness test_02: only the first 3 of 21
+            # events arrived).
+            self._drain()
+            self._send_frame(0x8, b"")
+            # Wait briefly for the server's close echo: the server
+            # answers it only after reading every frame we sent, so the
+            # echo is the flush barrier for our publishes. Best effort —
+            # time out and close anyway.
+            deadline = time.monotonic() + 2.0
+            while time.monotonic() < deadline:
+                try:
+                    self.recv_text(
+                        timeout=max(0.1, deadline - time.monotonic()))
+                except BusError:
+                    break  # close echo (or the server closed) — flushed
+                except (TimeoutError, OSError):
+                    break
+            self.sock.close()
+        except OSError:
+            pass
+        self.sock = None
+
+    def _drain(self) -> None:
+        """Discard whatever is already in the receive buffer, non-blocking."""
+        if self.sock is None:
+            return
+        self.sock.settimeout(0)
+        try:
+            while True:
+                chunk = self.sock.recv(65536)
+                if not chunk:
+                    break
+        except (BlockingIOError, OSError):
+            pass
 
 
 def publish_events(url: str, events, delay: float = 0.0) -> int:

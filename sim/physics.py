@@ -22,6 +22,31 @@ import numpy as np
 from . import constants as C
 from .rng import Rng
 
+# Lift-coefficient model (Smits & Smith spin-ratio quadratic):
+#   Cl = CL_C2 * S^2 + CL_C1 * S,  S = omega * R / |v|
+# Fitted against the §3.2 gapping table and the mishit behaviour
+# (a chunk must lose carry, a thin must lose spin/launch). The spec's
+# linear Cl = spin / 145000 is documented as wrong in fly() below.
+# CORRECTION 3 (Nov 12, 2026 — see README "Flight-model corrections"):
+# the first fitted curve (CL_C1 = 1.8, CL_C2 = -3.25) under-lifted at
+# low spin ratio: a pure driver at 161 mph / 12 deg / 2,900 rpm carried
+# only 248.5 yd against the 268 yd gapping target, while the irons
+# (higher S) were already on target — so no global lift/drag change
+# could fix the driver without overshooting the irons (a +10% lift
+# slope alone pushes the 7-iron +4.7%). The refit steepens the low-S
+# rise and rolls off earlier (peak Cl ~0.32 at S ~ 0.27, same peak as
+# the published curve): driver pure carry 248.5 -> 269.1 yd, drawn
+# 300-shot mean 240.4 -> 262.1 yd, ball speed unchanged (160.8 mph),
+# and the 14-club gapping mean error improves 2.14% -> 1.80% (worst
+# club besides the LW is the 5-wood at +4.3%).
+# Drag spin coefficient: Cd = 0.24 + CD_SPIN_K * spin (spec §2.3 says
+# 0.000012; fitted lower — see calibrate.py — because the spec's value
+# makes pure iron shots sit at a drag maximum where any mishit that
+# reduces spin flies further, which is backwards).
+CL_C1 = 2.4
+CL_C2 = -4.5
+CD_SPIN_K = 0.000012
+
 
 # ------------------------------------------------------------------ delivery --
 @dataclass
@@ -50,7 +75,12 @@ def draw_delivery(rng: Rng, club: str, shot_type: str = "full",
     if power:
         sig_mult *= 1.25
     speed_mean = spec["speed_mean"] * speed_fraction * (1.04 if power else 1.0)
-    speed = rng.gauss_clamped(speed_mean, spec["sig_speed"], 60.0, 135.0)
+    # The clamp bounds scale with the intended speed: a fixed 60 mph floor
+    # destroys partial shots (a 44-yd pitch wants a ~28 mph swing and was
+    # being clamped up to 60, carrying 80 yd instead of 44).
+    lo = max(10.0, speed_mean * 0.75)
+    hi = min(135.0, speed_mean * 1.25)
+    speed = rng.gauss_clamped(speed_mean, spec["sig_speed"], lo, hi)
     face = C.SHAPE_FACE_BIAS[shape] + rng.gauss(0.0, spec["sig_face"] * sig_mult)
     path = rng.gauss(0.0, spec["sig_path"] * sig_mult)
     # Lie shifts the strike low on the face: heavy rough chunks it, light
@@ -208,7 +238,7 @@ def fly(ball_speed_mph, launch_deg, spin_rpm, spin_axis_deg, start_dir_deg,
     rho = air_density(temp_f)
     # Drag coefficient, per the spec (§2.3). Column vector so it broadcasts
     # correctly against the (n, 3) velocity arrays in the Monte Carlo path.
-    cd = (0.24 + 0.000012 * spin)[:, None]
+    cd = (0.24 + CD_SPIN_K * spin)[:, None]
     # Lift coefficient: CORRECTION to §2.3. The spec's linear formula
     # (Cl = spin / 145000, clamped 0.02-0.35) gives Cl = 0.02 at driver spin
     # — about one tenth of the lift a real ball produces — and simulation
@@ -218,7 +248,8 @@ def fly(ball_speed_mph, launch_deg, spin_rpm, spin_axis_deg, start_dir_deg,
     # dimensionless spin ratio S = omega * R / |v|, peaking near S = 0.3
     # and falling off at very high spin, which is also what keeps wedge
     # shots from floating forever. S is recomputed every step because the
-    # ball slows in flight.
+    # ball slows in flight. The coefficients are module constants so the
+    # calibration harness can refit them (see sim/calibrate.py).
     omega = _spin_vector(spin, spin_axis_deg)
     omega_mag = np.linalg.norm(omega, axis=1, keepdims=True)
     ball_radius_m = C.BALL_DIAMETER_M / 2.0
@@ -252,7 +283,7 @@ def fly(ball_speed_mph, launch_deg, spin_rpm, spin_axis_deg, start_dir_deg,
         # Lift from the spin ratio at the current speed (see note above).
         # speed_rel is already (n, 1); it broadcasts against (n, 3) directly.
         spin_ratio = omega_mag * ball_radius_m / speed_rel
-        cl = np.clip(-3.25 * spin_ratio ** 2 + 1.99 * spin_ratio,
+        cl = np.clip(CL_C2 * spin_ratio ** 2 + CL_C1 * spin_ratio,
                      0.02, 0.35)
         magnus = (0.5 * rho * cl * C.BALL_AREA_M2 * speed_rel ** 2) * magnus_dir
         a = (drag + magnus) / C.BALL_MASS_KG
@@ -280,8 +311,18 @@ def fly(ball_speed_mph, launch_deg, spin_rpm, spin_axis_deg, start_dir_deg,
                     done[i] = True
                     p[i, 1] = ground_elev_m
                 else:
-                    retain = 0.72 if bounce_count[i] == 0 else 0.85
-                    v[i, 1] = -v[i, 1] * restitution
+                    # Backspin grips the turf: a high-spin wedge checks up
+                    # instead of bounding 25+ yd forward. The spec's flat
+                    # 0.72/0.85 horizontal retain let a wedge bounce clean
+                    # off the back of the green (GIR 0/18 in testing).
+                    # Both the restitution and the horizontal retain fall
+                    # as spin rises; a driver (2,900 rpm) is barely
+                    # affected, a wedge (8,500+ rpm) checks hard.
+                    spin_f = min(1.0, spin[i] / 9000.0)
+                    e_i = restitution * (1.0 - 0.35 * spin_f)
+                    retain = (0.72 if bounce_count[i] == 0 else 0.85) \
+                        * (1.0 - 0.55 * spin_f)
+                    v[i, 1] = -v[i, 1] * e_i
                     v[i, 0] *= retain
                     v[i, 2] *= retain
                     bounce_count[i] += 1
@@ -320,10 +361,14 @@ def apply_roll(bounce_x_m, bounce_z_m, hvel_x_ms, hvel_z_ms, mu,
     """
     vh = np.hypot(hvel_x_ms, hvel_z_ms)
     roll_m = np.where(vh > 0.3, vh ** 2 / (2.0 * C.GRAVITY * mu), 0.0)
-    if on_green and spin_rpm is not None:
+    if spin_rpm is not None:
         spin = np.asarray(spin_rpm, dtype=float) * spin_factor
-        roll_m = np.where(spin > 5000, np.minimum(roll_m, 3.0 / C.M_TO_YARD), roll_m)
-        roll_m = np.where(spin < 3000,
+        # on_green may be a scalar (single shot) or an array (MC batch).
+        on_g = np.broadcast_to(np.asarray(on_green, dtype=bool),
+                               np.shape(roll_m))
+        roll_m = np.where(on_g & (spin > 5000),
+                          np.minimum(roll_m, 3.0 / C.M_TO_YARD), roll_m)
+        roll_m = np.where(on_g & (spin < 3000),
                           np.clip(roll_m, 5.0 / C.M_TO_YARD, 12.0 / C.M_TO_YARD),
                           roll_m)
     direction = np.where(vh > 1e-9, 1.0, 0.0)

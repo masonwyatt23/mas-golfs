@@ -23,10 +23,10 @@ YARD_TO_M = 0.9144
 M_TO_YARD = 1.0 / YARD_TO_M
 FT_TO_M = 0.3048
 
-COURSE_RATING = 74.6            # Wyatt National, back tees (§1.2)
-COURSE_SLOPE = 138
+COURSE_RATING = 76.1            # Wyatt National v3, back tees (§1.2)
+COURSE_SLOPE = 142
 COURSE_PAR = 72
-COURSE_YARDAGE = 7214
+COURSE_YARDAGE = 7602
 TARGET_SCORE = 59               # Road to 59 (§1.2)
 GHOST_TARGET = 68               # Mason's real-world reference score (§1.2)
 
