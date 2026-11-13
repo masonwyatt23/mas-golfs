@@ -95,8 +95,11 @@ Notes on the bars:
 
 The prompts are the production prompts: `gen_events.py` renders them
 through `commentary/prompts.py`, the same templates the commentary
-service uses, filled with realistic event values from Wyatt National
-(hole names, pars, yardages from `docs/course-design-v2.md`). The
+service uses, filled with realistic event values from Wyatt National.
+**v3 note:** the checked-in `events.json` was rendered from the v2 hole
+yardages (e.g. hole 12 at 164 yards, hole 3 at 187 — v3 is 172 and 196).
+Re-run `gen_events.py` from `docs/course-design-v3.md` before the on-box
+verification run, so the latency and A/B prompts carry v3 yardages. The
 latency and A/B runs measure the prompts the broadcast actually sends,
 not toy text. The A/B labels are randomized by one coin flip for the
 whole file (not per event), so the judge compares two consistent

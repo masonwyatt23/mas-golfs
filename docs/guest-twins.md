@@ -104,7 +104,7 @@ Indicative benchmarks (the sim spec is the authority; these are the anchors):
 
 | Handicap | Driving distance | Fairways | GIR | Scoring average |
 |---|---|---|---|---|
-| +3 (Mas) | 265–275 yd | 55–60% | ~60% | 71–73 |
+| +3 (Mas) | 265–275 yd | 55–60% | ~55–57% | 72–74 |
 | Scratch (0) | 244–259 yd | ~50% | ~56% | 72–74 |
 | 5 | ~245 yd | ~50% | ~52% | ~77 |
 | 10 | ~235 yd | ~48% | ~45% | ~82 |
@@ -159,7 +159,7 @@ Four formats, each with a different length, a different kind of drama, and a dif
 
 **Why it's the flagship:** match play has a score that changes on every hole, a comeback is always one hole away, and a match that goes to the 18th is a full episode. It is also the format that best survives a handicap gap: a 12-handicapper's twin can beat Mas on a hole, and a match that is 2-up through 9 is a real contest even if the stroke-play gap is large.
 
-**Handicaps:** full handicap strokes, applied on the stroke-index holes (see [course-design-v2.md](course-design-v2.md) for the stroke index). The twin gets their strokes; Mas gets none. The broadcast shows the match score, not the stroke score — "MAS 2 UP" is the story, and the stroke score is the footnote.
+**Handicaps:** full handicap strokes, applied on the stroke-index holes (see [course-design-v3.md](course-design-v3.md) for the stroke index — same order as v2, flagged provisional for re-ranking after calibration). The twin gets their strokes; Mas gets none. The broadcast shows the match score, not the stroke score — "MAS 2 UP" is the story, and the stroke score is the footnote.
 
 **Length:** a full round, premiered like a normal round premiere (Wed slot, fixed time). The match is the episode.
 
@@ -173,7 +173,7 @@ Four formats, each with a different length, a different kind of drama, and a dif
 
 ### 4.3 Closest-to-pin contests — the clip machine
 
-**The format:** one par 3 — the 12th, "The Picture," 164 yards over the pond — one shot each, closest to the pin wins. Best of three rounds if tied. The whole contest is one hole, one shot each, three minutes of television.
+**The format:** one par 3 — the 12th, "The Picture," 172 yards over the pond — one shot each, closest to the pin wins. Best of three rounds if tied. The whole contest is one hole, one shot each, three minutes of television.
 
 **Why it works:** it is the shortest, most clip-friendly format in the system. One shot, one number, one winner. It is the format that travels best on Shorts and Reels: the hook is the result, the payoff is immediate, and the guest's audience can watch the whole contest without committing to a round.
 
@@ -338,5 +338,5 @@ Track these per guest, and review monthly:
 - [brand-identity.md](brand-identity.md) — the palette, the fonts, the scorebug and twin-card rules, and the naming conventions the guest graphics must follow.
 - [sim-engine.md](sim-engine.md) — the golfer model, the dispersion and benchmark tables, and the physics every twin shares with Mas.
 - [broadcast-stack.md](broadcast-stack.md) — the director, the NodeCG graphics bundle, and the commentary pipeline the two-golfer presentation plugs into.
-- [course-design-v2.md](course-design-v2.md) — Wyatt National, including the stroke index used for handicap strokes in match play.
+- [course-design-v3.md](course-design-v3.md) — Wyatt National (7,602 yards), including the stroke index used for handicap strokes in match play.
 - [coins-economy.md](coins-economy.md) — the prediction markets that run on guest matches, unchanged from Mas's rounds.

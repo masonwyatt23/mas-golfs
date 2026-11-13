@@ -334,7 +334,7 @@ These lines are templated, not LLM-generated, and their audio is synthesized onc
 
 | Cached line | When it plays | Example |
 |---|---|---|
-| Hole intros | `hole_start`, once per hole | "Hole 12, The Picture. Par 3, 164 yards, downhill over the pond." |
+| Hole intros | `hole_start`, once per hole | "Hole 12, The Picture. Par 3, 172 yards, downhill over the pond." |
 | Standard score updates | `hole_end`, when the score is unchanged in kind | "Mas is two under through eleven." |
 | Standard result calls | `landing`, when the result is a routine fairway/green hit | "That's in the fairway." / "That's on the green, twelve feet." |
 | Round openers | `round_start` | "Round 47 at Wyatt National. Mas is chasing 59." |
@@ -395,7 +395,7 @@ These are the reference lines. Audition the Kokoro voices on these — if a voic
 5. "He finished with a 70, two under par. Fairways six of eleven, greens seven of eleven."
 6. "The 59 is off the table for this round. He's two over through fourteen."
 7. "That's in the bunker, short right. He'll have a straightforward splash out."
-8. "Hole 15, The Eagle Chance. Par 5, 545 yards, and he's got a look at eagle if the second finds the green."
+8. "Hole 15, The Eagle Chance. Par 5, 578 yards, and he's got a look at eagle if the second finds the green."
 9. "Eight under through twelve, and he can afford to drop one more stroke and still break 60."
 10. "That's the round. A 64, eight under par, and the best round of the season."
 
@@ -426,7 +426,7 @@ Kokoro and ElevenLabs Flash both stumble on raw numbers and abbreviations, so ev
 | `−2` / `-2` | two under par |
 | `+3` | three over par |
 | `59` (as a score) | fifty-nine |
-| `164 yards` | one sixty-four yards |
+| `172 yards` | one seventy-two yards |
 | `mph` | miles per hour |
 | `GIR` | green in regulation |
 | `59 Watch` | fifty-nine watch |

@@ -6,7 +6,7 @@ This is the verification plan for the whole Mas Golfs system: the sim engine, th
 
 **How to use it:** run sections in order. §1 (sim calibration) gates the broadcast stack — do not build overlays and commentary on an uncalibrated sim. §3 (web build) gates any public stream. §6 is the single gate for going live.
 
-**Reference docs:** `sim-engine.md` (§3 calibration, §6 learning loop, §7 handicap), `broadcast-stack.md` (§2 director, §3 NodeCG graphics, §4 commentary), `coins-economy.md` (§5 odds, §6 payouts, §8 anti-abuse), `performance-audit.md` (P0-1 memory leak, P0-2 hole-change hitch, verification checklist), `course-design-v2.md` (hole data), `launch-playbook.md` (§4 metrics).
+**Reference docs:** `sim-engine.md` (§3 calibration, §6 learning loop, §7 handicap), `broadcast-stack.md` (§2 director, §3 NodeCG graphics, §4 commentary), `coins-economy.md` (§5 odds, §6 payouts, §8 anti-abuse), `performance-audit.md` (P0-1 memory leak, P0-2 hole-change hitch, verification checklist), `course-design-v3.md` (hole data — championship length, 7,602 yards), `launch-playbook.md` (§4 metrics).
 
 ---
 
@@ -18,12 +18,14 @@ A headless runner that imports the engine, seeds it, and plays rounds with **ren
 
 ### 1.2 Benchmark table (from sim-engine §3 — do not re-tune these without a written reason)
 
+> **v3 note:** the Scoring average (72–74) and GIR (~55–57%) targets above are **estimates for the 7,602-yard v3 course** ([course-design-v3.md](course-design-v3.md) §5.3), **pending confirmation by the 10,000-round harness**. The v1 targets were 71–73 and ~60%. The pass bands are ±5% around the v3 targets. If the harness says otherwise, the harness is right — update this table from its results.
+
 | Metric | Target (+3) | Pass band (±5%) | Notes |
 |---|---|---|---|
 | Driving distance (carry + roll, driver, dry/fairway) | 265–275 yd | 252–289 yd mean | Measure mean over all driver tee shots on par 4s/5s |
 | Fairways hit | 55–60% | 52–63% | Par 4s/5s only; a tee shot in the first cut counts as a miss |
-| Greens in regulation | ~60% | 57–63% | Ball on the putting surface in regulation |
-| Scoring average | 71–73 | 67.5–76.7 | Mean over the full run |
+| Greens in regulation | ~55–57% | 52–60% | Ball on the putting surface in regulation |
+| Scoring average | 72–74 | 68.4–77.7 | Mean over the full run |
 | Approach proximity, 100 yd | 18–20 ft | 17–21 ft | Mean distance to hole, approach shots only |
 | Approach proximity, 150 yd | 24–28 ft | 23–29 ft | Mean distance to hole |
 | Approach proximity, 200 yd | 36–41 ft | 34–43 ft | Mean distance to hole |
@@ -72,8 +74,8 @@ The season arc is the chase for 59. The sim must make 59 **possible but extremel
 
 | # | Check | Pass criterion |
 |---|---|---|
-| R-01 | 59 is reachable | In 10,000 rounds, at least one round scores ≤ 62 (the engine can produce a hot day) |
-| R-02 | 59 is rare | Rounds of 59 or better: 0–2 per 10,000. Three or more = the dispersion is too tight; re-tune |
+| R-01 | 59 is reachable | In 10,000 rounds, at least one round scores ≤ 62 (the engine can produce a hot day). On the longer v3 course the ≤ 62 count is expected to fall — the gate still holds, the frequency does not have to match v1 |
+| R-02 | 59 is rare | Rounds of 59 or better: 0–2 per 10,000. Three or more = the dispersion is too tight; re-tune. (v3 expectation: the count stays at 0–1 — P(59) ~0.3% per round, down from ~0.5% on v1; see course-design-v3.md §5.3.) |
 | R-03 | A 59 is earned, not fluky | Any round ≤ 61 in the harness has: GIR ≥ 15, putts ≤ 26, zero penalty strokes, and no putt holed from > 25 ft. If a low round depends on a 50-footer, the putting model is wrong |
 | R-04 | Pace arithmetic correct | The on-screen "59 pace" indicator matches the actual score through the hole being played (score − par through N holes, projected honestly — no rounding that hides a bogey) |
 
@@ -199,7 +201,7 @@ Check each graphic in OBS at 1080p and on a phone-width preview. Screenshot each
 | G-03 | Lower-thirds (3 variants) | Shot-data lower-third fires on every strike with the right club, distance, and shape; decision lower-third fires before every shot; milestone lower-third fires on birdies/eagles/records only |
 | G-04 | Ticker | Scrolls without stutter; shows live aggregates (all-time score, last-10, handicap); no stale data older than 5 s |
 | G-05 | Player card | Shown between holes with correct season stats; the "Mas — Mason's digital twin" line is present; no placeholder text anywhere |
-| G-06 | Hole card | Shown on flyovers with the correct hole name, par, yardage, and stroke index (cross-check against course-design-v2) |
+| G-06 | Hole card | Shown on flyovers with the correct hole name, par, yardage, and stroke index (cross-check against course-design-v3) |
 | G-07 | No graphic overlap | No two graphics occupy the same screen region at the same time in a full-round recording |
 | G-08 | No placeholder | Zero instances of lorem ipsum, "TBD", "undefined", "NaN", or empty fields in any graphic across a full round |
 | G-09 | Phone preview | Every graphic is legible in the phone-width preview; nothing is cut off at the edges |

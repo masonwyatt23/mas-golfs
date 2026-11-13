@@ -129,19 +129,19 @@ Per round, at `LEARNING_LOOP`:
 ### 2.1 Where Mas starts, and where he can go
 
 Mas starts at **+3.1** (display index; `sim-engine.md` §7.1). His scoring
-average over the first 20 rounds should sit at **71–73** on a par-72
-course rated 74.6 / slope 138.
+average over the first 20 rounds should sit at **72–74** on a par-72
+course rated TBD / slope TBD (v3 recompute pending — see `conditions-system.md` §4.1; the recompute must produce one rating/slope used everywhere, replacing both v1 pairs). **The 72–74 band is a v3 estimate, pending confirmation by the 10,000-round harness** (`course-design-v3.md` §5.3) — and so is every rung of the ladder below, which is the same band shifted by the improvement budget.
 
 The ladder is defined by scoring average and handicap, not by any single
 round. A season is 200 rounds for ladder purposes (the qa-plan L-05 window).
 
 | Rung | Scoring average (last-20) | Display handicap | What changed to get here | Broadcast framing |
 |---|---|---|---|---|
-| 0 — **The baseline** | 71.5–72.5 | +3.1 | — | "Mas, the +3." |
-| 1 — **Smarter, not longer** | 71.0–72.0 | +3.5 | Aim biases corrected on the worst 2–3 approach buckets; one or two bad misses removed. | "He's stopped missing left." |
-| 2 — **The aggressive line** | 70.5–71.5 | +4.0 | Baseline table improved on scrambling; risk threshold nudged up one step where the data earned it. | "He's taking lines he wouldn't have taken in April." |
-| 3 — **Plus-four territory** | 70.0–71.0 | +4.5 | Compounded fixes across approach + driving; the worst category is no longer a weakness, just the least-strong area. | "Mas is a +4 now. The number moved." |
-| 4 — **The ceiling** | 69.5–70.5 | +5.0 | The practical ceiling of decision-only improvement. Further gains need the v2 practice mechanism. | "This is what a +5 looks like when the swing never changed." |
+| 0 — **The baseline** | 72.5–73.5 | +3.1 | — | "Mas, the +3." |
+| 1 — **Smarter, not longer** | 72.0–73.0 | +3.5 | Aim biases corrected on the worst 2–3 approach buckets; one or two bad misses removed. | "He's stopped missing left." |
+| 2 — **The aggressive line** | 71.5–72.5 | +4.0 | Baseline table improved on scrambling; risk threshold nudged up one step where the data earned it. | "He's taking lines he wouldn't have taken in April." |
+| 3 — **Plus-four territory** | 71.0–72.0 | +4.5 | Compounded fixes across approach + driving; the worst category is no longer a weakness, just the least-strong area. | "Mas is a +4 now. The number moved." |
+| 4 — **The ceiling** | 70.5–71.5 | +5.0 | The practical ceiling of decision-only improvement. Further gains need the v2 practice mechanism. | "This is what a +5 looks like when the swing never changed." |
 
 **The ladder is a description of what the loop is allowed to produce, not
 a schedule.** Mas may sit on rung 1 for 80 rounds, jump to rung 2 in a hot
@@ -188,13 +188,15 @@ the 1.5-stroke cap honest without any extra governor.
 A healthy season looks like this (scoring average, 20-round rolling):
 
 ```
-Round   1-20:  72.1  (baseline, +3.1)
-Round  21-60:  71.8  (first fixes land; aim biases correcting)
-Round  61-100: 71.4 (rung 1; the worst miss is gone)
-Round 101-140: 71.6  (cold stretch — see §3; the average ticks back up)
-Round 141-180: 71.0  (rung 2; recovery + second wave of fixes)
-Round 181-200: 70.8  (rung 2/3; season improvement ~1.3 strokes)
+Round   1-20:  73.1  (baseline, +3.1)
+Round  21-60:  72.8  (first fixes land; aim biases correcting)
+Round  61-100: 72.4 (rung 1; the worst miss is gone)
+Round 101-140: 72.6  (cold stretch — see §3; the average ticks back up)
+Round 141-180: 72.0  (rung 2; recovery + second wave of fixes)
+Round 181-200: 71.8  (rung 2/3; season improvement ~1.3 strokes)
 ```
+
+*(v3: every number above is the v1 arc shifted +1.0 stroke for the 7,602-yard course — an estimate, pending the 10,000-round harness. The shape is the point — down, up, down again — not the decimals.)*
 
 The line goes down, up, and down again. That is the design. A season
 whose rolling average is monotone decreasing is a system failure, not a

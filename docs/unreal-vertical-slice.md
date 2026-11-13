@@ -8,7 +8,7 @@
 
 ## 1. The hero hole
 
-**Hole 12 — "The Picture." Par 3, 164 yards, Wyatt National.**
+**Hole 12 — "The Picture." Par 3, 172 yards, Wyatt National.**
 
 - Downhill tee shot over a pond to a green framed by pines. Wedge in hand, water in mind.
 - **Why this hole:** smallest scope with the maximum visual payoff. One tee shot exercises everything that matters — elevation, water carry, the Niagara tracer arcing over the pond, the green-side camera, the putt, the reaction. It shows off terrain, water, vegetation, sky, and the golfer in a single 90-second loop. A par 5 would prove more shot variety but triples the build (three landing areas, a fairway, a lay-up zone); hole 12 proves the *look*, which is what the slice exists to judge.
@@ -68,7 +68,7 @@ Wyatt National is a fictional course, so there is no real-world LiDAR of it. The
 
 ### 3.4 Water
 
-- Pond: a planar water surface with a Substrate water material (translucency + reflections), a sandy shoreline ring (Megascans sand + a darker wet-sand band at the waterline), and a slight normal ripple. The pond must read as water from the tee cam at 164 yards — test from the actual broadcast camera, not the editor viewport.
+- Pond: a planar water surface with a Substrate water material (translucency + reflections), a sandy shoreline ring (Megascans sand + a darker wet-sand band at the waterline), and a slight normal ripple. The pond must read as water from the tee cam at 172 yards — test from the actual broadcast camera, not the editor viewport.
 - Ball-in-water behavior: the sim already emits the outcome; the render needs a splash (Niagara sprite emitter) and the drop/penalty flow in the broadcast. Scope it, don't skip it — water is the hole's identity.
 
 ---
@@ -198,7 +198,7 @@ Same stack as the web build's broadcast plan (`docs/broadcast-stack.md`), runnin
 **Visual — judged on captured footage, not the editor viewport:**
 - [ ] Tee-cam frame reads as a golf broadcast, not a game: telephoto compression, shallow depth of field, natural greens (no oversaturated video-game green).
 - [ ] Trees show layered branch structure, trunk detail, natural silhouette variation — from tee cam, pin cam, and aerial cam. No cones, no spheres, no blobs.
-- [ ] Water reads as water from the tee at 164 yards; splash on a ball in the pond.
+- [ ] Water reads as water from the tee at 172 yards; splash on a ball in the pond.
 - [ ] Grass: fairway/rough boundary legible at 100+ yards; green shows mow stripes and dew.
 - [ ] Sky: volumetric clouds (or 2D fallback) with correct sun angle for golden hour; dawn-to-dusk grading works.
 - [ ] Mas: human proportions, proper cap, polo, glove on lead hand; swing reads as a human swing in slow motion; impact frame matches ball launch (≤ 1 frame error).
@@ -307,6 +307,6 @@ The web build is the always-on prototype and clip factory. **Do not take it down
 - `docs/architecture.md` — the four-layer system (world, cinematography, overlays, commentary).
 - `docs/broadcast-stack.md` — OBS scenes, director state machine, NodeCG graphics, commentary pipeline.
 - `docs/sim-engine.md` — shot physics, decision engine, learning loop, event schema.
-- `docs/course-design.md` — Wyatt National, all 18 holes (hole 12 is the slice's hero hole).
+- `docs/course-design-v3.md` — Wyatt National, all 18 holes (hole 12 is the slice's hero hole; 172 yards in v3).
 - `docs/livestream-plan.md` — platforms, clip machine, growth timeline, free-tier rule.
 - `docs/launch-playbook.md` — 90-day launch plan, clip formats, community mechanics.

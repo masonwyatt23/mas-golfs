@@ -8,7 +8,7 @@
 
 - **The golfer is Mas.** A left-handed +3 handicapper modeled on Mason Wyatt's real swing — smooth tempo, full shoulder turn, high balanced finish held while watching the ball fly. Outfits are customizable; right-handed mode exists for the rest of the world.
 - **Real golf, not a dice roll.** Every shot is generated from launch conditions (ball speed, launch angle, spin, spin axis) through real ball-flight physics. Named mishits — thin, chunk, toe, heel — behave physically. Dispersion scales by club and shot type. Lies and wind gate which shots are even available: knockdowns into the wind, draws around trees, punch-outs from the woods.
-- **Calibrated to a real +3.** Roughly 265–275 yard driving, ~55–60% fairways, ~60% greens in regulation, scoring ~72–74. Proximity and putting follow real make-rate truth tables, so the leaderboard stays credible with golfers.
+- **Calibrated to a real +3.** Roughly 265–275 yard driving, ~55–60% fairways, ~55–57% greens in regulation, scoring ~72–74. Proximity and putting follow real make-rate truth tables, so the leaderboard stays credible with golfers. (Scoring and GIR are v3 estimates — pending confirmation by the 10,000-round calibration harness; see [docs/course-design-v3.md](docs/course-design-v3.md) §5.3. If the harness says otherwise, the harness is right.)
 - **The broadcast.** Full-screen, open-and-watch. An autonomous director cuts between broadcast cameras (down-the-line tracer cam, catch cam, bunker cam, pin cam, aerial) on shot events, never mid-flight. Shot tracer with ball speed, launch, spin, apex, carry, and shape. Slow-motion instant replays on dramatic shots. A scorebug that tells a newcomer the whole story in 3 seconds.
 - **He learns.** After each round the learning loop finds the single biggest strokes-gained leak — approach and driving first — and adjusts. His handicap is tracked live, with history and trend.
 - **The record book.** All-time score, most-recent-10 aggregate, best and worst rounds, scoring average, streaks, course record. Every round has a number to chase.
@@ -24,7 +24,7 @@ YouTube golf now out-subscribes the PGA Tour. Creator golf averages 4–5x the v
 
 ## The course
 
-**Wyatt National** — par 72, 7,214 yards. Four par 3s, four par 5s, ten par 4s, two of each short/long hole per nine. Full hole-by-hole design: [docs/course-design.md](docs/course-design.md).
+**Wyatt National** — par 72, 7,602 yards. Four par 3s, four par 5s, ten par 4s, two of each short/long hole per nine. Full hole-by-hole design: [docs/course-design-v3.md](docs/course-design-v3.md) (championship length; v2 at [docs/course-design-v2.md](docs/course-design-v2.md)).
 
 ## Project status
 
@@ -35,7 +35,7 @@ YouTube golf now out-subscribes the PGA Tour. Creator golf averages 4–5x the v
 - **90-day launch playbook:** see [docs/launch-playbook.md](docs/launch-playbook.md) — the auto-clip system, winning clip formats, the Instagram → YouTube → Twitch funnel, and the day-by-day 90-day plan with weekly checklists.
 - **Brand identity:** see [docs/brand-identity.md](docs/brand-identity.md) — the Mas Golfs logo concept, color palette, typography, on-screen identity rules, social templates, and naming conventions.
 - **Sim engine spec:** see [docs/sim-engine.md](docs/sim-engine.md) — the JSON event schema, launch-condition physics, +3 calibration truth tables, lie/wind gating, the local decision engine, and the strokes-gained learning loop.
-- **Course design v2:** see [docs/course-design-v2.md](docs/course-design-v2.md) — Wyatt National refined with MacKenzie/Doak principles, template holes, wind rotation, stroke index, and the strategic question on every hole.
+- **Course design v3:** see [docs/course-design-v3.md](docs/course-design-v3.md) — Wyatt National at championship length (7,602 yards): slope and camber per hole, rounded fairway edges with a semi-rough band, green slope/contour per hole, one new bunker. (v2: [docs/course-design-v2.md](docs/course-design-v2.md).)
 - **Clubhouse Coins economy:** see [docs/coins-economy.md](docs/coins-economy.md) — the full prediction economy: odds model, skins/Nassau/props markets, payout math, leaderboards, anti-abuse, and the legal boundary.
 - **Unreal vertical slice:** see [docs/unreal-vertical-slice.md](docs/unreal-vertical-slice.md) — the one-hole UE 5.8 plan: Hole 12 "The Picture," software list and costs, LiDAR pipeline, MetaHuman + swing mocap options, and go/no-go criteria.
 - **Creator growth playbook:** see [docs/creator-growth.md](docs/creator-growth.md) — what's working for small golf creators in 2026: hooks, conversion math, collabs, community, thumbnails, and realistic timelines.

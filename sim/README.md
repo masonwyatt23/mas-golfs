@@ -79,7 +79,7 @@ differential uses the course being played.
 
 ## Flight-model corrections (deviations from the spec, documented)
 
-The spec is the authority, but two of its §2 formulas are internally
+The spec is the authority, but several of its formulas are internally
 inconsistent with its own §3.1/§3.7 calibration targets, and simulation
 proved it — so they were corrected, with the evidence in the code:
 
@@ -87,10 +87,13 @@ proved it — so they were corrected, with the evidence in the code:
    Cl = 0.02 at driver spin — about one tenth of the lift a real ball
    produces. With it, no launch angle can reach the 268-yard driver carry
    (the ball maxes out at ~228 yd). Replaced with the published
-   spin-ratio model (Smits & Smith): `Cl = -3.25·S² + 1.99·S`, where
-   `S = ωR/|v|` is recomputed every integration step. Drag stays the
-   spec's formula (`Cd = 0.24 + 0.000012·spin`). Result: the gapping
-   table reproduces to ~6% mean error across all 14 clubs.
+   spin-ratio model (Smits & Smith): `Cl = CL_C2·S² + CL_C1·S`, where
+   `S = ωR/|v|` is recomputed every integration step. Fitted values
+   were first `CL_C1 = 1.8, CL_C2 = -3.25` (module constants in `physics.py`,
+   refittable by `calibrate.py`). Drag stays the spec's formula
+   (`Cd = 0.24 + 0.000012·spin`). Result: the gapping table reproduces
+   to ~2% mean error across all 14 clubs — see item 6 for the refit that
+   fixed the driver's remaining shortfall.
 2. **Launch angle (§2.2).** The spec's single-factor formula
    (`loft × 0.72`) launches the driver at 8° (real: ~12°) and the lob
    wedge at 38° (real: ~31°) — no single factor fits both. Replaced with
@@ -101,6 +104,50 @@ proved it — so they were corrected, with the evidence in the code:
    mph) made the wedges carry 20–35% long under the calibrated flight
    model — a full sand/lob wedge is a control swing. Lowered to 78/73/68
    mph; the gapping table now reproduces.
+4. **Chunk smash factors (§2.2).** The spec's chunk smash was only ~9%
+   below pure, which left chunked iron shots flying as far as pure ones
+   (a pure short-iron shot is already drag-limited, so a chunk can only
+   lose distance through ball speed). Chunk smash now falls steeply for
+   short clubs (driver 1.22 → wedge 1.00): chunked shots carry 0.70–
+   0.84× pure across the bag. Thin stays close to pure — a thin shot
+   really does keep most of its speed ("thin to win").
+5. **Bounce retention is spin-dependent (§2.5).** The spec's flat horizontal
+   retain (0.72 first bounce, 0.85 after) let a high-spin wedge bounce
+   ~27 yd forward off its first contact — a pitch landing on the green
+   bounded clean off the back, collapsing fast-mode GIR to 0/18. Both the
+   restitution and the horizontal retain now fall as spin rises (a driver
+   at 2,900 rpm is barely affected; a wedge at 8,500+ rpm checks hard), so
+   wedge shots stop on the green and drives still bounce and roll.
+6. **Lift-curve refit (§2.3, Nov 12, 2026).** The first fitted curve
+   (`CL_C1 = 1.8, CL_C2 = -3.25`) under-lifted at low spin ratio: a pure
+   driver at 161 mph / 12° / 2,900 rpm carried 248.5 yd against the 268 yd
+   gapping target, while the irons (higher S) were already on target —
+   so no global lift or drag change could fix the driver without
+   overshooting the irons (raising the lift slope to the published 1.99
+   alone pushes the 7-iron +4.7%; removing the spin-drag term pushes it
+   +17%). The diagnosis was carry, not delivery: ball speed was already
+   right (160.8 mph vs the 161 target) and the drawn 300-shot mean carry
+   was 240.4 yd. The refit (`CL_C1 = 2.4, CL_C2 = -4.5`) steepens the
+   low-S rise and rolls off earlier (peak Cl ~0.32 at S ~ 0.27, same peak
+   as the published curve). Result: pure driver carry 248.5 → 269.1 yd,
+   drawn 300-shot mean 240.4 → 262.1 yd, ball speed unchanged, and the
+   14-club gapping mean error improves 2.14% → 1.80% (worst club besides
+   the LW, which was already +7.4% and is unaffected — it sits at the Cl
+   floor — is the 5-wood at +4.3%). The driver carry test band was
+   tightened from 240–295 to 252–278 so a regression to ~240 fails
+   loudly instead of barely passing. Two independent 6-round Monte Carlo
+   calibrations before the fix both showed driving ~247 yd and scoring
+   ~74. The calibration re-run after the refit (Nov 12, 2026, 6 rounds,
+   Monte Carlo n=120, Wyatt National) confirms the fix where it matters
+   most: driving 272.5 yd (target 270, band 265–275, was ~247) and
+   scoring 71.5 (band 71–73 — the v1 band; the v3 band is 72–74, pending the 10,000-round harness — was ~74.3), putts 30.3 (target 29.5) and
+   ball speed 160.7 mph (target 161) — all PASS. The harness still
+   reports CALIBRATION FAILED overall, on dispersion, not delivery:
+   fairways 43% (target 57%), scrambling 49% (target 60%), GIR 68%
+   (target 60% — the v1 target; v3 is ~55–57%, pending the harness — overshooting in the good direction), sand saves 100%
+   (target 50%, tiny 6-round sample). Per the harness's own rule the
+   next step is a §3.2 sigma retune, never another physics change —
+   and 6 rounds is a sanity sample, not the 10,000-round gate.
 
 Everything else follows the spec exactly, and `calibrate.py` re-checks
 the §3.1 targets on every run.

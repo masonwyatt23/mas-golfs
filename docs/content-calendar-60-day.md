@@ -91,10 +91,10 @@ On days marked **2×**, post a second clip if any moment scored drama 90+. The s
 
 | Day | Clip title | Hook (first 2 seconds) | Format | Platform order |
 |---|---|---|---|---|
-| 8 · Mon | The Postage Stamp Eats Another One | "187 yards. A tiny green. And a double waiting." | DB | Reels → Shorts → TikTok |
+| 8 · Mon | The Postage Stamp Eats Another One | "196 yards. A tiny green. And a double waiting." | DB | Reels → Shorts → TikTok |
 | 9 · Tue | Over the Water. 226 Yards. No Fear. | "Two-twenty-six. Over water. Into the wind." | BS | Reels → Shorts → TikTok |
 | 10 · Wed | Day 10 of the Road to 59 | "Day 10. The par 3s are the exam this week." | DX | **Shorts → Reels → TikTok** (premiere day) |
-| 11 · Thu ◆ | Closest to the Pin: Hole 12, The Picture | "164 yards. Over the pond. Who's closest?" | CC | **TikTok → Reels → Shorts** (challenge day) |
+| 11 · Thu ◆ | Closest to the Pin: Hole 12, The Picture | "172 yards. Over the pond. Who's closest?" | CC | **TikTok → Reels → Shorts** (challenge day) |
 | 12 · Fri | Short-Sided at The Test. It Cost Him. | "Above the hole at The Test. That's a three-putt waiting to happen." | WM | Reels → Shorts → TikTok |
 | 13 · Sat | The Picture, Perfected | "Downhill, over the pond, to three feet." | BS | Reels → Shorts → TikTok |
 | 14 · Sun | Par-3 Week, Scored | "Four par 3s. Seven rounds. Here's what they cost him." | RC | Reels → Shorts → TikTok |

@@ -2,7 +2,7 @@
 
 **Version 1.0 · 2026-11-12 · Implementation-ready**
 
-This document specifies the simulation engine ("the Brain") for Mas Golfs: a fully autonomous, self-improving, fast, and free (no paid services) golf simulation in which Mas — a left-handed +3 digital twin of Mason Wyatt — plays 18-hole rounds on repeat at Wyatt National (par 72, 7,214 yards; 4 par 3s, 4 par 5s, 10 par 4s; see `course-design.md`).
+This document specifies the simulation engine ("the Brain") for Mas Golfs: a fully autonomous, self-improving, fast, and free (no paid services) golf simulation in which Mas — a left-handed +3 digital twin of Mason Wyatt — plays 18-hole rounds on repeat at Wyatt National (par 72, 7,602 yards; 4 par 3s, 4 par 5s, 10 par 4s; see `course-design-v3.md`).
 
 The engine has one job: **produce believable golf, forever, with no human input and no server.** Every design decision in this spec serves one of four constraints:
 
@@ -63,7 +63,7 @@ Emitted once per round, before hole 1.
 {
   "type": "round_start",
   "round_id": "R0042", "round_no": 42,
-  "course": { "name": "Wyatt National", "par": 72, "yardage": 7214, "rating": 74.6, "slope": 138 },
+  "course": { "name": "Wyatt National", "par": 72, "yardage": 7602, "rating": 74.6, "slope": 138 },
   "conditions": { "wind_mph": 9, "wind_dir_deg": 310, "temp_f": 58, "sky": "partly_cloudy", "firmness": 0.62, "green_speed": 11.2 },
   "handicap_index": 3.1,
   "target_score": 59,
@@ -76,7 +76,7 @@ Emitted once per round, before hole 1.
 
 | Field | Description |
 |---|---|
-| `course.rating` / `course.slope` | USGA-style course rating (74.6) and slope (138) for Wyatt National from the back tees. Used for handicap differentials (§7). |
+| `course.rating` / `course.slope` | USGA-style course rating and slope for Wyatt National from the back tees. The values shown in the example (74.6 / 138) are the **v1 values — the v3 recompute from the 7,602-yard design is pending** (see `course-design-v3.md` §5.1). Two different v1 pairs exist in the record (74.6/138 here vs. 74.1/141 in the web build); the v3 recompute must produce **one** rating/slope used everywhere. Used for handicap differentials (§7). |
 | `conditions` | Round-level weather, drawn once per round (§1.4). `wind_dir_deg` is the direction the wind blows *from* (meteorological convention). `firmness` 0–1 (0 = soft, 1 = firm) scales bounce/roll. `green_speed` in feet on the Stimpmeter. |
 | `handicap_index` | Mas's live WHS index at round start (§7). Note: a +3 is stored as a *negative* index in WHS terms; this spec stores it as a signed number where **positive = strokes better than scratch** (so +3.1 means 3.1 better than scratch) and displays it as `+3.1`. Document this convention wherever the value is rendered. |
 | `target_score` | Always `59` — the Road to 59 season target. |
@@ -90,7 +90,7 @@ Emitted once per round, before hole 1.
 ```json
 {
   "type": "hole_start",
-  "hole": 7, "par": 5, "yardage": 552, "name": "The Valley",
+  "hole": 7, "par": 5, "yardage": 586, "name": "The Valley",
   "tee": "back",
   "pin": { "x_ft": 18, "y_ft": -6, "zone": "back_right", "difficulty": 0.71 },
   "hole_wind": { "mph": 11, "dir_deg": 295, "effect": "into_and_left" },
@@ -409,11 +409,13 @@ These are the targets the engine is calibrated against. They are **measured outp
 | Driver spin | ~2,900 rpm | ~2,900 rpm | ~2,600 rpm |
 | Driving distance (total) | 265–275 yd | 244–259 yd | 282–288 yd carry |
 | Fairways hit | 55–60% | ~50% | ~60% |
-| Greens in regulation | ~60% | ~56% | ~66% |
-| Scoring average | 71–73 | 72–74 | ~70 |
+| Greens in regulation | ~55–57% | ~56% | ~66% |
+| Scoring average | 72–74 | 72–74 | ~70 |
 | Putts per round | 29–30 | ~30 | ~29 |
 | Scrambling | 55–65% | ~55% | ~60% |
 | Sand saves | 45–55% | ~45% | ~55% |
+
+> **v3 note (course-design-v3.md §5.3):** the Scoring average (72–74) and GIR (~55–57%) targets above are **estimates for the 7,602-yard v3 course, pending confirmation by the 10,000-round calibration harness**. The v1 targets were 71–73 and ~60%. If the harness says otherwise, the harness is right — update this table from its results, do not argue with it.
 
 ### 3.2 Per-club delivery distributions
 
@@ -781,7 +783,7 @@ The dispersion σ values (§3.2) do **not** change with the learning loop. Mas d
 
 Mas's handicap is a live, moving number — the season arc in one number.
 
-**Differential per round.** `differential = (score − course_rating) × 113 / slope`. Wyatt National: rating 74.6, slope 138 (from the back tees). A score of 69 gives `(69 − 74.6) × 113 / 138 = −4.6`. A score of 74 gives `−0.5`. (Negative differentials are *good* — they mean better than the course rating.)
+**Differential per round.** `differential = (score − course_rating) × 113 / slope`. Wyatt National: rating 74.6, slope 138 (from the back tees) — **v1 values, used here only as a worked example; the v3 recompute is pending** (see §1.2 and `course-design-v3.md` §5.1). A score of 69 gives `(69 − 74.6) × 113 / 138 = −4.6`. A score of 74 gives `−0.5`. (Negative differentials are *good* — they mean better than the course rating.)
 
 **Index calculation (simplified WHS).** Take the best 8 differentials from the most recent 20 rounds, average them, multiply by 0.96. If fewer than 20 rounds exist, use the WHS table for small samples (best 1 of 3, best 2 of 6, best 3 of 9, etc.). If fewer than 3 rounds exist, no index is shown — display "establishing."
 
@@ -940,7 +942,7 @@ The engine must maintain these invariants at all times; violating one is a bug:
 
 ### 9.1 Course data format (Wyatt National)
 
-One JSON object per course. The engine reads it at startup; the renderer reads the same file for geometry.
+One JSON object per course. The engine reads it at startup; the renderer reads the same file for geometry. (The `rating`/`slope` in the example are the v1 values — the v3 recompute is pending; see §1.2. Hole yardages below are v3: hole 1 is 432 yards.)
 
 ```json
 {
@@ -950,7 +952,7 @@ One JSON object per course. The engine reads it at startup; the renderer reads t
   "par": 72, "rating": 74.6, "slope": 138,
   "holes": [
     {
-      "hole": 1, "par": 4, "yardage": 412, "name": "The Handshake",
+      "hole": 1, "par": 4, "yardage": 432, "name": "The Handshake",
       "tee": { "x": 0, "y": 0, "elev_ft": 0 },
       "fairway": { "poly": [[...]], "width_yd": 32 },
       "green": { "cx": 380, "cy": 12, "elev_ft": -8, "radius_ft": 42, "tiers": 2 },

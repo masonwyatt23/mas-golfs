@@ -212,7 +212,7 @@ p_adjusted = clamp(p_base × form_factor × hole_factor × condition_factor, 0.0
 | Factor | Range | What it captures |
 |---|---|---|
 | `form_factor` | 0.85–1.15 | Mas's recent form. Computed from his last-10 scoring average vs. his season average: hot (scoring 1.5+ strokes under average) → up to 1.15 on positive outcomes; cold → down to 0.85. Updated once per round. |
-| `hole_factor` | 0.70–1.30 | Hole difficulty and shape. From the course design ([docs/course-design.md](course-design.md)): e.g. birdie probability on the drivable par-4 5th is higher than on the 455-yard uphill 13th; fairway probability on the narrow 13th is lower than on the wide 1st. Each hole carries a stored difficulty vector (fairway, GIR, birdie, bogey rates) derived from Mas's actual history on that hole. |
+| `hole_factor` | 0.70–1.30 | Hole difficulty and shape. From the course design ([docs/course-design-v3.md](course-design-v3.md)): e.g. birdie probability on the drivable par-4 5th is higher than on the 482-yard uphill 13th; fairway probability on the narrow 13th is lower than on the wide 1st. Each hole carries a stored difficulty vector (fairway, GIR, birdie, bogey rates) derived from Mas's actual history on that hole. |
 | `condition_factor` | 0.80–1.20 | Wind and lie. Into the wind / from heavy rough / from a bunker → down to 0.80. Downwind / from the fairway with a good lie → up to 1.20. Computed per shot from the sim's live state. |
 
 The adjustment factors are **shown on screen** next to the odds ("Fairway 2.10 — into the wind, narrow hole"), so viewers learn *why* the price is what it is. The odds are a teaching tool, not a black box.

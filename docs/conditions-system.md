@@ -75,7 +75,7 @@ Weather is not a filter applied after the fact. Each state changes the scene:
 
 **Rain on lens** is a broadcast texture, not a gameplay effect: it appears on the tracer camera and the pin camera during rain, clears between shots (the "camera operator wipes the lens"), and never obscures the ball at impact. If it ever hides a shot, it is a bug.
 
-**Wind in the trees** is the broadcast's wind indicator: tree sway amplitude and flag stiffness are proportional to the *current* wind in mph, so a viewer can read the wind from the picture without looking at the bug. The pond surface does the same job on holes 2, 8, and 12 — ripples tell Mas (and the viewer) the wind strength before the swing (see course-design-v2 §2, §8, §12).
+**Wind in the trees** is the broadcast's wind indicator: tree sway amplitude and flag stiffness are proportional to the *current* wind in mph, so a viewer can read the wind from the picture without looking at the bug. The pond surface does the same job on holes 2, 8, and 12 — ripples tell Mas (and the viewer) the wind strength before the swing (see course-design-v3 §2, §8, §12).
 
 ---
 
@@ -126,7 +126,7 @@ Carry does not change with firmness (the ball is in the air). Roll is where firm
 Firmness changes the *correct* shot, not just the outcome:
 
 - **Firm + into the wind:** the knockdown (§4.3 of sim-engine) becomes even more valuable — a low ball that lands and runs beats a high ball that lands and bounces through.
-- **Firm greens:** approaches must land short and run on. The decision engine's target shifts from "land it at the pin" to "land it 10–15 yd short of the pin and release" on holes 5, 9, 13, and 15 (the run-up holes from course-design-v2). The commentary explains this — it is the ground game, and it is the most watchable golf in the show.
+- **Firm greens:** approaches must land short and run on. The decision engine's target shifts from "land it at the pin" to "land it 10–15 yd short of the pin and release" on holes 5, 9, 13, and 15 (the run-up holes from course-design-v3). The commentary explains this — it is the ground game, and it is the most watchable golf in the show.
 - **Soft greens:** the aerial attack works. The decision engine aims at the pin, spins it, stops it. Birdie rates rise; the 59 Watch probability rises with them (§6.5).
 - **Soft fairways:** the ball plugs in its pitch mark. Lie determination (§2.5 of sim-engine) can produce a "plugged" modifier on approach shots from the fairway: spin × 0.8, distance control σ × 1.2. Rare (5% of fairway lies on soft days), but when it happens the commentary notes it.
 
@@ -184,7 +184,9 @@ The stimp reading is part of the conditions bug (§6.2) and is announced once pe
 
 ### 4.1 Wyatt National from the back tees — the derivation
 
-Sim-engine §1.2 states Wyatt National's rating as **74.6** and slope as **138**. This section shows the derivation, so the numbers are auditable and so harder setups (§4.3) can be computed the same way.
+> **v3 status — read first.** The derivation below is the **v1 derivation** (7,214 yd → 74.6 / 138). The course is now **7,602 yards** ([course-design-v3.md](course-design-v3.md)), and the **v3 recompute is pending**: the numbers in this section must be re-derived from the v3 design before they are used as current. **Honest flag:** two different v1 rating/slope pairs exist in the record — **74.6/138 here** and **74.1/141 in the web build**. The v3 recompute must be run **once** and the single resulting number used everywhere; do not carry both forward.
+
+Sim-engine §1.2 states Wyatt National's rating as **74.6** and slope as **138** (v1 values — see the note above). This section shows the derivation, so the numbers are auditable and so harder setups (§4.3) can be computed the same way.
 
 The USGA Course Rating System computes a rating from **effective playing length** and **obstacle factors**, then derives slope from the difference between the bogey rating and the course rating:
 
@@ -196,14 +198,14 @@ slope = 5.381 × (bogey_rating − course_rating)
 
 | Adjustment | Effect on length | Wyatt National |
 |---|---|---|
-| Measured yardage | — | 7,214 yd |
+| Measured yardage | — | 7,602 yd |
 | Roll (firmness normal, 0.60) | −120 yd | Firm fairways add roll; the rating assumes normal conditions |
 | Elevation (net uphill) | +85 yd | The course climbs ~250 ft net across 18 holes; uphill holes play long |
 | Forced carries (water) | +40 yd | Holes 2, 8, 12 require carries that a scratch golfer must make |
 | Dogleg adjustment | +30 yd | Doglegs at 2, 6, 10, 17 force lay-ups off the direct line |
-| **Effective playing length** | | **7,249 yd** |
+| **Effective playing length** | | **7,249 yd — v1 figure; v3 recompute pending** |
 
-At 7,249 effective yards, the USGA length-based rating for a scratch golfer is approximately **73.9** (the length table gives roughly +0.9 strokes per 100 yd over 6,900 yd on a par-72 course; this is the standard table, not a judgement call).
+At 7,249 effective yards, the USGA length-based rating for a scratch golfer is approximately **73.9** (the length table gives roughly +0.9 strokes per 100 yd over 6,900 yd on a par-72 course; this is the standard table, not a judgement call). *(v1 figure — the v3 recompute from 7,602 measured yards is pending; the elevation adjustment should also grow, since v3 climbs are longer and steeper.)*
 
 **Obstacle factors.** Each factor is rated 0–10 and adds strokes to the rating for the scratch golfer:
 
@@ -233,7 +235,7 @@ bogey_rating = 73.9 (length) + 2.05 × 1.0 (obstacles at bogey weight) + 24.3 (d
              ≈ 100.2
 ```
 
-*The distance penalty is the USGA's standard allowance for a bogey golfer's shorter driving distance on a 7,214-yard course (~24 strokes over the round from length alone, before obstacles). It is the largest single term, and it is why slope is mostly a length number.*
+*The distance penalty is the USGA's standard allowance for a bogey golfer's shorter driving distance on a 7,602-yard course (~24 strokes over the round from length alone, before obstacles). It is the largest single term, and it is why slope is mostly a length number. (v1 text said 7,214 yards; the penalty grows with the v3 length — exact figure in the recompute.)*
 
 **Slope:**
 
@@ -241,15 +243,15 @@ bogey_rating = 73.9 (length) + 2.05 × 1.0 (obstacles at bogey weight) + 24.3 (d
 slope = 5.381 × (100.2 − 74.6) = 5.381 × 25.6 ≈ 138
 ```
 
-The derivation closes on the stated numbers. The takeaway for the show: **Wyatt National is a hard championship course (74.6 / 138) — a +3 should shoot around par most days, threaten 65 on a hot day, and occasionally get humbled.** That is exactly what course-design-v2 promises, and the rating is the proof.
+The derivation closes on the stated numbers. The takeaway for the show: **Wyatt National is a hard championship course (74.6 / 138) — a +3 should shoot around par most days, threaten 65 on a hot day, and occasionally get humbled.** That is exactly what course-design-v3 promises, and the rating is the proof. *(74.6 / 138 are the v1 numbers — the v3 recompute is pending; see the §4.1 note.)*
 
 ### 4.2 Rating by tee
 
-The rating above is from the back tees (7,214 yd). If the show ever moves Mas forward (it should not, except for a special event), the rating follows the length table:
+The rating above is from the back tees (7,602 yd). If the show ever moves Mas forward (it should not, except for a special event), the rating follows the length table:
 
 | Tees | Yardage | Rating | Slope |
 |---|---|---|---|
-| Back (championship) | 7,214 | 74.6 | 138 |
+| Back (championship) | 7,602 | TBD — v3 recompute pending | TBD — v3 recompute pending |
 | Middle | 6,780 | 72.4 | 132 |
 | Forward | 6,350 | 70.1 | 126 |
 
@@ -261,10 +263,12 @@ A setup is not just "the same course, windier." The setup changes the *effective
 
 | Setup tier | Rating | Slope | What changes |
 |---|---|---|---|
-| **Daily** (base) | 74.6 | 138 | Normal firmness (0.45–0.70), normal stimp (10.5–11.5), wind 0–10, pins mid-difficulty, rough standard |
-| **Championship** | 75.4 | 141 | Firm (0.70–0.80), fast stimp (11.5–12.5), wind 8–15, pins tucked (difficulty ≥ 0.7 on 6+ holes), rough +0.5 inch |
-| **Major week** | 76.2 | 145 | Firm (0.80–0.90), tournament stimp (12.5–13.0), wind 10–18, pins tucked (difficulty ≥ 0.8 on 8+ holes), rough +1 inch, fairways narrowed 10% |
-| **Soft / scoring** | 73.8 | 134 | Soft (0.25–0.45), slow stimp (9.5–10.5), wind 0–5, pins accessible (difficulty ≤ 0.5), rough standard |
+| **Daily** (base) | 74.6 + Δ | 138 + Δs | Normal firmness (0.45–0.70), normal stimp (10.5–11.5), wind 0–10, pins mid-difficulty, rough standard |
+| **Championship** | 75.4 + Δ | 141 + Δs | Firm (0.70–0.80), fast stimp (11.5–12.5), wind 8–15, pins tucked (difficulty ≥ 0.7 on 6+ holes), rough +0.5 inch |
+| **Major week** | 76.2 + Δ | 145 + Δs | Firm (0.80–0.90), tournament stimp (12.5–13.0), wind 10–18, pins tucked (difficulty ≥ 0.8 on 8+ holes), rough +1 inch, fairways narrowed 10% |
+| **Soft / scoring** | 73.8 + Δ | 134 + Δs | Soft (0.25–0.45), slow stimp (9.5–10.5), wind 0–5, pins accessible (difficulty ≤ 0.5), rough standard |
+
+> **v3 status:** Δ is the v3 rating delta — **expected +0.8–1.2 strokes** (course-design-v3.md §5.4), Δs the corresponding slope shift (expected +4–7 points). **All four tiers shift up by the same Δ; the tier spreads (+0.8 per step) stay the same; the absolute numbers are to-be-recomputed** from the 7,602-yard design and must not be used as final until the recompute lands. The base numbers in the table (74.6/138 etc.) are the v1 values.
 
 **How each setup lever moves the rating:**
 
@@ -282,12 +286,14 @@ A setup is not just "the same course, windier." The setup changes the *effective
 
 | Metric | Daily | Championship | Major week |
 |---|---|---|---|
-| Scoring average (+3) | 71–73 | 72–74 | 73–76 |
-| GIR | ~60% | ~55% | ~50% |
+| Scoring average (+3) | 72–74 | 73–75 | 74–77 |
+| GIR | ~55–57% | ~50% | ~45% |
 | Birdies per round | ~4.5 | ~3.5 | ~2.5 |
 | Bogeys per round | ~2.5 | ~3.5 | ~4.5 |
-| P(59) per round | ~0.5% | ~0.1% | ~0.02% |
+| P(59) per round | ~0.3% | ~0.06% | ~0.02% |
 | P(shooting under par) | ~55% | ~40% | ~25% |
+
+> **v3 status:** these are **estimates for the 7,602-yard course, pending the 10,000-round harness** (course-design-v3.md §5.3–§5.4). The v1 figures were scoring 71–73 / 72–74 / 73–76, GIR ~60% / ~55% / ~50%, and P(59) ~0.5% / ~0.1% / ~0.02%. If the harness says otherwise, the harness is right. The P(59) figures in particular must be re-measured from v3 harness rounds.
 
 A major-week 74 is a better round than a daily 69. The handicap differential (§7.1 of sim-engine) captures that automatically — and the broadcast should say it, because it is the difference between a number and a story.
 
@@ -321,11 +327,11 @@ A major week is roughly **one week in ten** — about five per year of continuou
 
 Major week is the show's tentpole. It is announced in advance (the broadcast teases it the week before: "Major week starts Monday — firm, fast, and windy"), and it has its own presentation:
 
-- **Setup:** firm 0.80–0.90, tournament stimp 12.5–13.0 (the clamp in sim-engine §1.4 is widened to 13.0 for major week — the only place the clamp moves), wind 10–18 mph, pins tucked, rough +1 inch, fairways narrowed 10%. Rating 76.2 / slope 145 (§4.3).
+- **Setup:** firm 0.80–0.90, tournament stimp 12.5–13.0 (the clamp in sim-engine §1.4 is widened to 13.0 for major week — the only place the clamp moves), wind 10–18 mph, pins tucked, rough +1 inch, fairways narrowed 10%. Rating 76.2 + Δ / slope 145 + Δs (§4.3 — v1 numbers plus the v3 delta, to be recomputed).
 - **Graphics:** a gold "MAJOR WEEK" bug replaces the standard conditions bug for the week. The leaderboard shows a separate major-week scoring average.
 - **Commentary:** the host frames every round as a major-championship round — "this is the hardest setup Mas has faced" is true, and it stays true because major week is rare.
 - **Coins:** the odds model (§6.4) widens — birdie probabilities fall, so birdie payouts rise. The market loves a major week.
-- **59 Watch:** the probability of 59 in major week is ~0.02% per round (§4.3). The broadcast does not pretend otherwise — the 59 Watch bug shows the honest number, and the story becomes "can he break par?" instead. When the 59 Watch turns off in major week, the broadcast says so once and moves on (sim-engine §7.5: no dwelling).
+- **59 Watch:** the probability of 59 in major week is ~0.02% per round (§4.3 — v1 figure, to be re-measured from v3 harness rounds). The broadcast does not pretend otherwise — the 59 Watch bug shows the honest number, and the story becomes "can he break par?" instead. When the 59 Watch turns off in major week, the broadcast says so once and moves on (sim-engine §7.5: no dwelling).
 - **Aftermath:** the week after major week is always a scoring week (§5.2) — the release after the tension. The contrast is the arc.
 
 ### 5.4 Season structure
@@ -346,7 +352,7 @@ The `round_start` event (sim-engine §1.2) already carries a `conditions` object
 {
   "type": "round_start",
   "round_id": "R0042", "round_no": 42,
-  "course": { "name": "Wyatt National", "par": 72, "yardage": 7214, "rating": 76.2, "slope": 145 },
+  "course": { "name": "Wyatt National", "par": 72, "yardage": 7602, "rating": 76.2, "slope": 145 },
   "conditions": {
     "wind_mph": 14, "wind_dir_deg": 310, "temp_f": 54, "sky": "overcast",
     "firmness": 0.84, "green_speed": 12.8,
@@ -366,7 +372,7 @@ The `round_start` event (sim-engine §1.2) already carries a `conditions` object
 
 | New field | Meaning |
 |---|---|
-| `course.rating` / `course.slope` | The *setup's* rating/slope (§4.3), not the base. Used for the differential (§7.1 of sim-engine). |
+| `course.rating` / `course.slope` | The *setup's* rating/slope (§4.3), not the base. Used for the differential (§7.1 of sim-engine). *(The 76.2/145 in the example above are the v1 major-week values; the v3 recompute shifts all tiers up by Δ — see §4.3.)* |
 | `weather_state` | One of the five states in §1.1. |
 | `firmness_band` / `green_speed_band` | The band names from §2.1 / §3.1. |
 | `setup_tier` | `daily`, `championship`, `major_week`, or `soft`. |
@@ -466,7 +472,7 @@ Conditions tag every clip (clip-pipeline, per docs/launch-playbook.md §1):
 Before any build ships with this system:
 
 - [ ] The calibration harness (sim-engine §3.7) passes within ±5% on all metrics **separately for each setup tier** (daily, championship, major week, soft) — not just on average. If major week does not score 2–3 strokes higher than daily, the setup levers are not wired in.
-- [ ] The rating/slope derivation in §4.1 reproduces 74.6 / 138 from the length table and obstacle factors (recompute from the course data, not from the stored constants).
+- [ ] The rating/slope derivation in §4.1 reproduces the **single v3 rating/slope** from the length table and obstacle factors (recompute from the course data, not from the stored constants). The v3 number replaces **both** v1 pairs (74.6/138 here and 74.1/141 in the web build) — see the §4.1 note.
 - [ ] A mid-round front (15% of rounds) fires exactly once, at hole 10, and the `conditions_change` event updates the bug, the commentary, and the odds at the same moment.
 - [ ] The 59 Watch probability (§6.5) is monotone sensible: it falls when conditions worsen and rises when they improve, and it is 0 when 59 is mathematically impossible.
 - [ ] The conditions bug is readable at 320 px wide and does not overlap the scorebug or the 59 Watch bug.
@@ -485,7 +491,7 @@ Before any build ships with this system:
 | `broadcast-stack.md` §4.4 | Add the conditions bug to the graphics spec (§6.2). |
 | `broadcast-stack.md` §9 | 59 Watch probability is now defined by the Monte Carlo in §6.5. |
 | `coins-economy.md` | Add the conditions adjustment table (§6.4) to the odds model. |
-| `course-design-v2.md` | No change. The rating/slope in §4.1 is derived *from* the v2 design. |
+| `course-design-v3.md` | The rating/slope in §4.1 is derived *from* the v3 design (7,602 yards). **v3 recompute pending** — see the §4.1 note. |
 | `qa-plan.md` | Add the per-tier calibration check and the conditions-bug checks (§7). |
 
 ---
@@ -496,4 +502,4 @@ Before any build ships with this system:
 - USGA / R&A — Stimpmeter readings and green-speed bands; tournament speeds 12–13 ft (usga.org).
 - Mark Broadie, *Every Shot Counts* — strokes-gained framework underlying the per-tier scoring expectations (§4.3).
 - Trackman / launch-monitor data — temperature effect on carry (~+0.15 yd per °F on a driver), wind effect on carry (~10–12 yd loss into a 10 mph headwind, ~6–8 yd gain downwind) — carried from sim-engine §2.3.
-- Sim-engine §1.4, §2.3–§2.5, §3.5, §7.1, §7.5; broadcast-stack §4.4, §9; course-design-v2 (routing, wind rotation, green complexes); coins-economy.md (odds model); launch-playbook.md §1 (drama scoring).
+- Sim-engine §1.4, §2.3–§2.5, §3.5, §7.1, §7.5; broadcast-stack §4.4, §9; course-design-v3.md (routing, wind rotation, green complexes, championship length); coins-economy.md (odds model); launch-playbook.md §1 (drama scoring).

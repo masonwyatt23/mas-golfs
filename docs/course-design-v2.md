@@ -1,5 +1,7 @@
 # Wyatt National — Course Design v2
 
+> **Superseded.** This is the v2 design (7,214 yards). The current design is **[course-design-v3.md](course-design-v3.md)** — par 72, **7,602 yards**, same routing, pars, names, templates, and wind rotation, stretched to championship length with slope/camber per hole, rounded fairway edges with a semi-rough band, and green slope/contour per hole. This document is kept as the versioned record of v2; do not quote its yardages as current.
+
 **Par 72 · 7,214 yards · Staunton, Virginia.** A championship parkland course in the Blue Ridge foothills, designed in the strategic school — every hole offers a choice, and the bold line is always rewarded with a better angle, never merely punished. Two loops of nine (MacKenzie's first principle), each par 36, each with two par 3s, two par 5s, and five par 4s. Four par 3s, four par 5s, ten par 4s in total.
 
 > v2 keeps the v1 routing, pars, and yardages. What changes is the detail: every hole now has a stated question, an ideal line, a named penalty for the wrong miss, a green-complex note, and wind/elevation notes — the information the sim's decision engine and the broadcast commentary actually need.

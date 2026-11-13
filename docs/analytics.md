@@ -112,14 +112,14 @@ The sim is a machine that must stay calibrated, fast, and honest. If its numbers
 
 ### 3.1 Calibration — the +3 truth
 
-These are the benchmarks from sim-engine §3 and QA plan §1.2. They do not move without a written reason.
+These are the benchmarks from sim-engine §3 and QA plan §1.2. They do not move without a written reason. (v3: scoring 72–74 and GIR ~55–57% are estimates for the 7,602-yard course, pending the 10,000-round harness — see course-design-v3.md §5.3.)
 
 | Metric | Benchmark | Alert band | Source |
 |---|---|---|---|
 | Driving distance (avg) | 265–275 yd | Outside 260–280 yd over 100 rounds | Event log, rolling 100-round window |
 | Fairways hit | 55–60% | Outside 50–65% over 100 rounds | Event log |
-| Greens in regulation | ~60% | Outside 55–65% over 100 rounds | Event log |
-| Scoring average | 71–73 | Outside 70–74 over 100 rounds | Event log |
+| Greens in regulation | ~55–57% | Outside 50–62% over 100 rounds | Event log |
+| Scoring average | 72–74 | Outside 71–75 over 100 rounds | Event log |
 | Approach proximity (150 yd) | ~25–30 ft average | Outside 20–35 ft over 100 rounds | Event log |
 | Putting make rate (10 ft) | ~40% | Outside 30–50% over 100 rounds | Event log |
 | Birdies per round | ~3–4 | Outside 2–5 over 100 rounds | Event log |

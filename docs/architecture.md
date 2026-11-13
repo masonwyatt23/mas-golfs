@@ -26,7 +26,7 @@ The project is a real-time virtual television network, not a video game. Four la
 - **Decision engine:** a compact local model that runs on-device — club selection, trajectory, risk, lay-up vs. aggression — learning from every round. No server round-trips.
 - **Learning loop:** strokes-gained review after each round; approach and driving first (the long game decides ~⅔ of scoring). Surfaces exactly one fix per round: the single biggest leak and the single adjustment.
 - **Commentary booth:** event-driven, two voices (calm play-by-play host + analytical color commentator), low-latency TTS (ElevenLabs Flash). Event-only — real golf is mostly quiet — with an ambient bed (wind, birds, impact stingers) carrying the silence. Cost guardrail: caching repeated lines, no continuous narration.
-- **Calibration truth tables:** +3 benchmarks (~265–275 yd driving, ~55–60% fairways, ~60% GIR); approach proximity (150 yd ≈ 25–30 ft); putting make rates (10 ft ≈ 40%, 20 ft ≈ 14%).
+- **Calibration truth tables:** +3 benchmarks (~265–275 yd driving, ~55–60% fairways, ~55–57% GIR, scoring ~72–74); approach proximity (150 yd ≈ 25–30 ft); putting make rates (10 ft ≈ 40%, 20 ft ≈ 14%). (GIR and scoring are v3 estimates for the 7,602-yard course — pending the 10,000-round harness; see course-design-v3.md §5.3.)
 
 ## The economy
 

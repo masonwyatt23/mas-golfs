@@ -204,7 +204,7 @@
 | **Blindness** | One blind tee shot (17th) | Blind tee shots (6, 17), semi-blind approaches (17) |
 | **Green defense** | Slope away from the fairway; deep bunkers | Pot bunkers; fall-offs; the wind |
 | **Signature hole** | 12th, The Picture — pond, pines | 17th, The Alps — the great dune |
-| **Scoring** | ~71–73 for a +3; 59 needs a near-perfect day | ~71–73 for a +3; 59 needs a near-perfect day *and* a calm wind |
+| **Scoring** | ~72–74 for a +3; 59 needs a near-perfect day *(v3 estimate — pending the 10,000-round harness)* | ~71–73 for a +3; 59 needs a near-perfect day *and* a calm wind |
 | **The look** | Green, gold, blue ridges, pine-lined | Sand, fescue gold, grey-green sea, open sky |
 
 The two courses are designed so that no skill transfers cleanly between them: a player who dominates Wyatt by carrying bunkers and spinning wedges must learn to keep the ball low, use the ground, and read the wind at Dunmore — and vice versa. Mas's learning loop (one fix per round) now has two curricula, and the broadcast can teach both.
@@ -245,4 +245,4 @@ The two courses are designed so that no skill transfers cleanly between them: a 
 - Tom Doak, *The Anatomy of a Golf Course* — minimalism; "find the holes the land suggests."
 - Gil Hanse — firm, fast, links-modeled conditions.
 - Prestwick Golf Club 17th (Alps); North Berwick 15th (Redan, for contrast); St. Andrews Old Course (double greens, Road Hole bunker); Royal County Down, Royal Birkdale, and the Open rota links — the dune-and-fescue reference set.
-- Wyatt National design v2 (`docs/course-design-v2.md`) — the structure discipline, the per-hole brief format, and the templates already used, so Dunmore uses different ones.
+- Wyatt National design v3 (`docs/course-design-v3.md`) — the structure discipline, the per-hole brief format, and the templates already used, so Dunmore uses different ones.

@@ -10,7 +10,7 @@
       "thru": 2,
       "club": "7-iron",
       "shot_type": "full",
-      "target_yards": 187,
+      "target_yards": 196,
       "aim": "middle of the green",
       "lie": "tee",
       "wind_mph": 8,
@@ -18,7 +18,7 @@
       "reason": "the pin is back left and the miss is short",
       "risk": "low"
     },
-    "user_prompt": "Mas is on hole 3 (par 3), 1 under par through 2.\nHe has chosen 7-iron, full, target 187 yards,\naiming middle of the green. Lie: tee. Wind: 8 mph into.\nThe reason for this choice is: the pin is back left and the miss is short. Risk level: low.\nExplain the decision in one or two sentences: what he is trying to do,\nand what the shot asks of him."
+    "user_prompt": "Mas is on hole 3 (par 3), 1 under par through 2.\nHe has chosen 7-iron, full, target 196 yards,\naiming middle of the green. Lie: tee. Wind: 8 mph into.\nThe reason for this choice is: the pin is back left and the miss is short. Risk level: low.\nExplain the decision in one or two sentences: what he is trying to do,\nand what the shot asks of him."
   },
   {
     "id": "ev02",
@@ -31,7 +31,7 @@
       "thru": 11,
       "club": "8-iron",
       "shot_type": "full",
-      "target_yards": 164,
+      "target_yards": 172,
       "aim": "right edge of the green",
       "lie": "tee",
       "wind_mph": 6,
@@ -39,7 +39,7 @@
       "reason": "downhill over the pond, the safe side is long",
       "risk": "medium"
     },
-    "user_prompt": "Mas is on hole 12 (par 3), 2 under par through 11.\nHe has chosen 8-iron, full, target 164 yards,\naiming right edge of the green. Lie: tee. Wind: 6 mph helping.\nThe reason for this choice is: downhill over the pond, the safe side is long. Risk level: medium.\nExplain the decision in one or two sentences: what he is trying to do,\nand what the shot asks of him."
+    "user_prompt": "Mas is on hole 12 (par 3), 2 under par through 11.\nHe has chosen 8-iron, full, target 172 yards,\naiming right edge of the green. Lie: tee. Wind: 6 mph helping.\nThe reason for this choice is: downhill over the pond, the safe side is long. Risk level: medium.\nExplain the decision in one or two sentences: what he is trying to do,\nand what the shot asks of him."
   },
   {
     "id": "ev03",
@@ -94,7 +94,7 @@
       "thru": 7,
       "club": "5-iron",
       "shot_type": "full",
-      "target_yards": 226,
+      "target_yards": 238,
       "aim": "front right",
       "lie": "tee",
       "wind_mph": 11,
@@ -102,7 +102,7 @@
       "reason": "the longest par 3 on the course, take plenty of club",
       "risk": "medium"
     },
-    "user_prompt": "Mas is on hole 8 (par 3), even par through 7.\nHe has chosen 5-iron, full, target 226 yards,\naiming front right. Lie: tee. Wind: 11 mph into.\nThe reason for this choice is: the longest par 3 on the course, take plenty of club. Risk level: medium.\nExplain the decision in one or two sentences: what he is trying to do,\nand what the shot asks of him."
+    "user_prompt": "Mas is on hole 8 (par 3), even par through 7.\nHe has chosen 5-iron, full, target 238 yards,\naiming front right. Lie: tee. Wind: 11 mph into.\nThe reason for this choice is: the longest par 3 on the course, take plenty of club. Risk level: medium.\nExplain the decision in one or two sentences: what he is trying to do,\nand what the shot asks of him."
   },
   {
     "id": "ev06",
@@ -667,13 +667,13 @@
       "hole": 12,
       "hole_name": "The Picture",
       "par": 3,
-      "yards": 164,
+      "yards": 172,
       "pin": "back left, over the pond",
       "wind_mph": 6,
       "wind_dir": "helping",
-      "elevation_ft": -18
+      "elevation_ft": -22
     },
-    "user_prompt": "Hole 12, The Picture. Par 3, 164 yards, back left, over the pond.\nWind: 6 mph helping. Elevation: -18 feet.\nIntroduce the hole in one sentence: the name, the distance, and the question it asks."
+    "user_prompt": "Hole 12, The Picture. Par 3, 172 yards, back left, over the pond.\nWind: 6 mph helping. Elevation: -22 feet.\nIntroduce the hole in one sentence: the name, the distance, and the question it asks."
   },
   {
     "id": "ev49",
@@ -683,13 +683,13 @@
       "hole": 8,
       "hole_name": "The Long One",
       "par": 3,
-      "yards": 226,
+      "yards": 238,
       "pin": "front right",
       "wind_mph": 11,
       "wind_dir": "into",
       "elevation_ft": 6
     },
-    "user_prompt": "Hole 8, The Long One. Par 3, 226 yards, front right.\nWind: 11 mph into. Elevation: 6 feet.\nIntroduce the hole in one sentence: the name, the distance, and the question it asks."
+    "user_prompt": "Hole 8, The Long One. Par 3, 238 yards, front right.\nWind: 11 mph into. Elevation: 6 feet.\nIntroduce the hole in one sentence: the name, the distance, and the question it asks."
   },
   {
     "id": "ev50",
@@ -699,12 +699,12 @@
       "hole": 15,
       "hole_name": "The Eagle Chance",
       "par": 5,
-      "yards": 545,
+      "yards": 578,
       "pin": "middle, reachable in two",
       "wind_mph": 4,
       "wind_dir": "left to right",
       "elevation_ft": -12
     },
-    "user_prompt": "Hole 15, The Eagle Chance. Par 5, 545 yards, middle, reachable in two.\nWind: 4 mph left to right. Elevation: -12 feet.\nIntroduce the hole in one sentence: the name, the distance, and the question it asks."
+    "user_prompt": "Hole 15, The Eagle Chance. Par 5, 578 yards, middle, reachable in two.\nWind: 4 mph left to right. Elevation: -12 feet.\nIntroduce the hole in one sentence: the name, the distance, and the question it asks."
   }
 ]

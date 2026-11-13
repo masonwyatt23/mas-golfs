@@ -99,11 +99,11 @@ Sent on subscriber connect and after every `hole_end`. This is the single source
   "thru": 11,
   "target_score": 59,
   "handicap": "+3.1",
-  "last10_avg": 70.4,
+  "last10_avg": 73.1,
   "all_time_score": -41,
   "course_record": 63,
   "best_round": 64,
-  "current_hole": { "name": "The Picture", "par": 3, "yards": 164 },
+  "current_hole": { "name": "The Picture", "par": 3, "yards": 172 },
   "scorecard": [ { "hole": 1, "par": 4, "score": 4, "putts": 2 }, "..." ],
   "stats": { "fairways": "6/11", "gir": "7/11", "putts": 19, "up_and_downs": "2/3" },
   "streak": { "birdies": 2, "bogey_free": 5 },
@@ -362,7 +362,7 @@ Three variants, one graphic, driven by NodeCG messages:
 A single scrolling line, updated from `lastShot` and `roundState`:
 
 ```
-MAS -2 THRU 11 · LAST: 7-iron from 164 — 12 ft, birdie putt · NEXT: Par 3, 203 yds · ROAD TO 59 · Last 10 avg 70.4 · Coins open: Birdie or better on 12? (Yes 2.4 / No 1.6)
+MAS -2 THRU 11 · LAST: 7-iron from 172 — 12 ft, birdie putt · NEXT: Par 3, 214 yds · ROAD TO 59 · Last 10 avg 73.1 · Coins open: Birdie or better on 12? (Yes 2.4 / No 1.6)
 ```
 
 **Behavior:** continuous slow scroll, content refreshes on every `hole_end` and `landing`. Never faster than a comfortable read — this is a broadcast ticker, not a stock feed.

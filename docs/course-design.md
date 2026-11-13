@@ -1,5 +1,7 @@
 # Wyatt National — Course Design
 
+> **Superseded.** This is the v1 design (7,214 yards). The current design is **[course-design-v3.md](course-design-v3.md)** — par 72, **7,602 yards**, same routing and names, championship length with slope/camber per hole, rounded fairway edges, and green slope/contour per hole. This document is kept as the versioned record of v1; do not quote its yardages as current.
+
 **Par 72 · 7,214 yards · Staunton, Virginia.** One course, designed like a championship venue. Four par 3s, four par 5s, ten par 4s — two of each short/long hole on each nine. Every hole has a distinct identity and a clear strategic question. Doglegs both ways, elevation throughout, a little water in play, and bunkering that punishes the wrong miss, not the good shot.
 
 ## Design principles

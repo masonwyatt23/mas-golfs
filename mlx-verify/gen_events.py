@@ -4,7 +4,7 @@ Deterministic (fixed tables, no randomness). Renders user prompts through
 commentary/prompts.py — the same templates the production pipeline uses —
 so the verification measures the prompts the broadcast actually sends.
 
-Wyatt National routing/par/yardage from docs/course-design-v2.md.
+Wyatt National routing/par/yardage from docs/course-design-v3.md.
 Score forms use the spoken style the templates expect ("2 under par").
 
 Run:  python3 gen_events.py   (writes events.json next to this file)
@@ -21,24 +21,24 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from commentary.prompts import render_user_prompt  # noqa: E402
 
 HOLES = {
-    1: ("The Handshake", 4, 412),
-    2: ("The Reach", 5, 578),
-    3: ("The Postage Stamp", 3, 187),
-    4: ("The Examination", 4, 448),
-    5: ("The Temptation", 4, 376),
-    6: ("The Dogleg", 4, 431),
-    7: ("The Valley", 5, 552),
-    8: ("The Long One", 3, 226),
-    9: ("The Return", 4, 402),
-    10: ("The Turn", 4, 419),
-    11: ("The Monster", 5, 591),
-    12: ("The Picture", 3, 164),
-    13: ("The Grind", 4, 455),
-    14: ("The Gambler", 4, 388),
-    15: ("The Eagle Chance", 5, 545),
-    16: ("The Test", 3, 203),
-    17: ("The Penultimate", 4, 427),
-    18: ("The Closer", 4, 410),
+    1: ("The Handshake", 4, 432),
+    2: ("The Reach", 5, 612),
+    3: ("The Postage Stamp", 3, 196),
+    4: ("The Examination", 4, 476),
+    5: ("The Temptation", 4, 392),
+    6: ("The Dogleg", 4, 452),
+    7: ("The Valley", 5, 586),
+    8: ("The Long One", 3, 238),
+    9: ("The Return", 4, 424),
+    10: ("The Turn", 4, 440),
+    11: ("The Monster", 5, 624),
+    12: ("The Picture", 3, 172),
+    13: ("The Grind", 4, 482),
+    14: ("The Gambler", 4, 406),
+    15: ("The Eagle Chance", 5, 578),
+    16: ("The Test", 3, 214),
+    17: ("The Penultimate", 4, 448),
+    18: ("The Closer", 4, 430),
 }
 
 # (event_type, speaker, fields) — three per template pair, 50 total.
@@ -47,11 +47,11 @@ HOLES = {
 SPECS: list[tuple[str, str, dict]] = [
     # decision (color) — 4
     ("decision", "color", {"hole": 3, "par": 3, "score_to_par": "1 under par",
-     "thru": 2, "club": "7-iron", "shot_type": "full", "target_yards": 187,
+     "thru": 2, "club": "7-iron", "shot_type": "full", "target_yards": 196,
      "aim": "middle of the green", "lie": "tee", "wind_mph": 8, "wind_dir": "into",
      "reason": "the pin is back left and the miss is short", "risk": "low"}),
     ("decision", "color", {"hole": 12, "par": 3, "score_to_par": "2 under par",
-     "thru": 11, "club": "8-iron", "shot_type": "full", "target_yards": 164,
+     "thru": 11, "club": "8-iron", "shot_type": "full", "target_yards": 172,
      "aim": "right edge of the green", "lie": "tee", "wind_mph": 6, "wind_dir": "helping",
      "reason": "downhill over the pond, the safe side is long", "risk": "medium"}),
     ("decision", "color", {"hole": 5, "par": 4, "score_to_par": "even par",
@@ -63,7 +63,7 @@ SPECS: list[tuple[str, str, dict]] = [
      "aim": "front edge", "lie": "fairway", "wind_mph": 15, "wind_dir": "into",
      "reason": "into the wind, take one more club and flight it down", "risk": "medium"}),
     ("decision", "color", {"hole": 8, "par": 3, "score_to_par": "even par",
-     "thru": 7, "club": "5-iron", "shot_type": "full", "target_yards": 226,
+     "thru": 7, "club": "5-iron", "shot_type": "full", "target_yards": 238,
      "aim": "front right", "lie": "tee", "wind_mph": 11, "wind_dir": "into",
      "reason": "the longest par 3 on the course, take plenty of club", "risk": "medium"}),
     ("decision", "color", {"hole": 15, "par": 5, "score_to_par": "4 under par",
@@ -162,11 +162,11 @@ SPECS: list[tuple[str, str, dict]] = [
     ("round_start", "host", {"round": 48, "course": "Wyatt National", "par": 72,
      "target_score": 59, "handicap": "+3.1", "last10_avg": 69.8}),
     # hole_start (host) — 3
-    ("hole_start", "host", {"hole": 12, "hole_name": "The Picture", "par": 3, "yards": 164,
-     "pin": "back left, over the pond", "wind_mph": 6, "wind_dir": "helping", "elevation_ft": -18}),
-    ("hole_start", "host", {"hole": 8, "hole_name": "The Long One", "par": 3, "yards": 226,
+    ("hole_start", "host", {"hole": 12, "hole_name": "The Picture", "par": 3, "yards": 172,
+     "pin": "back left, over the pond", "wind_mph": 6, "wind_dir": "helping", "elevation_ft": -22}),
+    ("hole_start", "host", {"hole": 8, "hole_name": "The Long One", "par": 3, "yards": 238,
      "pin": "front right", "wind_mph": 11, "wind_dir": "into", "elevation_ft": 6}),
-    ("hole_start", "host", {"hole": 15, "hole_name": "The Eagle Chance", "par": 5, "yards": 545,
+    ("hole_start", "host", {"hole": 15, "hole_name": "The Eagle Chance", "par": 5, "yards": 578,
      "pin": "middle, reachable in two", "wind_mph": 4, "wind_dir": "left to right", "elevation_ft": -12}),
 ]
 
