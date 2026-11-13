@@ -61,7 +61,7 @@ that is the real behaviour, not a measurement artifact.
 
 | Metric | Measured (MC) | Real reference |
 |---|---|---|
-| Scoring mean | **72.4** | +3 on a 74.6-rated course: mean ≈ 72–74 |
+| Scoring mean | **72.4** | +3 on a 76.1-rated course: mean ≈ 72–74 |
 | Scoring SD | **2.89** | Scratch ≈ 2.6–3.0 (USGA odds table; see §3) |
 | Range | 66–76 | Scratch 20-round sample: 70–79 (caddiehq) |
 | P(sub-70) | 20% (4/20) | Scratch: ~25–30% of rounds |

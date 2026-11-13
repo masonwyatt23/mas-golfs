@@ -1,6 +1,6 @@
 """Wyatt National course data.
 
-Mirrors docs/course-design.md. The clip pipeline only needs par, yardage,
+Mirrors docs/course-design-v3.md. The clip pipeline only needs par, yardage,
 and hole names (for titles and captions); the sim engine owns the full
 course model.
 """
@@ -8,31 +8,31 @@ course model.
 COURSE = {
     "name": "Wyatt National",
     "par": 72,
-    "yardage": 7214,
-    "rating": 74.6,
-    "slope": 138,
+    "yardage": 7602,
+    "rating": 76.1,
+    "slope": 142,
     "location": "Staunton, Virginia",
 }
 
 HOLES = {
-    1: {"par": 4, "yards": 412, "name": "The Handshake"},
-    2: {"par": 5, "yards": 578, "name": "The Reach"},
-    3: {"par": 3, "yards": 187, "name": "The Postage Stamp"},
-    4: {"par": 4, "yards": 448, "name": "The Examination"},
-    5: {"par": 4, "yards": 376, "name": "The Temptation"},
-    6: {"par": 4, "yards": 431, "name": "The Dogleg"},
-    7: {"par": 5, "yards": 552, "name": "The Valley"},
-    8: {"par": 3, "yards": 226, "name": "The Long One"},
-    9: {"par": 4, "yards": 402, "name": "The Return"},
-    10: {"par": 4, "yards": 419, "name": "The Turn"},
-    11: {"par": 5, "yards": 591, "name": "The Monster"},
-    12: {"par": 3, "yards": 164, "name": "The Picture"},
-    13: {"par": 4, "yards": 455, "name": "The Grind"},
-    14: {"par": 4, "yards": 388, "name": "The Gambler"},
-    15: {"par": 5, "yards": 545, "name": "The Eagle Chance"},
-    16: {"par": 3, "yards": 203, "name": "The Test"},
-    17: {"par": 4, "yards": 427, "name": "The Penultimate"},
-    18: {"par": 4, "yards": 410, "name": "The Closer"},
+    1: {"par": 4, "yards": 432, "name": "The Handshake"},
+    2: {"par": 5, "yards": 612, "name": "The Reach"},
+    3: {"par": 3, "yards": 196, "name": "The Postage Stamp"},
+    4: {"par": 4, "yards": 476, "name": "The Examination"},
+    5: {"par": 4, "yards": 392, "name": "The Temptation"},
+    6: {"par": 4, "yards": 452, "name": "The Dogleg"},
+    7: {"par": 5, "yards": 586, "name": "The Valley"},
+    8: {"par": 3, "yards": 238, "name": "The Long One"},
+    9: {"par": 4, "yards": 424, "name": "The Return"},
+    10: {"par": 4, "yards": 440, "name": "The Turn"},
+    11: {"par": 5, "yards": 624, "name": "The Monster"},
+    12: {"par": 3, "yards": 172, "name": "The Picture"},
+    13: {"par": 4, "yards": 482, "name": "The Grind"},
+    14: {"par": 4, "yards": 406, "name": "The Gambler"},
+    15: {"par": 5, "yards": 578, "name": "The Eagle Chance"},
+    16: {"par": 3, "yards": 214, "name": "The Test"},
+    17: {"par": 4, "yards": 448, "name": "The Penultimate"},
+    18: {"par": 4, "yards": 430, "name": "The Closer"},
 }
 
 # Road to 59: par 72 course, so 59 pace is 13 under par.

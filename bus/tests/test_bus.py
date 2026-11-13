@@ -28,8 +28,8 @@ ROUND_START = {
     "type": "round_start", "v": 1, "event_id": "evt_20261112_0001_0001",
     "ts": 1794441601000, "round_id": "R0001", "round_no": 47, "hole": 0,
     "shot_no": 0, "seq": 1,
-    "course": {"name": "Wyatt National", "par": 72, "rating": 74.6,
-               "slope": 138, "yardage": 7214},
+    "course": {"name": "Wyatt National", "par": 72, "rating": 76.1,
+               "slope": 142, "yardage": 7602},
     "target_score": 59, "handicap_index": 3.1, "last10_avg": 70.4,
     "form": "neutral",
 }

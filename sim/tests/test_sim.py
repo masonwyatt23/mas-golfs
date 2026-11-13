@@ -484,10 +484,12 @@ class TestRatingSlope(unittest.TestCase):
     def test_wyatt_rating_slope_match_spec(self):
         rating, slope, detail = compute_rating_slope(
             WYATT_NATIONAL.holes, WYATT_NATIONAL.par)
-        # v3 recompute (course-design-v3.md §5.1): one number, used
-        # everywhere — 74.9 / 141, replacing the old 74.6 / 138.
-        self.assertAlmostEqual(rating, 74.9, delta=0.3)
-        self.assertAlmostEqual(slope, 141, delta=3)
+        # v3 recompute (docs/course-rating-v3.md): one number, used
+        # everywhere — 76.1 / 142, replacing the old 74.6 / 138.
+        # (The sim's earlier 74.9 / 141 came from the pre-recompute
+        # model and is retired.)
+        self.assertAlmostEqual(rating, 76.1, delta=0.3)
+        self.assertAlmostEqual(slope, 142, delta=3)
         self.assertEqual(WYATT_NATIONAL.rating, rating)
         self.assertEqual(WYATT_NATIONAL.slope, slope)
 
