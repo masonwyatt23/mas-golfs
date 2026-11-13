@@ -107,7 +107,7 @@ def mesh_node(name: str, mesh: str, material: str, x: float, y: float,
 # ground renders green unshaded, the problem is shading/lighting on the
 # ground tiles specifically (not culling); if still black, the tiles are
 # not rendering at all. The tee/green prove shaded green CAN read.
-grass = mat((0.28, 0.58, 0.28), unshaded=True)
+grass = mat((1.0, 0.0, 1.0), unshaded=True)  # DIAGNOSTIC v14: MAGENTA ground. The v13 frame has a black trapezoid in the hole corridor while the sky-ground is green. If the trapezoid turns magenta, it is the ground tile (material renders, but green albedo read black — a color/tonemap issue). If it stays black, the trapezoid is NOT the ground tile (it is something else occluding the corridor) and the tile is not rendering at all.
 fairway = mat((0.32, 0.62, 0.30))
 green_mat = mat((0.35, 0.70, 0.32))
 collar_mat = mat((0.22, 0.55, 0.22))
