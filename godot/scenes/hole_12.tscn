@@ -75,7 +75,7 @@ roughness = 0.3
 metallic = 0.8
 
 [sub_resource type="BoxMesh" id="BoxMesh_15"]
-size = Vector3(400, 0.4, 400)
+size = Vector3(120, 0.4, 120)
 
 [sub_resource type="BoxMesh" id="BoxMesh_16"]
 size = Vector3(12, 0.4, 10)
