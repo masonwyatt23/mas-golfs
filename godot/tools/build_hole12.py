@@ -49,11 +49,12 @@ def mat(color: tuple[float, float, float], roughness: float = 0.9,
         "metallic": str(metallic),
     }
     if unshaded:
-        props["shading_mode"] = "1"  # SHADING_MODE_UNSHADED: albedo as-is, no lighting
-        # v14: the ground tile's TOP face renders black while its SIDE face
-        # renders the albedo (magenta diagnostic) — the top face is being
-        # culled as a backface. Disable culling so both faces render.
-        props["cull_mode"] = "2"  # CULL_DISABLED
+        # SHADING_MODE_UNSHADED = 0 (NOT 1 — 1 is PER_PIXEL). The v5-v15
+        # "unshaded" diagnostic used 1, so the ground was per-pixel shaded
+        # all along and its top face rendered black under the low sun.
+        # 0 = unshaded: albedo output directly, no lighting.
+        props["shading_mode"] = "0"  # SHADING_MODE_UNSHADED
+        props["cull_mode"] = "2"  # CULL_DISABLED (top face was backface-culled)
     return sub("StandardMaterial3D", props)
 
 
@@ -111,7 +112,7 @@ def mesh_node(name: str, mesh: str, material: str, x: float, y: float,
 # ground renders green unshaded, the problem is shading/lighting on the
 # ground tiles specifically (not culling); if still black, the tiles are
 # not rendering at all. The tee/green prove shaded green CAN read.
-grass = mat((1.0, 0.0, 1.0), unshaded=True)  # DIAGNOSTIC v14: MAGENTA ground. The v13 frame has a black trapezoid in the hole corridor while the sky-ground is green. If the trapezoid turns magenta, it is the ground tile (material renders, but green albedo read black — a color/tonemap issue). If it stays black, the trapezoid is NOT the ground tile (it is something else occluding the corridor) and the tile is not rendering at all.
+grass = mat((0.28, 0.58, 0.28), unshaded=True)  # green again (v14 magenta was the diagnostic; shading_mode is now truly 0=unshaded, so this renders flat green)
 fairway = mat((0.32, 0.62, 0.30))
 green_mat = mat((0.35, 0.70, 0.32))
 collar_mat = mat((0.22, 0.55, 0.22))
