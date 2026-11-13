@@ -63,7 +63,7 @@ Emitted once per round, before hole 1.
 {
   "type": "round_start",
   "round_id": "R0042", "round_no": 42,
-  "course": { "name": "Wyatt National", "par": 72, "yardage": 7602, "rating": 74.6, "slope": 138 },
+  "course": { "name": "Wyatt National", "par": 72, "yardage": 7602, "rating": 76.1, "slope": 142 },
   "conditions": { "wind_mph": 9, "wind_dir_deg": 310, "temp_f": 58, "sky": "partly_cloudy", "firmness": 0.62, "green_speed": 11.2 },
   "handicap_index": 3.1,
   "target_score": 59,
@@ -76,7 +76,7 @@ Emitted once per round, before hole 1.
 
 | Field | Description |
 |---|---|
-| `course.rating` / `course.slope` | USGA-style course rating and slope for Wyatt National from the back tees. The values shown in the example (74.6 / 138) are the **v1 values — the v3 recompute from the 7,602-yard design is pending** (see `course-design-v3.md` §5.1). Two different v1 pairs exist in the record (74.6/138 here vs. 74.1/141 in the web build); the v3 recompute must produce **one** rating/slope used everywhere. Used for handicap differentials (§7). |
+| `course.rating` / `course.slope` | USGA-style course rating and slope for Wyatt National from the back tees: **76.1 / 142**, the single v3 number (`course-rating-v3.md`). The web build's old 74.1 / 141 pair is retired — no derivation reproduces it; the identical method reproduces 74.6 / 138 for the v1 design, which survives only as a back-check. Used for handicap differentials (§7). |
 | `conditions` | Round-level weather, drawn once per round (§1.4). `wind_dir_deg` is the direction the wind blows *from* (meteorological convention). `firmness` 0–1 (0 = soft, 1 = firm) scales bounce/roll. `green_speed` in feet on the Stimpmeter. |
 | `handicap_index` | Mas's live WHS index at round start (§7). Note: a +3 is stored as a *negative* index in WHS terms; this spec stores it as a signed number where **positive = strokes better than scratch** (so +3.1 means 3.1 better than scratch) and displays it as `+3.1`. Document this convention wherever the value is rendered. |
 | `target_score` | Always `59` — the Road to 59 season target. |
@@ -783,7 +783,7 @@ The dispersion σ values (§3.2) do **not** change with the learning loop. Mas d
 
 Mas's handicap is a live, moving number — the season arc in one number.
 
-**Differential per round.** `differential = (score − course_rating) × 113 / slope`. Wyatt National: rating 74.6, slope 138 (from the back tees) — **v1 values, used here only as a worked example; the v3 recompute is pending** (see §1.2 and `course-design-v3.md` §5.1). A score of 69 gives `(69 − 74.6) × 113 / 138 = −4.6`. A score of 74 gives `−0.5`. (Negative differentials are *good* — they mean better than the course rating.)
+**Differential per round.** `differential = (score − course_rating) × 113 / slope`. Wyatt National: rating 76.1, slope 142 (from the back tees — `course-rating-v3.md`). A score of 69 gives `(69 − 76.1) × 113 / 142 = −5.6`. A score of 74 gives `−1.7`. (Negative differentials are *good* — they mean better than the course rating.)
 
 **Index calculation (simplified WHS).** Take the best 8 differentials from the most recent 20 rounds, average them, multiply by 0.96. If fewer than 20 rounds exist, use the WHS table for small samples (best 1 of 3, best 2 of 6, best 3 of 9, etc.). If fewer than 3 rounds exist, no index is shown — display "establishing."
 
@@ -942,14 +942,14 @@ The engine must maintain these invariants at all times; violating one is a bug:
 
 ### 9.1 Course data format (Wyatt National)
 
-One JSON object per course. The engine reads it at startup; the renderer reads the same file for geometry. (The `rating`/`slope` in the example are the v1 values — the v3 recompute is pending; see §1.2. Hole yardages below are v3: hole 1 is 432 yards.)
+One JSON object per course. The engine reads it at startup; the renderer reads the same file for geometry. (The `rating`/`slope` in the example are the v3 values — 76.1 / 142, see §1.2. Hole yardages below are v3: hole 1 is 432 yards.)
 
 ```json
 {
   "id": "wyatt_national",
   "name": "Wyatt National",
   "location": "Staunton, VA",
-  "par": 72, "rating": 74.6, "slope": 138,
+  "par": 72, "rating": 76.1, "slope": 142,
   "holes": [
     {
       "hole": 1, "par": 4, "yardage": 432, "name": "The Handshake",

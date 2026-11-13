@@ -130,7 +130,7 @@ Per round, at `LEARNING_LOOP`:
 
 Mas starts at **+3.1** (display index; `sim-engine.md` §7.1). His scoring
 average over the first 20 rounds should sit at **72–74** on a par-72
-course rated TBD / slope TBD (v3 recompute pending — see `conditions-system.md` §4.1; the recompute must produce one rating/slope used everywhere, replacing both v1 pairs). **The 72–74 band is a v3 estimate, pending confirmation by the 10,000-round harness** (`course-design-v3.md` §5.3) — and so is every rung of the ladder below, which is the same band shifted by the improvement budget.
+course rated 76.1 / slope 142 (`course-rating-v3.md`). **The 72–74 band is a v3 estimate, pending confirmation by the 10,000-round harness** (`course-design-v3.md` §5.3) — and so is every rung of the ladder below, which is the same band shifted by the improvement budget.
 
 The ladder is defined by scoring average and handicap, not by any single
 round. A season is 200 rounds for ladder purposes (the qa-plan L-05 window).

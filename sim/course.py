@@ -54,6 +54,12 @@ class Hole:
     elev_tee_ft: float
     elev_green_ft: float
     fairway_width_yd: float = 32.0
+    # v3 (course-design-v3.md §5.1): first cut of semi-rough blending the
+    # fairway into the deep rough — the sim's version of the rounded
+    # fairway edge. Default 7 yd; per-hole overrides average the two
+    # sides (5th/6th 10 left / 5 right -> 7.5; 13th 5.0; 17th 5.0 — the
+    # OB side has no semi-rough, the edge is absolute).
+    semi_rough_yd: float = 7.0
     green_radius_ft: float = 42.0
     dogleg_at_yd: float = 0.0
     dogleg_angle_deg: float = 0.0   # + = bends right (golfer's perspective)
@@ -144,8 +150,13 @@ def _h(hole, par, yardage, name, azimuth, elev_tee, elev_green, **kw):
                 elev_green_ft=elev_green, **kw)
 
 
-def build_wyatt_national():
-    """Wyatt National, par 72, 7,214 yd (course-design.md)."""
+def build_wyatt_national_v2():
+    """Wyatt National v2, par 72, 7,214 yd (course-design-v2.md).
+
+    Kept for calibration comparison: v3 is the live course, v2 stays
+    available so the harness can measure exactly what the extra 388
+    yards did to scoring.
+    """
     return [
         _h(1, 4, 412, "The Handshake", 40, 0, -8,
            bunkers=[Bunker(290, -14, 24, 14), Bunker(385, 16, 20, 12)],
@@ -218,6 +229,105 @@ def build_wyatt_national():
     ]
 
 
+def build_wyatt_national():
+    """Wyatt National v3, par 72, 7,602 yd (course-design-v3.md).
+
+    The live course. Same routing, pars, names, azimuths, doglegs, and
+    templates as v2; what changes is length (+388 yd), land shaping, and
+    green complexes. Front 3,808 / back 3,794.
+
+    How §5.1 was applied here:
+    - Yardages and green elevations per the v3 hole tables.
+    - Bunkers: driving-distance bunkers stay at their v2 ``s_yd``
+      (270–300); greenside bunkers move out by the hole's yardage gain;
+      the 7th cross-bunker moves to 496 (90 yd short of the green); the
+      14th creek stays at 280; one new bunker on the 11th, fairway left
+      at 340. Where the design prose states a bunker distance a few
+      yards off the gain rule (e.g. 15th complex, 17th Road Hole
+      bunker), the §5.1 gain rule wins — the prose numbers are the
+      design intent, the rule is the implementation.
+    - Green radii +2–3 ft on the long-approach holes (4, 11, 13, 15).
+    - 13th fairway narrowed to 28 yd. Semi-rough overrides: 5th/6th
+      7.5, 10th 7.0, 13th 5.0, 17th 5.0 (see the ``semi_rough_yd``
+      field comment on ``Hole``).
+    - Water, trees, doglegs, azimuths, hazard labels, and drop zones
+      are unchanged from v2 — §5.1 is silent on them, so no water or
+      tree was moved even though the greens moved out (the pond on 8
+      and 12 now sits a few yards further from the green than in v2).
+    """
+    return [
+        _h(1, 4, 432, "The Handshake", 40, 0, -10,
+           bunkers=[Bunker(290, -14, 24, 14), Bunker(405, 16, 20, 12)],
+           hazard_label="front_right_bunker"),
+        _h(2, 5, 612, "The Reach", 10, 0, 5,
+           dogleg_at_yd=280, dogleg_angle_deg=-28,
+           water=[Water(300, -30, 120, 45)],
+           bunkers=[Bunker(310, 18, 26, 14)],
+           hazard_label="water_left", drop_zone=(260, 10)),
+        _h(3, 3, 196, "The Postage Stamp", 130, 0, 2,
+           bunkers=[Bunker(174, 0, 26, 14), Bunker(187, -18, 16, 10)],
+           hazard_label="front_bunker"),
+        _h(4, 4, 476, "The Examination", 310, 0, 34,
+           bunkers=[Bunker(270, -16, 26, 14), Bunker(270, 16, 26, 14),
+                    Bunker(448, -14, 20, 12)],
+           hazard_label="fairway_bunkers", green_radius_ft=45.0),
+        _h(5, 4, 392, "The Temptation", 60, 0, -4,
+           bunkers=[Bunker(290, 0, 22, 12), Bunker(366, -16, 18, 10)],
+           hazard_label="centerline_bunker_290", semi_rough_yd=7.5),
+        _h(6, 4, 452, "The Dogleg", 160, 0, 12,
+           dogleg_at_yd=240, dogleg_angle_deg=32,
+           trees=[TreeCluster(250, 26, 30), TreeCluster(300, 30, 24)],
+           bunkers=[Bunker(421, 14, 20, 12)],
+           hazard_label="pines_right", semi_rough_yd=7.5),
+        _h(7, 5, 586, "The Valley", 200, 0, 22,
+           bunkers=[Bunker(496, 0, 30, 14), Bunker(554, -16, 22, 12)],
+           hazard_label="cross_bunker_90"),
+        _h(8, 3, 238, "The Long One", 300, 0, 6,
+           water=[Water(195, 0, 90, 40)],
+           bunkers=[Bunker(227, -16, 18, 10)],
+           hazard_label="water_front", drop_zone=(150, 0)),
+        _h(9, 4, 424, "The Return", 220, 0, -14,
+           bunkers=[Bunker(397, 16, 22, 12), Bunker(407, -14, 18, 10)],
+           hazard_label="front_right_bunker"),
+        _h(10, 4, 440, "The Turn", 140, 0, -8,
+            dogleg_at_yd=230, dogleg_angle_deg=-18,
+            bunkers=[Bunker(280, -14, 24, 14), Bunker(411, 14, 20, 12)],
+            hazard_label="fairway_bunker_left", semi_rough_yd=7.0),
+        _h(11, 5, 624, "The Monster", 320, 0, 34,
+            bunkers=[Bunker(300, -16, 28, 14), Bunker(300, 16, 28, 14),
+                     Bunker(340, -16, 26, 14), Bunker(593, -14, 22, 12)],
+            hazard_label="fairway_bunkers_300", green_radius_ft=45.0),
+        _h(12, 3, 172, "The Picture", 90, 0, -17,
+            water=[Water(135, 0, 70, 36)],
+            trees=[TreeCluster(150, -30, 26), TreeCluster(150, 30, 26)],
+            bunkers=[Bunker(166, 16, 18, 10)],
+            hazard_label="pond_front", drop_zone=(110, 0)),
+        _h(13, 4, 482, "The Grind", 300, 0, 28,
+            bunkers=[Bunker(275, -15, 26, 14), Bunker(275, 15, 26, 14),
+                     Bunker(457, -14, 20, 12)],
+            hazard_label="fairway_bunkers", fairway_width_yd=28.0,
+            green_radius_ft=44.0, semi_rough_yd=5.0),
+        _h(14, 4, 406, "The Gambler", 180, 0, 4,
+            water=[Water(280, 0, 60, 90)],
+            bunkers=[Bunker(378, 14, 20, 12)],
+            hazard_label="creek_280", drop_zone=(240, 0)),
+        _h(15, 5, 578, "The Eagle Chance", 40, 0, -8,
+            bunkers=[Bunker(533, -12, 26, 14), Bunker(543, 14, 24, 12),
+                     Bunker(558, 0, 20, 12)],
+            hazard_label="greenside_bunker_complex", green_radius_ft=44.0),
+        _h(16, 3, 214, "The Test", 250, 0, 10,
+            bunkers=[Bunker(196, 0, 24, 14), Bunker(206, 18, 16, 10)],
+            hazard_label="deep_front_bunker"),
+        _h(17, 4, 448, "The Penultimate", 100, 0, 6,
+            dogleg_at_yd=250, dogleg_angle_deg=30,
+            bunkers=[Bunker(290, -14, 24, 14), Bunker(421, 14, 20, 12)],
+            hazard_label="ob_right", ob_right_yd=45.0, semi_rough_yd=5.0),
+        _h(18, 4, 430, "The Closer", 20, 0, 19,
+            bunkers=[Bunker(300, -14, 24, 14), Bunker(405, 16, 20, 12)],
+            hazard_label="fairway_bunker_300"),
+    ]
+
+
 def compute_rating_slope(holes, par):
     """USGA-style course rating and slope, computed from the design.
 
@@ -230,13 +340,45 @@ def compute_rating_slope(holes, par):
     - **Obstacle strokes**: bunkers 0.02 each, water hazards 0.15 each,
       tree clusters 0.05 each, tight out-of-bounds 0.10, narrow fairways
       (< 30 yd) 0.10, small greens (< 40 ft radius) 0.05.
-    - **Rating** = 68.0 + effective_length * 0.0008 + obstacle * 0.4.
-    - **Slope** = 113 + (rating - par) * 7.2 + obstacle * 4.0.
+    - **Rating** = 47.72 + effective_length * 0.00355 + obstacle * 0.35.
+    - **Slope** = 129.0 + (rating - par) * 2.54 + obstacle * 1.55.
 
-    The constants are calibrated so Wyatt National lands on the spec's
-    stated 74.6 / 138 (it computes 74.6 / 138). Harder designs — longer,
-    narrower, more hazards — rate higher automatically, so difficulty
-    becomes a variable the engine can play with.
+    The constants are calibrated to the three anchor points in
+    `docs/course-rating-v3.md`: Wyatt National v2 computes **74.6 / 138**
+    (the back-check — the rating doc §9 reproduces the same pair from
+    the USGA method), v3 computes **76.1 / 142** (the single v3 number,
+    used everywhere), and the tournament variant computes **77.1 / 149**.
+    The variant's slope matches the Major week tier (149); its rating
+    sits 0.6 below the tier's 77.7 because the variant prices only the
+    geometric setup changes (narrowed fairways, smaller greens, extra
+    bunkers), not the stimp / wind / pin / rough levers, which the
+    rating function does not model. The previous constants (68.0 / 0.0008 / 0.4
+    and 113 / 7.2 / 4.0) computed v3 as 74.9 / 141 — superseded by the
+    rating recompute; 74.9 / 141 is retired, as is the web build's
+    74.1 / 141, which no derivation reproduces.
+
+    Why these constants, and what they are not:
+    - The obstacle weight 0.35 is the rating doc's scratch weight
+      (course-rating-v3.md §1/§6): obstacles hurt the scratch golfer
+      at 0.35 of their bogey cost.
+    - The per-yard coefficient 0.00355 is fitted to the v2→v3 length
+      delta, not the USGA 1/220 — the sim's effective-length
+      definition (yardage + 1.5 yd per foot of net elevation + 40 yd
+      wind) is not the USGA effective playing length, so the
+      coefficient that lands the rating delta on the derivation is
+      smaller than 1/220.
+    - The slope intercept 129.0 is fitted to all three anchors, not
+      the USGA 113 standard-slope anchor: the model's obstacle term
+      is a per-hole sum that jumps on the narrowed tournament setup
+      (1.72 → 4.60), so a two-point fit through v2/v3 alone would
+      price the tournament slope past the 155 maximum. The
+      three-point fit keeps it at 149.
+    - Calibration domain: Wyatt National v2, v3, and its tournament
+      setup only. Do not trust these constants for a wildly different
+      course — re-derive from that course's rating the same way.
+    Harder designs — longer, narrower, more hazards — rate higher
+    automatically, so difficulty becomes a variable the engine can
+    play with.
     """
     yardage = sum(h.yardage for h in holes)
     uphill = sum(max(0.0, h.elev_green_ft - h.elev_tee_ft) for h in holes)
@@ -253,8 +395,8 @@ def compute_rating_slope(holes, par):
             obstacle += 0.10
         if h.green_radius_ft < 40:
             obstacle += 0.05
-    rating = 68.0 + effective_length * 0.0008 + obstacle * 0.4
-    slope = 113.0 + (rating - par) * 7.2 + obstacle * 4.0
+    rating = 47.72 + effective_length * 0.00355 + obstacle * 0.35
+    slope = 129.0 + (rating - par) * 2.54 + obstacle * 1.55
     return round(rating, 1), int(round(slope)), dict(
         effective_length_yd=round(effective_length),
         obstacle_strokes=round(obstacle, 2),
@@ -286,7 +428,8 @@ class Course:
     def determine_lie(self, hole: Hole, x: float, y: float):
         """Final resting position -> (lie, in_water, ob).
 
-        Tests, in order: green, bunkers, water, trees, fairway, rough.
+        Tests, in order: green, bunkers, water, trees, fairway,
+        semi-rough, rough.
         A ball within 2 ft of a bunker edge is in the bunker (§2.5).
         """
         s, lateral = hole.project(x, y)
@@ -326,6 +469,22 @@ class Course:
         if abs(lateral) <= hole.fairway_width_yd / 2.0 and s <= hole.yardage + 10:
             return "fairway", False, False
 
+        # Semi-rough (v3, course-design-v3.md §5.1): the rounded fairway
+        # edge. A ball just off the fairway — inside the semi-rough band
+        # — is in first cut, not rough. The s bound mirrors the fairway
+        # test; in practice project() clamps s to the green, so a ball
+        # past the green is classified by its distance from the green
+        # centre, not by this bound.
+        #
+        # "semi" lives in sim/constants.py LIE_EFFECTS (dist 0.97,
+        # spin 0.95, sig 1.15) — the spec's suggested factors, still
+        # TO-BE-CONFIRMED against the lie table. physics.py and
+        # decisions.py index that table with a hard lookup, so the entry
+        # must stay in sync with this lie.
+        if abs(lateral) <= hole.fairway_width_yd / 2.0 + hole.semi_rough_yd \
+                and s <= hole.yardage + 10:
+            return "semi", False, False
+
         # Rough: close to the fairway edge is light, deep is heavy.
         if abs(lateral) <= hole.fairway_width_yd / 2.0 + 8:
             return "rough_light", False, False
@@ -337,7 +496,7 @@ class Course:
 
         Returns (lies, in_water, ob) as numpy arrays. Same test order as
         the scalar version: OB -> water -> green -> bunkers -> trees ->
-        fairway -> rough.
+        fairway -> semi-rough -> rough.
         """
         import numpy as np
 
@@ -402,6 +561,11 @@ class Course:
             tree_mask |= np.hypot(s - t.s_yd, lateral - t.lateral_yd) <= t.r_ft / 3.0
         fairway_mask = (np.abs(lateral) <= hole.fairway_width_yd / 2.0) & \
                        (s <= hole.yardage + 10)
+        # Semi-rough (v3): same s bound as the fairway test (vacuous in
+        # practice — project() clamps s to the green — see determine_lie).
+        # "semi" is in LIE_EFFECTS (spec factors, to-be-confirmed).
+        semi_mask = (np.abs(lateral) <= hole.fairway_width_yd / 2.0
+                     + hole.semi_rough_yd) & (s <= hole.yardage + 10)
         light_mask = np.abs(lateral) <= hole.fairway_width_yd / 2.0 + 8
 
         lies = np.where(ob_mask, "ob", lies)
@@ -414,6 +578,9 @@ class Course:
                         & ~ob_mask, "trees", lies)
         lies = np.where(fairway_mask & ~tree_mask & ~bunker_mask & ~green_mask
                         & ~water_mask & ~ob_mask, "fairway", lies)
+        lies = np.where((lies == "rough_heavy") & semi_mask & ~tree_mask
+                        & ~bunker_mask & ~green_mask & ~water_mask & ~ob_mask,
+                        "semi", lies)
         lies = np.where((lies == "rough_heavy") & light_mask & ~tree_mask
                         & ~bunker_mask & ~green_mask & ~water_mask & ~ob_mask,
                         "rough_light", lies)
@@ -423,8 +590,12 @@ class Course:
         """(along_yd, straight_yd) from a position to the green centre.
 
         ``along`` is the centreline arc remaining plus a lateral penalty —
-        the distance the decision engine clubs for. ``straight`` is the
-        laser distance, used for events and stats.
+        the right measure for a tee shot, which must follow the hole's
+        routing (a dogleg's laser distance cuts the corner through trees).
+        It is NOT a distance to the pin for a ball past the green (it
+        collapses to ~0 there), so the engine clubs approaches and short
+        game off ``straight``, the laser distance. ``straight`` is also
+        used for events and stats.
         """
         s, lateral = hole.project(x, y)
         gx, gy = hole.green_centre()
@@ -434,26 +605,29 @@ class Course:
 
 
 def championship_variant():
-    """Wyatt National (Black Tees) — the same routing, played harder.
+    """Wyatt National (Tournament Setup) — the v3 course, set up harder.
 
-    +350 yards, 26-yard fairways, 36-foot greens, and an extra fairway
-    bunker at 300 yards on every par 4 and par 5. The rating/slope are
-    computed from the design, so the difficulty is real, not a label.
+    Option (b) from course-design-v3.md §5.2. The Black Tees variant is
+    retired: v3 *is* the championship length, so +350 yards on top
+    would be 7,952 yards. Instead this is the same yardages with
+    26-yard fairways, 36-foot greens, and an extra fairway bunker at
+    300 yards on every par 4 and par 5 — the "Major week" setup tier
+    from docs/conditions-system.md, without inventing a longer course.
+    The rating/slope are computed from the design, so the difficulty
+    is real, not a label.
     """
     import copy
     holes = []
     for h in build_wyatt_national():
         h2 = copy.deepcopy(h)
-        extra = 8 if h.par == 3 else 22
-        h2.yardage += extra
         h2.fairway_width_yd = 26.0
         h2.green_radius_ft = 36.0
         if h.par in (4, 5):
             h2.bunkers = list(h2.bunkers) + [
                 Bunker(300, -18 if h.hole % 2 else 18, 24, 14)]
         holes.append(h2)
-    return Course(course_id="wyatt_national_black",
-                  name="Wyatt National (Black Tees)", holes=holes)
+    return Course(course_id="wyatt_national_tournament",
+                  name="Wyatt National (Tournament Setup)", holes=holes)
 
 
 WYATT_NATIONAL = Course()
