@@ -247,17 +247,18 @@ the record it is chasing, using only the numbers in the detail.
 ### 4.8 59 Watch moment (host, then color)
 
 - **Trigger:** `fifty_nine_watch` event (see `docs/broadcast-stack.md` §9). **Speaker:** host (the pace), color (what it takes).
-- **Fields used:** `status` (on_pace / off_pace / back_on_pace / on_the_line), `score_to_par`, `thru`, `strokes_remaining`, `probability`, `holes_left`.
+- **Fields used:** `status` (on_pace / off_pace / back_on_pace / on_the_line), `score_to_par`, `thru`, `strokes_remaining`, `probability`, `holes_left`, `needs`.
 - **Word budget:** host 15–30 words; color 20–35 words.
 - **Rule:** 59 Watch lines are generated fresh every time — never cached. The numbers change every hole, and a stale pace line is a wrong line.
+- **Rule:** The 59 requirement is computed in code, never derived by the model. Every `fifty_nine_watch` event carries `needs` — a mid-round phrase ("20 strokes over the last 6 holes (4 under par) to finish at 59", from `FiftyNineWatch.needs_after_hole`) or, on the 18th tee, a score ("a birdie or better on the 18th to finish at 59", from `needs_on_tee`). The 18th-tee event's `status` is the tee status (`on_the_line` / `secured`), not the hole-17 pace status, so the prompt's condition fires. The host states the requirement exactly as given.
 
 ```
 User prompt (host):
 59 Watch, status {{status}}. Mas is {{score_to_par}} through {{thru}},
 with {{holes_left}} holes left. He can afford to drop {{strokes_remaining}}
 more strokes and still break 60. Live probability {{probability}}%.
-State the 59 Watch position in one or two sentences. On the 18th, when
-the status is on_the_line, say exactly what he needs on this hole.
+State the 59 Watch position in one or two sentences. He needs {{needs}} —
+state that requirement exactly as given, do not derive it yourself.
 ```
 
 ```

@@ -244,6 +244,11 @@ class RoundEngine:
                 if tee_status in (STATUS_ON_THE_LINE, STATUS_SECURED):
                     wd = watch.state.to_dict()
                     wd.pop("hole")
+                    # The prompt keys the "say what he needs" instruction
+                    # on status, so emit the tee status (on_the_line /
+                    # secured) — not the hole-17 pace status that
+                    # to_dict() carries, which is never on_the_line.
+                    wd["status"] = tee_status
                     emitter.emit("fifty_nine_watch", hole=18, **wd,
                                  needs=watch.needs_on_tee(score_so_far),
                                  moment="59_on_the_line" if tee_status ==
@@ -293,6 +298,8 @@ class RoundEngine:
                 wd = watch_state.to_dict()
                 wd.pop("hole")
                 emitter.emit("fifty_nine_watch", hole=hole_no, **wd,
+                             needs=watch.needs_after_hole(score_so_far,
+                                                          hole_no),
                              moment=moment)
             emitter.emit(
                 "hole_complete", hole=hole_no, par=hole.par, score=hr.score,

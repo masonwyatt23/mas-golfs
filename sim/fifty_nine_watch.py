@@ -200,10 +200,11 @@ class FiftyNineWatch:
     def needs_on_tee(self, score_so_far: int) -> str | None:
         """Plain-language requirement on the 18th to finish at 59 or better.
 
-        Returns e.g. "a birdie or better", or None if even a hole-in-one
-        cannot reach 59 (59 is gone). Computed in code — never by the
-        commentary model — so the booth states the requirement exactly
-        (the A/B found both 4B models derive the 59 pace wrong).
+        Returns e.g. "a birdie or better on the 18th to finish at 59",
+        or None if even a hole-in-one cannot reach 59 (59 is gone).
+        Computed in code — never by the commentary model — so the booth
+        states the requirement exactly (the A/B found both 4B models
+        derive the 59 pace wrong).
         """
         par_18 = self.pars[17]
         if score_so_far + 1 > TARGET_SCORE:
@@ -211,7 +212,32 @@ class FiftyNineWatch:
         max_score = TARGET_SCORE - score_so_far
         name = _score_name(max_score, par_18)
         article = "an" if name in ("eagle", "albatross") else "a"
-        return f"{article} {name} or better"
+        return f"{article} {name} or better on the 18th to finish at 59"
+
+    def needs_after_hole(self, score_so_far: int, hole_no: int) -> str:
+        """Plain-language requirement over the remaining holes to finish 59.
+
+        Returns e.g. "20 strokes over the last 6 holes (5 under par) to
+        finish at 59", or "59 is out of reach" if even birdieing every
+        remaining hole cannot reach 59. Computed in code, same as
+        needs_on_tee, so the mid-round 59 Watch never asks the model to
+        derive the pace either.
+        """
+        holes_left = 18 - hole_no
+        par_remaining = sum(self.pars[hole_no:])
+        best_possible = score_so_far + par_remaining - holes_left
+        if best_possible > TARGET_SCORE:
+            return "59 is out of reach"
+        strokes_needed = TARGET_SCORE - score_so_far
+        under_par = par_remaining - strokes_needed
+        if under_par > 0:
+            return (f"{strokes_needed} strokes over the last {holes_left} "
+                    f"holes ({under_par} under par) to finish at 59")
+        if under_par == 0:
+            return (f"{strokes_needed} strokes over the last {holes_left} "
+                    f"holes (par) to finish at 59")
+        return (f"{strokes_needed} strokes over the last {holes_left} "
+                f"holes ({-under_par} over par) to finish at 59")
 
     def round_summary(self) -> dict:
         """Per-round 59-watch stats for the record book."""

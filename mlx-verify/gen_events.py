@@ -136,15 +136,18 @@ SPECS: list[tuple[str, str, dict]] = [
      "score_to_par": "5 under par", "thru": 15}),
     # fifty_nine_watch host — 3 (numbers consistent with the sim's formulas:
     # strokes_remaining = 59 - (score + par_remaining); Wyatt National pars.
-    # The 18th-tee event carries `needs`, computed in code by
-    # FiftyNineWatch.needs_on_tee — the model must never derive the 59 pace.)
+    # Every event carries `needs`, computed in code by FiftyNineWatch
+    # (needs_after_hole mid-round, needs_on_tee on the 18th) — the model
+    # must never derive the 59 pace.)
     ("fifty_nine_watch", "host", {"status": "on_pace", "score_to_par": "9 under par",
-     "thru": 12, "holes_left": 6, "strokes_remaining": -4, "probability": 34}),
+     "thru": 12, "holes_left": 6, "strokes_remaining": -4, "probability": 34,
+     "needs": "20 strokes over the last 6 holes (4 under par) to finish at 59"}),
     ("fifty_nine_watch", "host", {"status": "on_the_line", "score_to_par": "12 under par",
      "thru": 17, "holes_left": 1, "strokes_remaining": -1, "probability": 58,
-     "needs": "a birdie or better"}),
-    ("fifty_nine_watch", "host", {"status": "off_pace", "score_to_par": "2 over par",
-     "thru": 14, "holes_left": 4, "strokes_remaining": -15, "probability": 0}),
+     "needs": "a birdie or better on the 18th to finish at 59"}),
+    ("fifty_nine_watch", "host", {"status": "off_pace", "score_to_par": "9 under par",
+     "thru": 14, "holes_left": 4, "strokes_remaining": -4, "probability": 2,
+     "needs": "12 strokes over the last 4 holes (4 under par) to finish at 59"}),
     # fifty_nine_watch color — 2
     ("fifty_nine_watch", "color", {"status": "on_pace", "holes_left": 6, "strokes_remaining": 1}),
     ("fifty_nine_watch", "color", {"status": "on_the_line", "holes_left": 1, "strokes_remaining": 0}),

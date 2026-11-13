@@ -106,9 +106,8 @@ TEMPLATES: dict[tuple[str, str], str] = {
         "59 Watch, status {status}. Mas is {score_to_par} through {thru},\n"
         "with {holes_left} holes left. He can afford to drop {strokes_remaining}\n"
         "more strokes and still break 60. Live probability {probability}%.\n"
-        "State the 59 Watch position in one or two sentences. On the 18th, when\n"
-        "the status is on_the_line, he needs {needs} on this hole — state that\n"
-        "requirement exactly as given, do not derive it yourself."
+        "State the 59 Watch position in one or two sentences. He needs {needs} —\n"
+        "state that requirement exactly as given, do not derive it yourself."
     ),
     ("fifty_nine_watch", "color"): (
         "59 Watch, status {status}. {holes_left} holes left, and he can\n"

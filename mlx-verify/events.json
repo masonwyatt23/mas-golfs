@@ -497,9 +497,10 @@
       "thru": 12,
       "holes_left": 6,
       "strokes_remaining": -4,
-      "probability": 34
+      "probability": 34,
+      "needs": "20 strokes over the last 6 holes (4 under par) to finish at 59"
     },
-    "user_prompt": "59 Watch, status on_pace. Mas is 9 under par through 12,\nwith 6 holes left. He can afford to drop -4\nmore strokes and still break 60. Live probability 34%.\nState the 59 Watch position in one or two sentences. On the 18th, when\nthe status is on_the_line, he needs — on this hole — state that\nrequirement exactly as given, do not derive it yourself."
+    "user_prompt": "59 Watch, status on_pace. Mas is 9 under par through 12,\nwith 6 holes left. He can afford to drop -4\nmore strokes and still break 60. Live probability 34%.\nState the 59 Watch position in one or two sentences. He needs 20 strokes over the last 6 holes (4 under par) to finish at 59 —\nstate that requirement exactly as given, do not derive it yourself."
   },
   {
     "id": "ev35",
@@ -512,9 +513,9 @@
       "holes_left": 1,
       "strokes_remaining": -1,
       "probability": 58,
-      "needs": "a birdie or better"
+      "needs": "a birdie or better on the 18th to finish at 59"
     },
-    "user_prompt": "59 Watch, status on_the_line. Mas is 12 under par through 17,\nwith 1 holes left. He can afford to drop -1\nmore strokes and still break 60. Live probability 58%.\nState the 59 Watch position in one or two sentences. On the 18th, when\nthe status is on_the_line, he needs a birdie or better on this hole — state that\nrequirement exactly as given, do not derive it yourself."
+    "user_prompt": "59 Watch, status on_the_line. Mas is 12 under par through 17,\nwith 1 holes left. He can afford to drop -1\nmore strokes and still break 60. Live probability 58%.\nState the 59 Watch position in one or two sentences. He needs a birdie or better on the 18th to finish at 59 —\nstate that requirement exactly as given, do not derive it yourself."
   },
   {
     "id": "ev36",
@@ -522,13 +523,14 @@
     "speaker": "host",
     "fields": {
       "status": "off_pace",
-      "score_to_par": "2 over par",
+      "score_to_par": "9 under par",
       "thru": 14,
       "holes_left": 4,
-      "strokes_remaining": -15,
-      "probability": 0
+      "strokes_remaining": -4,
+      "probability": 2,
+      "needs": "12 strokes over the last 4 holes (4 under par) to finish at 59"
     },
-    "user_prompt": "59 Watch, status off_pace. Mas is 2 over par through 14,\nwith 4 holes left. He can afford to drop -15\nmore strokes and still break 60. Live probability 0%.\nState the 59 Watch position in one or two sentences. On the 18th, when\nthe status is on_the_line, he needs — on this hole — state that\nrequirement exactly as given, do not derive it yourself."
+    "user_prompt": "59 Watch, status off_pace. Mas is 9 under par through 14,\nwith 4 holes left. He can afford to drop -4\nmore strokes and still break 60. Live probability 2%.\nState the 59 Watch position in one or two sentences. He needs 12 strokes over the last 4 holes (4 under par) to finish at 59 —\nstate that requirement exactly as given, do not derive it yourself."
   },
   {
     "id": "ev37",

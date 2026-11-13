@@ -444,17 +444,65 @@ class TestFiftyNineWatch(unittest.TestCase):
         pars = [4] * 18
         w = FiftyNineWatch(pars, last10_avg=72.0)
         # 55 through 17: worst score on the 18th that still shoots 59 is 4.
-        self.assertEqual(w.needs_on_tee(55), "a par or better")
+        self.assertEqual(w.needs_on_tee(55),
+                         "a par or better on the 18th to finish at 59")
         # 56 through 17: needs a 3 (birdie) on the 18th.
-        self.assertEqual(w.needs_on_tee(56), "a birdie or better")
+        self.assertEqual(w.needs_on_tee(56),
+                         "a birdie or better on the 18th to finish at 59")
         # 57 through 17: needs a 2 (eagle) on the 18th.
-        self.assertEqual(w.needs_on_tee(57), "an eagle or better")
+        self.assertEqual(w.needs_on_tee(57),
+                         "an eagle or better on the 18th to finish at 59")
         # 54 through 17: can afford a 5 (bogey) and still shoot 59.
-        self.assertEqual(w.needs_on_tee(54), "a bogey or better")
+        self.assertEqual(w.needs_on_tee(54),
+                         "a bogey or better on the 18th to finish at 59")
         # 58 through 17: only a hole-in-one (1) reaches 59.
-        self.assertEqual(w.needs_on_tee(58), "a hole-in-one or better")
+        self.assertEqual(w.needs_on_tee(58),
+                         "a hole-in-one or better on the 18th to finish "
+                         "at 59")
         # 59 through 17: even a hole-in-one cannot reach 59.
         self.assertIsNone(w.needs_on_tee(59))
+
+    def test_needs_after_hole(self):
+        # All par 4s: par through 12 is 48, 24 left over holes 13-18.
+        pars = [4] * 18
+        w = FiftyNineWatch(pars, last10_avg=72.0)
+        # 39 through 12 (9 under): 20 strokes over the last 6, 4 under par.
+        self.assertEqual(
+            w.needs_after_hole(39, 12),
+            "20 strokes over the last 6 holes (4 under par) to finish "
+            "at 59")
+        # 47 through 14 (9 under): 12 strokes over the last 4, 4 under par.
+        self.assertEqual(
+            w.needs_after_hole(47, 14),
+            "12 strokes over the last 4 holes (4 under par) to finish "
+            "at 59")
+        # 36 through 12 (12 under): 23 strokes over the last 6, 1 under par.
+        self.assertEqual(
+            w.needs_after_hole(36, 12),
+            "23 strokes over the last 6 holes (1 under par) to finish "
+            "at 59")
+        # 60 through 14: even birdieing every remaining hole is 72 — gone.
+        self.assertEqual(w.needs_after_hole(60, 14), "59 is out of reach")
+
+    def test_59_watch_events_carry_needs_and_tee_status(self):
+        # Every 59 Watch event must carry a needs phrase (mid-round and
+        # 18th tee alike), and an 18th-tee on_the_line/secured moment must
+        # carry that same status — the prompt keys on status, so a
+        # hole-17 pace status in the event would leave the instruction
+        # dead. (A seeded round exercises the pace-change emission; the
+        # 18th-tee moment is asserted whenever it appears.)
+        eng = RoundEngine(mc_n=8)
+        res = eng.play_round()
+        w59 = [e for e in res.events if e["type"] == "fifty_nine_watch"]
+        for e in w59:
+            self.assertIn("needs", e)
+            self.assertTrue(isinstance(e["needs"], str) and e["needs"])
+            self.assertNotEqual(e["needs"], "—")
+        for e in w59:
+            if e.get("hole") == 18 and e.get("moment") == "59_on_the_line":
+                self.assertEqual(e["status"], "on_the_line")
+            if e.get("hole") == 18 and e.get("moment") == "59_secured":
+                self.assertEqual(e["status"], "secured")
 
 
 class TestConditions(unittest.TestCase):
