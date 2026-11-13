@@ -37,7 +37,8 @@ class Situation:
     ball_x: float
     ball_y: float
     lie: str
-    distance_yd: float          # along-centreline distance to the pin
+    distance_yd: float          # decision distance to the pin: centreline
+                                # arc from the tee, laser distance elsewhere
     distance_straight_yd: float
     elevation_ft: float         # to the target (+ = uphill)
     wind_mph: float             # hole wind speed
@@ -83,6 +84,11 @@ def allowed_shot_types(lie: str, blocked_by_trees: bool = False) -> list:
                     "pitch", "chip"] + (["punch"] if blocked_by_trees else []),
         "rough_light": ["full", "knockdown", "draw", "fade", "layup",
                         "pitch", "chip"],
+        # v3 semi-rough: first cut plays like light rough for shot
+        # availability (spec's lie factors sit between fairway and
+        # rough; the gating table has no between, so light rough wins).
+        "semi": ["full", "knockdown", "draw", "fade", "layup",
+                 "pitch", "chip"],
         "rough_heavy": ["full", "knockdown", "layup", "punch", "pitch", "chip"],
         "bunker_fairway": ["full", "knockdown", "layup"],
         "bunker_green": ["bunker_splash", "bunker_pick"],
@@ -228,6 +234,22 @@ def _reasoning(sit: Situation, cand: Candidate) -> str:
     return "Full shot at the pin — trust the number and commit."
 
 
+def _partial_frac(distance_yd: float, full_carry_yd: float,
+                  floor: float = 0.25) -> float:
+    """Swing fraction for a partial shot that must carry ``distance_yd``.
+
+    Carry does NOT scale with the square of ball speed at partial swings:
+    at lower speeds drag is much lower, so the ball retains speed better
+    and carries further than v^2 predicts (a GW at 0.4 speed carries 27
+    yd, not 122 x 0.16 = 20). Measured across the wedges, carry ~ frac^1.65,
+    so the fraction is (distance / full_carry)^0.6. A linear fraction
+    under-swings badly; a square-root fraction over-swings by ~30% and
+    makes pitches oscillate past the pin. Clamped to [floor, 1.0].
+    """
+    ratio = max(0.0, distance_yd) / max(1.0, full_carry_yd)
+    return min(1.0, max(floor, ratio ** 0.6))
+
+
 def generate_candidates(sit: Situation, golfer) -> list:
     """All (shot_type, club) pairs the §4 gate allows (§5.2 step 1)."""
     allowed = allowed_shot_types(sit.lie, sit.blocked_by_trees)
@@ -264,9 +286,11 @@ def generate_candidates(sit: Situation, golfer) -> list:
     if sit.lie == "bunker_green":
         for club in ("SW", "LW"):
             add("bunker_splash", club, sit.distance_yd,
-                frac=min(1.0, max(0.3, sit.distance_yd / C.CLUBS[club]["carry"])))
+                frac=_partial_frac(sit.distance_yd, C.CLUBS[club]["carry"],
+                                   floor=0.3))
         add("bunker_pick", "SW", sit.distance_yd,
-            frac=min(1.0, max(0.3, sit.distance_yd / C.CLUBS["SW"]["carry"])))
+            frac=_partial_frac(sit.distance_yd, C.CLUBS["SW"]["carry"],
+                               floor=0.3))
         return cands
     if sit.lie == "trees":
         # The hero shot through a gap (§4.4) is deliberately not generated
@@ -280,21 +304,27 @@ def generate_candidates(sit: Situation, golfer) -> list:
     if sit.lie == "fringe":
         add("putt", "putter", 0)
         add("chip", "PW", sit.distance_yd,
-            frac=min(1.0, max(0.25, sit.distance_yd / C.CLUBS["PW"]["carry"])))
+            frac=_partial_frac(sit.distance_yd, C.CLUBS["PW"]["carry"]))
         add("pitch", "SW", sit.distance_yd,
-            frac=min(1.0, max(0.25, sit.distance_yd / C.CLUBS["SW"]["carry"])))
+            frac=_partial_frac(sit.distance_yd, C.CLUBS["SW"]["carry"]))
         return cands
 
     # Full swings: tee, fairway, rough, fairway bunker.
     # On approaches (any non-tee shot) prefer slightly long (§5.6).
     club = choose_club(eff, prefer_long=(sit.lie != "tee"))
     # Short game: inside 100 yd the candidates are pitch/chip, not full irons.
-    if sit.distance_yd <= 100 and sit.lie != "tee":
+    # From 100-140 yd a controlled pitch (3/4 wedge) is also offered — a
+    # full wedge that carries 5-10 yd past the pin runs through the green,
+    # so the decision needs the soft option. Those fall through to the
+    # full-club candidates below; inside 100 yd the pitches are the only
+    # options.
+    if sit.distance_yd <= 140 and sit.lie != "tee":
         for c in ("GW", "SW", "LW"):
             add("pitch", c, sit.distance_yd,
-                frac=min(1.0, max(0.25, sit.distance_yd / C.CLUBS[c]["carry"])))
-        add("chip", "8-iron", sit.distance_yd, frac=0.5)
-        return cands
+                frac=_partial_frac(sit.distance_yd, C.CLUBS[c]["carry"]))
+        if sit.distance_yd <= 100:
+            add("chip", "8-iron", sit.distance_yd, frac=0.5)
+            return cands
 
     if "full" in allowed:
         # Into a strong wind the full high ball is a decision error (§4.3).
@@ -319,7 +349,7 @@ def generate_candidates(sit: Situation, golfer) -> list:
         layup_carry = 200.0 if sit.hole.par == 5 else 150.0
         layup_club = choose_club(layup_carry)
         add("layup", layup_club, layup_carry,
-            frac=min(1.0, layup_carry / C.CLUBS[layup_club]["carry"]))
+            frac=_partial_frac(layup_carry, C.CLUBS[layup_club]["carry"]))
     return cands
 
 
@@ -334,7 +364,9 @@ def _draw_delivery_batch(rng: Rng, club: str, cand: Candidate, n: int,
     if cand.power:
         sig_mult *= 1.25
     speed_mean = spec["speed_mean"] * cand.speed_fraction * (1.04 if cand.power else 1.0)
-    speeds = np.array([rng.gauss_clamped(speed_mean, spec["sig_speed"], 60, 135)
+    lo = max(10.0, speed_mean * 0.75)
+    hi = min(135.0, speed_mean * 1.25)
+    speeds = np.array([rng.gauss_clamped(speed_mean, spec["sig_speed"], lo, hi)
                        for _ in range(n)])
     faces = np.array([C.SHAPE_FACE_BIAS[cand.intended_shape] +
                       rng.gauss(0, spec["sig_face"] * sig_mult) for _ in range(n)])
@@ -481,9 +513,7 @@ def fast_ev(course: Course, sit: Situation, cand: Candidate,
     calibration harness; the broadcast always uses the Monte Carlo.
     """
     # Intended landing: the target point, with nominal miss by distance.
-    prox_ft = {50: 10.0, 100: 14.0, 150: 22.5, 200: 35.5, 250: 41.5}
-    d = sit.distance_yd
-    prox = float(np.interp(d, [50, 100, 150, 200, 250],
+    prox = float(np.interp(sit.distance_yd, [50, 100, 150, 200, 250],
                            [10.0, 14.0, 22.5, 35.5, 41.5]))
     if sit.lie == "rough_light":
         prox *= 1.25
@@ -491,18 +521,36 @@ def fast_ev(course: Course, sit: Situation, cand: Candidate,
         prox *= 1.45
     elif sit.lie == "bunker_fairway":
         prox *= 1.35
-    if cand.shot_type in ("draw", "fade"):
-        prox *= 1.10
-    elif cand.shot_type == "knockdown":
-        prox *= 0.85
     if sit.lie in ("bunker_green",):
         ev = 1 + baseline_strokes("green", 0, prox, adjustments)
         return ev, 0.05
     if sit.distance_yd <= 100 and cand.shot_type in ("pitch", "chip"):
         ev = 1 + baseline_strokes("green", 0, prox, adjustments)
         return ev, 0.03
-    # Intended outcome is on the green at `prox` feet from the pin.
-    ev = 1 + baseline_strokes("green", 0, prox, adjustments)
+    # Does the candidate reach the green? A tee shot or lay-up does not —
+    # its value is the remaining approach, not a make-believe proximity.
+    # (The old version scored every candidate as "on the green at prox",
+    # which made the knockdown's 0.85x prox bonus rank it above the driver
+    # off the tee — a +3 does not hit knockdown 3-wood on every par 4.)
+    carry = cand.intended_carry_yd
+    if carry >= sit.distance_yd:
+        if cand.shot_type in ("draw", "fade"):
+            prox *= 1.10
+        elif cand.shot_type == "knockdown":
+            prox *= 0.85
+        # A full club that carries past the pin lands long and may run
+        # through the green: the expected finish is past the pin, not at
+        # the nominal proximity. A controlled pitch that carries the number
+        # lands at the pin and stops.
+        overshoot_yd = carry - sit.distance_yd
+        if overshoot_yd > 0 and cand.shot_type not in ("pitch", "chip"):
+            prox += overshoot_yd * 3.0 * 0.6
+        ev = 1 + baseline_strokes("green", 0, prox, adjustments)
+    else:
+        remaining = max(0.0, sit.distance_yd - carry)
+        ev = 1 + baseline_strokes("fairway", remaining, 0, adjustments)
+        if cand.shot_type == "knockdown":
+            ev -= 0.05  # lower trajectory holds the fairway better
     risk = 0.10 if sit.hazard else 0.05
     if sit.lie == "rough_heavy":
         risk += 0.08

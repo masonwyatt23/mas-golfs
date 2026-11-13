@@ -99,13 +99,21 @@ LAUNCH_DEG = {
 
 # Smash factor by club class and contact quality (§2.2).
 SMASH_BY_QUALITY = {
-    "driver":    dict(pure=1.49, thin=1.44, chunk=1.31, toe=1.40, heel=1.40, shank=1.10),
-    "fairway":   dict(pure=1.47, thin=1.42, chunk=1.30, toe=1.38, heel=1.38, shank=1.10),
-    "hybrid":    dict(pure=1.44, thin=1.40, chunk=1.29, toe=1.36, heel=1.36, shank=1.10),
-    "long_iron": dict(pure=1.40, thin=1.36, chunk=1.26, toe=1.33, heel=1.33, shank=1.10),
-    "mid_iron":  dict(pure=1.38, thin=1.34, chunk=1.25, toe=1.31, heel=1.31, shank=1.10),
-    "short_iron": dict(pure=1.35, thin=1.31, chunk=1.23, toe=1.29, heel=1.29, shank=1.10),
-    "wedge":     dict(pure=1.30, thin=1.26, chunk=1.20, toe=1.25, heel=1.25, shank=1.10),
+    # NOTE (§3.7): chunk smash falls steeply for short clubs. The spec's
+    # first draft had chunk only ~9% below pure, which left chunked shots
+    # flying as far as pure ones — a fat shot must lose carry. The gradient
+    # is physical: a pure short-iron/wedge shot is already drag-limited,
+    # so a chunk can only lose distance through ball speed, and a fat
+    # wedge digs and decelerates the club far more than a fat driver.
+    # Thin stays close to pure: a thin shot really does keep most of its
+    # speed ("thin to win").
+    "driver":    dict(pure=1.49, thin=1.44, chunk=1.22, toe=1.40, heel=1.40, shank=1.10),
+    "fairway":   dict(pure=1.47, thin=1.42, chunk=1.18, toe=1.38, heel=1.38, shank=1.10),
+    "hybrid":    dict(pure=1.44, thin=1.40, chunk=1.16, toe=1.36, heel=1.36, shank=1.10),
+    "long_iron": dict(pure=1.40, thin=1.36, chunk=1.14, toe=1.33, heel=1.33, shank=1.10),
+    "mid_iron":  dict(pure=1.38, thin=1.34, chunk=1.11, toe=1.31, heel=1.31, shank=1.10),
+    "short_iron": dict(pure=1.35, thin=1.31, chunk=1.05, toe=1.29, heel=1.29, shank=1.10),
+    "wedge":     dict(pure=1.30, thin=1.26, chunk=1.00, toe=1.25, heel=1.25, shank=1.10),
 }
 
 # Spin multiplier by contact quality (§2.2).
@@ -138,6 +146,10 @@ SHAPE_FACE_BIAS = dict(straight=0.0, draw=-1.5, fade=1.5)
 LIE_EFFECTS = {
     "tee":           dict(dist=1.00, spin=1.00, sig=1.00),
     "fairway":       dict(dist=1.00, spin=1.00, sig=1.00),
+    # v3 semi-rough (course-design-v3.md §5.1): first cut blending the
+    # fairway into the rough. Values TO-BE-CONFIRMED — the spec's
+    # suggested factors, not yet validated against the lie table.
+    "semi":          dict(dist=0.97, spin=0.95, sig=1.15),
     "rough_light":   dict(dist=0.97, spin=None, sig=1.15),  # spin: flyer/grabber 50/50
     "rough_heavy":   dict(dist=0.88, spin=0.60, sig=1.35),
     "bunker_fairway": dict(dist=0.97, spin=0.85, sig=1.10),

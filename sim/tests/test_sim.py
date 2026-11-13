@@ -11,8 +11,8 @@ import numpy as np
 from sim import constants as C
 from sim.conditions import (ConditionsEngine, firmness_label,
                            green_spin_factor, roll_mu)
-from sim.course import (WYATT_NATIONAL, Course, championship_variant,
-                        compute_rating_slope)
+from sim.course import (WYATT_NATIONAL, Course, build_wyatt_national_v2,
+                        championship_variant, compute_rating_slope)
 from sim.decisions import (allowed_shot_types, decide, generate_candidates,
                            risk_threshold, Situation)
 from sim.engine import RoundEngine
@@ -69,9 +69,13 @@ class TestPhysics(unittest.TestCase):
             fl = fly_shot(launch)
             carries.append(float(fl.carry_yd[0]))
         mean_carry = sum(carries) / len(carries)
-        # Gapping carry is 268; physics should land within ~10%.
-        self.assertGreater(mean_carry, 240)
-        self.assertLess(mean_carry, 295)
+        # Gapping carry is 268; drawn mean (mishits included) should land
+        # ~260-265. Band tightened Nov 12, 2026 (was 240-295): the old
+        # floor let a real regression pass — the flight model once measured
+        # 240.4 yd mean carry and still passed. A mean below 252 fails
+        # loudly now.
+        self.assertGreater(mean_carry, 252)
+        self.assertLess(mean_carry, 278)
 
     def test_driver_ball_speed(self):
         rng = Rng(7)
@@ -159,8 +163,63 @@ class TestPhysics(unittest.TestCase):
 class TestCourse(unittest.TestCase):
     def test_par_72(self):
         self.assertEqual(WYATT_NATIONAL.par, 72)
-        self.assertEqual(WYATT_NATIONAL.yardage, 7214)
+        self.assertEqual(WYATT_NATIONAL.yardage, 7602)
         self.assertEqual(len(WYATT_NATIONAL.holes), 18)
+        front = sum(h.yardage for h in WYATT_NATIONAL.holes[:9])
+        back = sum(h.yardage for h in WYATT_NATIONAL.holes[9:])
+        self.assertEqual(front, 3808)
+        self.assertEqual(back, 3794)
+
+    def test_v2_preserved_for_calibration_comparison(self):
+        v2 = build_wyatt_national_v2()
+        self.assertEqual(sum(h.yardage for h in v2), 7214)
+        self.assertEqual(sum(h.par for h in v2), 72)
+        self.assertEqual(v2[0].yardage, 412)
+        self.assertEqual(v2[6].bunkers[0].s_yd, 462)  # 7th cross-bunker, v2
+        rating, slope, _ = compute_rating_slope(v2, 72)
+        self.assertAlmostEqual(rating, 74.6, delta=0.3)
+        self.assertAlmostEqual(slope, 138, delta=3)
+
+    def test_v3_hole_data_spot_checks(self):
+        # Yardages per the v3 tables.
+        yardages = [h.yardage for h in WYATT_NATIONAL.holes]
+        self.assertEqual(yardages, [432, 612, 196, 476, 392, 452, 586, 238,
+                                    424, 440, 624, 172, 482, 406, 578, 214,
+                                    448, 430])
+        # Green elevations steepened on the climbs (v3 §5.1).
+        greens = {h.hole: h.elev_green_ft for h in WYATT_NATIONAL.holes}
+        self.assertEqual(greens[1], -10)
+        self.assertEqual(greens[4], 34)
+        self.assertEqual(greens[7], 22)
+        self.assertEqual(greens[11], 34)
+        self.assertEqual(greens[13], 28)
+        self.assertEqual(greens[18], 19)
+        # Bunker moves: 7th cross-bunker stays 90 short of the green.
+        h7 = WYATT_NATIONAL.hole(7)
+        self.assertEqual(h7.bunkers[0].s_yd, 496)
+        self.assertEqual(h7.yardage - h7.bunkers[0].s_yd, 90)
+        # 11th gains a new fairway bunker left at 340.
+        h11 = WYATT_NATIONAL.hole(11)
+        self.assertIn(340, [b.s_yd for b in h11.bunkers])
+        # Greenside bunkers moved out with the greens.
+        self.assertEqual(WYATT_NATIONAL.hole(1).bunkers[1].s_yd, 405)
+        self.assertEqual(WYATT_NATIONAL.hole(18).bunkers[1].s_yd, 405)
+        # Driving-distance bunkers did not move.
+        self.assertEqual(WYATT_NATIONAL.hole(4).bunkers[0].s_yd, 270)
+        self.assertEqual(WYATT_NATIONAL.hole(13).bunkers[0].s_yd, 275)
+        # Green radii grew on the long-approach holes.
+        self.assertEqual(WYATT_NATIONAL.hole(4).green_radius_ft, 45.0)
+        self.assertEqual(WYATT_NATIONAL.hole(11).green_radius_ft, 45.0)
+        self.assertEqual(WYATT_NATIONAL.hole(13).green_radius_ft, 44.0)
+        self.assertEqual(WYATT_NATIONAL.hole(15).green_radius_ft, 44.0)
+        # 13th is the narrowest fairway on the course.
+        self.assertEqual(WYATT_NATIONAL.hole(13).fairway_width_yd, 28.0)
+        # Semi-rough band widths (v3 §5.1).
+        self.assertEqual(WYATT_NATIONAL.hole(5).semi_rough_yd, 7.5)
+        self.assertEqual(WYATT_NATIONAL.hole(6).semi_rough_yd, 7.5)
+        self.assertEqual(WYATT_NATIONAL.hole(13).semi_rough_yd, 5.0)
+        self.assertEqual(WYATT_NATIONAL.hole(17).semi_rough_yd, 5.0)
+        self.assertEqual(WYATT_NATIONAL.hole(1).semi_rough_yd, 7.0)
 
     def test_par_breakdown(self):
         pars = [h.par for h in WYATT_NATIONAL.holes]
@@ -181,12 +240,27 @@ class TestCourse(unittest.TestCase):
         self.assertEqual(WYATT_NATIONAL.determine_lie(hole, 0, 0)[0], "fairway")
         gx, gy = hole.green_centre()
         self.assertEqual(WYATT_NATIONAL.determine_lie(hole, gx, gy)[0], "green")
+        # Semi-rough (v3): fairway half-width 16 + 7-yd band = 23.
+        self.assertEqual(WYATT_NATIONAL.determine_lie(hole, 200, 20)[0],
+                         "semi")
+        self.assertEqual(WYATT_NATIONAL.determine_lie(hole, 200, -20)[0],
+                         "semi")
+        # Just past the semi band is light rough (16 + 7 < 23.5 <= 16 + 8).
+        self.assertEqual(WYATT_NATIONAL.determine_lie(hole, 200, 23.5)[0],
+                         "rough_light")
+        # Past the green, project() clamps s to the green, so the lie is
+        # decided by distance from the green centre: 30 yd past and 20
+        # yd offline is 36 yd from the green — deep rough.
+        self.assertEqual(
+            WYATT_NATIONAL.determine_lie(hole, hole.yardage + 30, 20)[0],
+            "rough_heavy")
         self.assertEqual(WYATT_NATIONAL.determine_lie(hole, 200, 60)[0],
                          "rough_heavy")
 
     def test_lie_batch_matches_scalar(self):
         hole = WYATT_NATIONAL.hole(2)
-        pts = [(0, 0), (200, 10), (300, -30), (578, 0), (100, 80), (250, 0)]
+        pts = [(0, 0), (200, 10), (300, -30), (578, 0), (100, 80), (250, 0),
+               (200, 20), (200, -20), (250, 23.5)]
         xs = [p[0] for p in pts]
         ys = [p[1] for p in pts]
         lies, _, _ = WYATT_NATIONAL.determine_lie_batch(hole, xs, ys)
@@ -410,31 +484,74 @@ class TestRatingSlope(unittest.TestCase):
     def test_wyatt_rating_slope_match_spec(self):
         rating, slope, detail = compute_rating_slope(
             WYATT_NATIONAL.holes, WYATT_NATIONAL.par)
-        self.assertAlmostEqual(rating, 74.6, delta=0.3)
-        self.assertAlmostEqual(slope, 138, delta=3)
+        # v3 recompute (course-design-v3.md §5.1): one number, used
+        # everywhere — 74.9 / 141, replacing the old 74.6 / 138.
+        self.assertAlmostEqual(rating, 74.9, delta=0.3)
+        self.assertAlmostEqual(slope, 141, delta=3)
         self.assertEqual(WYATT_NATIONAL.rating, rating)
         self.assertEqual(WYATT_NATIONAL.slope, slope)
 
     def test_championship_variant_is_harder(self):
-        black = championship_variant()
-        self.assertEqual(black.par, 72)
-        self.assertGreater(black.yardage, WYATT_NATIONAL.yardage)
-        self.assertGreater(black.rating, WYATT_NATIONAL.rating)
-        self.assertGreater(black.slope, WYATT_NATIONAL.slope)
+        # Tournament setup (v3 §5.2): SAME yardage as the v3 base —
+        # v3 is already the championship length — but narrower fairways,
+        # smaller greens, and an extra bunker at 300 on every par 4/5.
+        tourney = championship_variant()
+        self.assertEqual(tourney.par, 72)
+        self.assertEqual(tourney.yardage, WYATT_NATIONAL.yardage)
+        self.assertEqual(tourney.id, "wyatt_national_tournament")
+        self.assertGreater(tourney.rating, WYATT_NATIONAL.rating)
+        self.assertGreater(tourney.slope, WYATT_NATIONAL.slope)
+        for h in tourney.holes:
+            self.assertEqual(h.fairway_width_yd, 26.0)
+            self.assertEqual(h.green_radius_ft, 36.0)
+            if h.par in (4, 5):
+                self.assertIn(300, [b.s_yd for b in h.bunkers])
+        # Yardages unchanged from the v3 base.
+        self.assertEqual([h.yardage for h in tourney.holes],
+                         [h.yardage for h in WYATT_NATIONAL.holes])
 
     def test_differential_uses_course_rating(self):
         # Same score, harder course -> more negative (better) differential.
         d_easy = differential(72, WYATT_NATIONAL.rating, WYATT_NATIONAL.slope)
-        black = championship_variant()
-        d_hard = differential(72, black.rating, black.slope)
+        tourney = championship_variant()
+        d_hard = differential(72, tourney.rating, tourney.slope)
         self.assertLess(d_hard, d_easy)
 
-    def test_black_tees_round_plays(self):
+    def test_tournament_setup_round_plays(self):
         eng = RoundEngine(course=championship_variant(), fast_mode=True)
         res = eng.play_round()
         self.assertEqual(sum(res.hole_scores), res.score)
         self.assertEqual(res.events[0]["course"]["rating"],
                          championship_variant().rating)
+
+
+class TestPartialShots(unittest.TestCase):
+    def test_pitch_fraction_is_calibrated(self):
+        # Carry ~ frac^1.65 at partial speeds (measured), so a 44-yd pitch
+        # with a 122-yd GW needs (44/122)^0.6 = 0.54 of the swing — not the
+        # linear 0.36 and not the sqrt 0.60 (which overshoots ~30%).
+        sit = make_situation(distance_yd=44.0, lie="fairway")
+        cands = generate_candidates(sit, GolferModel())
+        pitches = [c for c in cands if c.shot_type == "pitch"
+                   and c.club == "GW"]
+        self.assertTrue(pitches)
+        self.assertAlmostEqual(pitches[0].speed_fraction, 0.54, delta=0.03)
+
+    def test_pitch_carries_the_number(self):
+        # Regression: a 44-yd pitch once carried 80 yd because the
+        # 60 mph clamp floor in draw_delivery destroyed partial swings.
+        rng = Rng(5)
+        sit = make_situation(distance_yd=44.0, lie="fairway")
+        cands = generate_candidates(sit, GolferModel())
+        pitch = [c for c in cands if c.shot_type == "pitch"
+                 and c.club == "GW"][0]
+        d = draw_delivery(rng, "GW", "pitch", 1.0, "straight", False,
+                          "fairway", pitch.speed_fraction)
+        self.assertLess(d.club_speed_mph, 55.0)
+        launch = delivery_to_launch(d, "GW", "pure", "fairway", 0.0, rng)
+        fl = fly_shot(launch)
+        self.assertGreater(float(fl.carry_yd[0]), 30.0)
+        self.assertLess(float(fl.carry_yd[0]), 60.0)
 
 
 class TestConditionsEffects(unittest.TestCase):
