@@ -123,12 +123,15 @@ red = mat((0.80, 0.10, 0.10))
 club_mat = mat((0.60, 0.60, 0.65), metallic=0.8, roughness=0.3)
 
 # --- Meshes -------------------------------------------------------------------
-# Ground: ONE tile, 120 wide x 300 deep, centred z=-170 (spans z=-320..-20).
-# v9 proved NINE 120x120 tiles render NOTHING (pixel-identical shaded vs
-# unshaded) while v6's SINGLE 120x120 tile rendered green — so the tiling
-# itself breaks it (not the size: 120x120 works alone). One long tile
-# keeps the proven single-mesh path and still reaches the horizon. The
-# camera (z=15) stays in front of the tile's near edge (z=-20).
+# Ground: THREE side-by-side tiles, each 120 wide x 300 deep, centred
+# z=-170 (spans z=-320..-20). v10 proved one 120x300 tile renders (dark
+# green, unshaded) but is too NARROW to fill the frame at distance — the
+# black trapezoid is the sky's dark ground showing on the sides beyond
+# x=±60, where the 120-wide ground doesn't reach. At the green (170 yd)
+# the frame is ~260 yd wide, so the ground needs ~360 yd of width. Three
+# 120-wide tiles side by side (x=-120/0/+120) give 360 yd of width while
+# each tile stays at the proven 120-wide size. One row only (v8/v9's 3x3
+# grid rendered nothing — the z=-40 row contained the camera).
 ground_mesh = box(120, 0.4, 300)
 tee_mesh = box(12, 0.4, 10)
 green_mesh = cyl(GREEN_R, GREEN_R, 0.4, 32)
@@ -183,8 +186,10 @@ node("BusClient", "Node", ".", None, ['script = ExtResource("1")'])
 node("Director", "Node", ".", None, ['script = ExtResource("2")'])
 
 # Ground + hole features.
-# One long ground tile, 120 wide x 300 deep, centred z=-170 (z -320..-20).
-mesh_node("Ground", ground_mesh, grass, 0, -0.2, -170)
+# Three side-by-side ground tiles, 120 wide each, x=-120/0/+120, all
+# centred z=-170 (each spans z -320..-20; together x -180..+180).
+for gx in (-120.0, 0.0, 120.0):
+    mesh_node(f"Ground_{int(gx)}", ground_mesh, grass, gx, -0.2, -170)
 mesh_node("Tee", tee_mesh, fairway, 0, TEE_Y - 0.2, 0)
 mesh_node("Collar", collar_mesh, collar_mat, 0, -0.15, GREEN_Z)
 mesh_node("Green", green_mesh, green_mat, 0, 0, GREEN_Z)
