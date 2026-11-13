@@ -38,6 +38,16 @@ PACK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$PACK_DIR/.." && pwd)"
 RESULTS_DIR="${MLX_VERIFY_RESULTS_DIR:-$PACK_DIR/results}"
 VENV_DIR="${MLX_VERIFY_VENV:-$HOME/.masgolfs/mlx-venv}"
+# Default interpreter for the offline steps (think, merge-ab).
+# ensure_python() refines this to the venv and verifies mlx-lm for the
+# server steps; think never needs the server, but it still needs a
+# Python to run mlx_verify.py (caught 2026-11-13: `think` failed with
+# "PY: unbound variable" because main() skipped ensure_python for it).
+if [[ -x "$VENV_DIR/bin/python" ]]; then
+    PY="$VENV_DIR/bin/python"
+else
+    PY="python3"
+fi
 MODEL="${MLX_VERIFY_MODEL:-mlx-community/Qwen3.5-4B-4bit}"
 MODEL_B="${MLX_VERIFY_MODEL_B:-mlx-community/Qwen3-4B-Instruct-2507-4bit}"
 PORT="${MLX_VERIFY_PORT:-8080}"
