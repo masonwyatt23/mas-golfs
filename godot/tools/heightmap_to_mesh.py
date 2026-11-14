@@ -182,18 +182,15 @@ def main() -> int:
     # Kd into a StandardMaterial3D albedo (shaded). The terrain is sloped,
     # not flat, so it shades like the pines' canopies (which read fine) —
     # unlike the flat ground tile, whose horizontal top face went black.
-    # If the terrain still reads too dark on the Mac frame, the fallback is
-    # to override the material unshaded in the .tscn (see build_hole12.py).
+    # Minimal .mtl (Kd only): extra Ka/Ks/Ns lines tripped the importer's
+    # parser on the Mac (ERR_INVALID_DATA, Nov 13). If the terrain still
+    # reads too dark on the Mac frame, the fallback is to override the
+    # material unshaded in the .tscn (see build_hole12.py).
     mtl_path = os.path.join(outdir, "wyatt-hole12-terrain.mtl")
     with open(mtl_path, "w") as f:
         f.write("# Wyatt National Hole 12 terrain material\n")
         f.write("newmtl terrain_grass\n")
         f.write("Kd 0.28 0.58 0.28\n")
-        f.write("Ka 0.28 0.58 0.28\n")
-        f.write("Ks 0.0\n")
-        f.write("Ns 0.0\n")
-        f.write("d 1.0\n")
-        f.write("illum 1\n")
 
     # --- Write OBJ (Y-up, matches Godot) ------------------------------------
     obj_path = os.path.join(outdir, "wyatt-hole12-terrain.obj")

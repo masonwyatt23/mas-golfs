@@ -219,16 +219,21 @@ node("Director", "Node", ".", None, ['script = ExtResource("2")'])
 # above the terrain's flattened feature discs (tee 7.3, green 0.0),
 # which are coplanar with the old node tops.
 mesh_node("Tee", tee_mesh, fairway, 0, TEE_Y - 0.2 + 0.05, 0)
-# Terrain mesh (LiDAR heightfield) — instanced from the imported OBJ.
-# The .obj imports as a PackedScene (ExtResource 3), so it is instanced
-# as a node, NOT assigned as a MeshInstance3D mesh (a PackedScene is not
-# a Mesh). Identity transform: the OBJ is already in Godot scene units
-# (yards, Y-up, tee at origin). Its green .mtl material shades the
-# slopes; the flat feature discs are covered by the unshaded
-# Tee/Green/Collar above.
-nodes_out.append('[node name="Terrain" parent="." instance=ExtResource("3")]')
-nodes_out.append("transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)")
-nodes_out.append("")
+# Terrain mesh (LiDAR heightfield) — a MeshInstance3D using the imported
+# OBJ mesh. ResourceImporterOBJ imports an .obj as a single Mesh
+# (ArrayMesh), NOT a PackedScene — so the .tscn references it as
+# type="ArrayMesh" and assigns it to a MeshInstance3D's mesh property.
+# (v18 used PackedScene + instance=, which failed: "No loader found for
+# resource (expected type: PackedScene)" and a black frame.) Identity
+# transform: the OBJ is already in Godot scene units (yards, Y-up, tee
+# at origin). Its green .mtl material shades the slopes; the flat
+# feature discs are covered by the unshaded Tee/Green/Collar above.
+# The .mtl green is the terrain's own material; the grass override here
+# is a belt-and-braces unshaded green so the terrain reads even if the
+# .mtl import drops the material.
+node("Terrain", "MeshInstance3D", ".", t(0, 0, 0),
+     ['mesh = ExtResource("3")',
+      f'surface_material_override/0 = SubResource("{grass}")'])
 mesh_node("Collar", collar_mesh, collar_mat, 0, -0.15 + 0.05, GREEN_Z)
 mesh_node("Green", green_mesh, green_mat, 0, 0 + 0.05, GREEN_Z)
 mesh_node("Pond", pond_mesh, water, 0, POND_Y, (POND_Z0 + POND_Z1) / 2)
@@ -269,7 +274,7 @@ os.makedirs(os.path.dirname(OUT), exist_ok=True)
 header = ['[gd_scene load_steps=%d format=3]' % (sub_id[0] + 4), "",
           '[ext_resource type="Script" path="res://scripts/bus_client.gd" id="1"]',
           '[ext_resource type="Script" path="res://scripts/director.gd" id="2"]',
-          '[ext_resource type="PackedScene" path="res://tools/wyatt-hole12-terrain.obj" id="3"]', ""]
+          '[ext_resource type="ArrayMesh" path="res://tools/wyatt-hole12-terrain.obj" id="3"]', ""]
 out_lines = header + subs + nodes_out
 with open(OUT, "w") as f:
     f.write("\n".join(out_lines))
