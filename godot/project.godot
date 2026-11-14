@@ -12,6 +12,15 @@ config/name="Mas Golfs"
 run/main_scene="res://scenes/hole_12.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 
+[autoload]
+
+# v40: Phantom Camera needs its manager as an autoload. The plugin
+# registers it when enabled in the editor, but headless runs never
+# load editor plugins, so the singleton was missing and the host /
+# cameras errored (pcam_host_added / pcam_added on null). Adding it
+# here makes it active at runtime.
+PhantomCameraManager="*res://addons/phantom_camera/scripts/managers/phantom_camera_manager.gd"
+
 [display]
 
 window/size/viewport_width=1920

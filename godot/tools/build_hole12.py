@@ -341,6 +341,14 @@ mesh_node("Tee", tee_mesh, fairway, 0, TEE_Y - 0.2 + 0.05, 0)
 node("Terrain", "MeshInstance3D", ".", t(0, 0, 0),
      ['mesh = ExtResource("3")',
       f'surface_material_override/0 = SubResource("{terrain_pbr}")'])
+# v40: Foreground apron. The LiDAR terrain only spans z +8..-311, so
+# the ground between the tee (z=0) and the camera (z=25) is a void —
+# v39 rendered it black (the bottom ~55% of the frame). This flat
+# apron (320 wide x 32 deep, unshaded fairway green) extends the tee
+# height (y=7.3) from z=+8 back to z=+40, filling the foreground so
+# the camera never sees void. It meets the terrain at z=+8 where the
+# terrain is flat at the tee height.
+mesh_node("Apron", plane(320, 32), fairway, 0, TEE_Y, 24)
 mesh_node("Collar", collar_mesh, collar_mat, 0, -0.15 + 0.05, GREEN_Z)
 mesh_node("Green", green_mesh, green_mat, 0, 0 + 0.05, GREEN_Z)
 mesh_node("Pond", pond_mesh, water, 0, POND_Y, (POND_Z0 + POND_Z1) / 2)

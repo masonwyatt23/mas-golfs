@@ -1,4 +1,4 @@
-[gd_scene load_steps=49 format=3]
+[gd_scene load_steps=50 format=3]
 
 [ext_resource type="Script" path="res://scripts/bus_client.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/director.gd" id="2"]
@@ -192,37 +192,40 @@ fog_density = 0.007
 fog_depth_begin = 60.0
 fog_depth_end = 300.0
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_31"]
+[sub_resource type="PlaneMesh" id="PlaneMesh_31"]
+size = Vector2(320, 32)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_32"]
 top_radius = 0.45
 bottom_radius = 0.45
 height = 0.18
 radial_segments = 16
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_32"]
+[sub_resource type="CylinderMesh" id="CylinderMesh_33"]
 top_radius = 0.14
 bottom_radius = 0.14
 height = 2.091052366632648
 radial_segments = 8
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_33"]
+[sub_resource type="CylinderMesh" id="CylinderMesh_34"]
 top_radius = 0.14
 bottom_radius = 0.14
 height = 1.7642278764377348
 radial_segments = 8
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_34"]
+[sub_resource type="CylinderMesh" id="CylinderMesh_35"]
 top_radius = 0.05
 bottom_radius = 0.05
 height = 1.15433963806152
 radial_segments = 8
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_35"]
+[sub_resource type="CylinderMesh" id="CylinderMesh_36"]
 top_radius = 0.03
 bottom_radius = 0.03
 height = 0.15
 radial_segments = 8
 
-[sub_resource type="SphereMesh" id="SphereMesh_36"]
+[sub_resource type="SphereMesh" id="SphereMesh_37"]
 radius = 0.07
 height = 0.14
 
@@ -252,6 +255,11 @@ surface_material_override/0 = SubResource("StandardMaterial3D_3")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 mesh = ExtResource("3")
 surface_material_override/0 = SubResource("StandardMaterial3D_2")
+
+[node name="Apron" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.3, 24)
+mesh = SubResource("PlaneMesh_31")
+surface_material_override/0 = SubResource("StandardMaterial3D_3")
 
 [node name="Collar" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.09999999999999999, -172.0)
@@ -332,32 +340,32 @@ surface_material_override/0 = SubResource("StandardMaterial3D_12")
 
 [node name="MasCap" type="MeshInstance3D" parent="."]
 transform = Transform3D(1.000, 0.000, 0.000, 0.000, 0.940, -0.342, 0.000, 0.342, 0.940, 0, 10.9, 1.5)
-mesh = SubResource("CylinderMesh_31")
+mesh = SubResource("CylinderMesh_32")
 surface_material_override/0 = SubResource("StandardMaterial3D_10")
 
 [node name="MasArmL" type="MeshInstance3D" parent="."]
 transform = Transform3D(0.000, -0.298, 0.954, 0.598, -0.765, -0.239, -0.802, -0.571, -0.178, 0.275, 9.350, 1.300)
-mesh = SubResource("CylinderMesh_32")
+mesh = SubResource("CylinderMesh_33")
 surface_material_override/0 = SubResource("StandardMaterial3D_10")
 
 [node name="MasArmR" type="MeshInstance3D" parent="."]
 transform = Transform3D(-0.946, -0.325, 0.000, 0.312, -0.907, -0.283, -0.092, 0.268, -0.959, 0.625, 9.350, 1.300)
-mesh = SubResource("CylinderMesh_33")
+mesh = SubResource("CylinderMesh_34")
 surface_material_override/0 = SubResource("StandardMaterial3D_10")
 
 [node name="MasClub" type="MeshInstance3D" parent="."]
 transform = Transform3D(-1.000, -0.000, 0.000, 0.000, -0.953, -0.303, -0.000, 0.303, -0.953, 0.900, 8.000, 0.875)
-mesh = SubResource("CylinderMesh_34")
+mesh = SubResource("CylinderMesh_35")
 surface_material_override/0 = SubResource("StandardMaterial3D_15")
 
 [node name="MasTeePeg" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 7.375, 0.7)
-mesh = SubResource("CylinderMesh_35")
+mesh = SubResource("CylinderMesh_36")
 surface_material_override/0 = SubResource("StandardMaterial3D_13")
 
 [node name="MasBall" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 7.45, 0.7)
-mesh = SubResource("SphereMesh_36")
+mesh = SubResource("SphereMesh_37")
 surface_material_override/0 = SubResource("StandardMaterial3D_13")
 
 [node name="BroadcastCam" type="Camera3D" parent="."]
