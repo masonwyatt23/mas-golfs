@@ -229,7 +229,7 @@ apron_pbr = sub("StandardMaterial3D", {
     "roughness": "0.95",
     "metallic": "0.0",
     "texture_filter": "2",
-    "uv1_scale": "Vector3(80, 8, 1)",
+    "uv1_scale": "Vector3(80, 10, 1)",
 })
 fairway = mat((0.32, 0.62, 0.30), unshaded=True)
 green_mat = mat((0.35, 0.70, 0.32), unshaded=True)
@@ -334,7 +334,7 @@ node("Hole12", "Node3D", None)
 node("Sky3D", "WorldEnvironment", ".", None,
      [f'environment = SubResource("{env}")',
       'script = ExtResource("10")',
-      "current_time = 15.0",
+      "current_time = 16.5",
       "game_time_enabled = false"])
 node("BusClient", "Node", ".", None, ['script = ExtResource("1")'])
 node("Director", "Node", ".", None, ['script = ExtResource("2")'])
@@ -370,16 +370,12 @@ mesh_node("Tee", tee_mesh, fairway, 0, TEE_Y - 0.2 + 0.05, 0)
 node("Terrain", "MeshInstance3D", ".", t(0, 0, 0),
      ['mesh = ExtResource("3")',
       f'surface_material_override/0 = SubResource("{terrain_pbr}")'])
-# v40: Foreground apron. The LiDAR terrain only spans z +8..-311, so
-# the ground between the tee (z=0) and the camera (z=25) is a void —
-# v39 rendered it black (the bottom ~55% of the frame). This flat
-# apron (320 wide x 32 deep) extends the tee height (y=7.3) from z=+8
-# back to z=+40, filling the foreground so the camera never sees void.
-# It meets the terrain at z=+8 where the terrain is flat at the tee
-# height. v41: apron uses apron_pbr (Grass004, tiled every 4 yd via
-# uv1_scale) so it reads as the same grass as the terrain, not a flat
-# bright slab (the v40 unshaded fairway apron dominated the frame).
-mesh_node("Apron", plane(320, 32), apron_pbr, 0, TEE_Y, 24)
+# v44: apron now 320x40 centered at z=20 (spanning z 0..+40) at
+# y=7.25 — it extends 8 yd UNDER the terrain (z 0..+8 overlap) and
+# sits 0.05 below the tee height, so it tucks under the terrain edge
+# and closes the black seam band at z=+8 (v43) without z-fighting
+# (not coplanar). uv1_scale updated to (80, 10) for the 40-yd depth.
+mesh_node("Apron", plane(320, 40), apron_pbr, 0, TEE_Y - 0.05, 20)
 mesh_node("Collar", collar_mesh, collar_mat, 0, -0.15 + 0.05, GREEN_Z)
 mesh_node("Green", green_mesh, green_mat, 0, 0 + 0.05, GREEN_Z)
 mesh_node("Pond", pond_mesh, water, 0, POND_Y, (POND_Z0 + POND_Z1) / 2)

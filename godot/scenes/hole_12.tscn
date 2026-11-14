@@ -39,7 +39,7 @@ normal_scale = 1.0
 roughness = 0.95
 metallic = 0.0
 texture_filter = 2
-uv1_scale = Vector3(80, 8, 1)
+uv1_scale = Vector3(80, 10, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4"]
 albedo_color = Color(0.32, 0.62, 0.3, 1)
@@ -204,7 +204,7 @@ fog_depth_begin = 60.0
 fog_depth_end = 300.0
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_32"]
-size = Vector2(320, 32)
+size = Vector2(320, 40)
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_33"]
 top_radius = 0.45
@@ -245,7 +245,7 @@ height = 0.14
 [node name="Sky3D" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_31")
 script = ExtResource("10")
-current_time = 15.0
+current_time = 16.5
 game_time_enabled = false
 
 [node name="BusClient" type="Node" parent="."]
@@ -268,7 +268,7 @@ mesh = ExtResource("3")
 surface_material_override/0 = SubResource("StandardMaterial3D_2")
 
 [node name="Apron" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.3, 24)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.25, 20)
 mesh = SubResource("PlaneMesh_32")
 surface_material_override/0 = SubResource("StandardMaterial3D_3")
 
