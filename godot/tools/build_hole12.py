@@ -98,6 +98,52 @@ def t(x: float, y: float, z: float) -> str:
     return f"Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, {x}, {y}, {z})"
 
 
+def rx(deg: float) -> tuple[float, float, float, float, float, float,
+                           float, float, float]:
+    """Basis for a rotation about the X axis (pitch). Positive deg tips
+    the +Y axis toward +Z; negative tips it toward -Z (forward, down the
+    hole). Returns the 9 basis numbers for a Transform3D."""
+    import math
+    a = math.radians(deg)
+    c, s = math.cos(a), math.sin(a)
+    return (1, 0, 0, 0, c, s, 0, -s, c)
+
+
+def tr_basis(basis, x: float, y: float, z: float) -> str:
+    b = basis
+    return (f"Transform3D({b[0]:.3f}, {b[1]:.3f}, {b[2]:.3f}, "
+            f"{b[3]:.3f}, {b[4]:.3f}, {b[5]:.3f}, "
+            f"{b[6]:.3f}, {b[7]:.3f}, {b[8]:.3f}, {x}, {y}, {z})")
+
+
+def cyl_between(a, b):
+    """Transform3D + length for a Y-axis cylinder spanning point a to
+    point b (a 3-tuple each). The cylinder is centred at the midpoint
+    with its Y axis along (b-a). Caller creates the cylinder mesh with
+    height == the returned length."""
+    import math
+    ax, ay, az = a
+    bx, by, bz = b
+    d = (bx - ax, by - ay, bz - az)
+    length = math.sqrt(sum(v * v for v in d))
+    y = tuple(v / length for v in d)
+    ref = (1, 0, 0) if abs(y[1]) < 0.9 else (0, 0, 1)
+    x = (y[1] * ref[2] - y[2] * ref[1],
+         y[2] * ref[0] - y[0] * ref[2],
+         y[0] * ref[1] - y[1] * ref[0])
+    xl = math.sqrt(sum(v * v for v in x))
+    x = tuple(v / xl for v in x)
+    z = (y[1] * x[2] - y[2] * x[1],
+         y[2] * x[0] - y[0] * x[2],
+         y[0] * x[1] - y[1] * x[0])
+    mx, my, mz = (ax + bx) / 2, (ay + by) / 2, (az + bz) / 2
+    tf = (f"Transform3D({x[0]:.3f}, {x[1]:.3f}, {x[2]:.3f}, "
+          f"{y[0]:.3f}, {y[1]:.3f}, {y[2]:.3f}, "
+          f"{z[0]:.3f}, {z[1]:.3f}, {z[2]:.3f}, "
+          f"{mx:.3f}, {my:.3f}, {mz:.3f})")
+    return tf, length
+
+
 def mesh_node(name: str, mesh: str, material: str, x: float, y: float,
               z: float) -> None:
     node(name, "MeshInstance3D", ".", t(x, y, z), [
@@ -256,15 +302,55 @@ for i, (px, pz) in enumerate([(-22, -160), (-26, -172), (-20, -182),
     mesh_node(f"PineTrunk{i}", trunk_mesh, trunk_mat, px, 3, pz)
     mesh_node(f"PineCanopy{i}", canopy_mesh, pine_mat, px, 11, pz)
 
-# Mas — a simple standing figure at the tee, facing down the hole (-Z).
-# (Placeholder proportions; the swing-video character replaces this.)
+# Mas — at address over the ball (v23). A golfer bent over a ball reads
+# instantly; the old upright capsule did not. Left-handed, facing -Z
+# (down the hole), feet at z=2 on the tee. All units yards; Mas ~6 ft.
+#   hips (0, 8.9, 2.0); torso tilted 20 deg forward; shoulders (0, 10.22, 1.52)
+#   ball on a tee at (0.25, 7.45, 0.7); grip at (0.25, 8.55, 1.05)
+# Arms and club are cylinders oriented between two points (cyl_between);
+# the torso is a capsule pitched forward with rx(-20). The swing-video
+# character still replaces this eventually, but address is the right
+# silhouette to judge the camera and the hole against.
 node("Mas", "Node3D", ".", t(0, TEE_Y, 2))
-mesh_node("MasBody", body_mesh, shirt, 0, TEE_Y + 1.6, 2)
-mesh_node("MasHead", head_mesh, skin, 0, TEE_Y + 3.3, 2)
+# Legs — planted, vertical.
 mesh_node("MasLegL", leg_mesh, pants, -0.3, TEE_Y + 0.8, 2)
 mesh_node("MasLegR", leg_mesh, pants, 0.3, TEE_Y + 0.8, 2)
-# Club held upright beside him (pose is a stub until the swing rig lands).
-mesh_node("MasClub", club_mesh, club_mat, 0.9, TEE_Y + 1.7, 1.6)
+# Torso — capsule pitched 20 deg forward, centred between hips and shoulders.
+_torso_tf = tr_basis(rx(-20), 0, 9.558, 1.762)
+node("MasBody", "MeshInstance3D", ".", _torso_tf,
+     [f'mesh = SubResource("{body_mesh}")',
+      f'surface_material_override/0 = SubResource("{shirt}")'])
+# Head + cap at the top of the tilted torso.
+mesh_node("MasHead", head_mesh, skin, 0, 10.545, 1.405)
+_cap_mesh = cyl(0.45, 0.45, 0.18, 16)
+_cap_tf = tr_basis(rx(-20), 0, 10.85, 1.32)
+node("MasCap", "MeshInstance3D", ".", _cap_tf,
+     [f'mesh = SubResource("{_cap_mesh}")',
+      f'surface_material_override/0 = SubResource("{shirt}")'])
+# Arms — from shoulders to the grip.
+for _name, _a, _b in [
+        ("MasArmL", (-0.35, 10.15, 1.55), (0.25, 8.55, 1.05)),
+        ("MasArmR", (0.35, 10.15, 1.55), (0.25, 8.55, 1.05))]:
+    _tf, _ln = cyl_between(_a, _b)
+    _m = cyl(0.14, 0.14, _ln, 8)
+    node(_name, "MeshInstance3D", ".", _tf,
+         [f'mesh = SubResource("{_m}")',
+          f'surface_material_override/0 = SubResource("{shirt}")'])
+# Club — from the grip down to the ball.
+_club_tf, _club_len = cyl_between((0.25, 8.55, 1.05), (0.25, 7.45, 0.7))
+_club_m = cyl(0.05, 0.05, _club_len, 8)
+node("MasClub", "MeshInstance3D", ".", _club_tf,
+     [f'mesh = SubResource("{_club_m}")',
+      f'surface_material_override/0 = SubResource("{club_mat}")'])
+# Ball on a tee peg, in front of Mas.
+_tee_m = cyl(0.03, 0.03, 0.15, 8)
+node("MasTeePeg", "MeshInstance3D", ".", t(0.25, TEE_Y + 0.075, 0.7),
+     [f'mesh = SubResource("{_tee_m}")',
+      f'surface_material_override/0 = SubResource("{white}")'])
+_ball_m = sphere(0.07)
+node("MasBall", "MeshInstance3D", ".", t(0.25, TEE_Y + 0.15, 0.7),
+     [f'mesh = SubResource("{_ball_m}")',
+      f'surface_material_override/0 = SubResource("{white}")'])
 
 # Broadcast camera — always behind the golfer, looking down the hole.
 # v3: the v2 camera at (0,14,38) put Mas 36 yd out — tiny in the frame.

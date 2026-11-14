@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3]
+[gd_scene load_steps=41 format=3]
 
 [ext_resource type="Script" path="res://scripts/bus_client.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/director.gd" id="2"]
@@ -182,6 +182,40 @@ fog_density = 0.007
 fog_depth_begin = 60.0
 fog_depth_end = 300.0
 
+[sub_resource type="CylinderMesh" id="CylinderMesh_32"]
+top_radius = 0.45
+bottom_radius = 0.45
+height = 0.18
+radial_segments = 16
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_33"]
+top_radius = 0.14
+bottom_radius = 0.14
+height = 1.7804493814764852
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_34"]
+top_radius = 0.14
+bottom_radius = 0.14
+height = 1.679285562374666
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_35"]
+top_radius = 0.05
+bottom_radius = 0.05
+height = 1.15433963806152
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_36"]
+top_radius = 0.03
+bottom_radius = 0.03
+height = 0.15
+radial_segments = 8
+
+[sub_resource type="SphereMesh" id="SphereMesh_37"]
+radius = 0.07
+height = 0.14
+
 [node name="Hole12" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -302,16 +336,6 @@ surface_material_override/0 = SubResource("StandardMaterial3D_8")
 [node name="Mas" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.3, 2)
 
-[node name="MasBody" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.9, 2)
-mesh = SubResource("CapsuleMesh_25")
-surface_material_override/0 = SubResource("StandardMaterial3D_9")
-
-[node name="MasHead" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10.6, 2)
-mesh = SubResource("SphereMesh_26")
-surface_material_override/0 = SubResource("StandardMaterial3D_11")
-
 [node name="MasLegL" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 8.1, 2)
 mesh = SubResource("CylinderMesh_27")
@@ -322,10 +346,45 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 8.1, 2)
 mesh = SubResource("CylinderMesh_27")
 surface_material_override/0 = SubResource("StandardMaterial3D_10")
 
+[node name="MasBody" type="MeshInstance3D" parent="."]
+transform = Transform3D(1.000, 0.000, 0.000, 0.000, 0.940, -0.342, 0.000, 0.342, 0.940, 0, 9.558, 1.762)
+mesh = SubResource("CapsuleMesh_25")
+surface_material_override/0 = SubResource("StandardMaterial3D_9")
+
+[node name="MasHead" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10.545, 1.405)
+mesh = SubResource("SphereMesh_26")
+surface_material_override/0 = SubResource("StandardMaterial3D_11")
+
+[node name="MasCap" type="MeshInstance3D" parent="."]
+transform = Transform3D(1.000, 0.000, 0.000, 0.000, 0.940, -0.342, 0.000, 0.342, 0.940, 0, 10.85, 1.32)
+mesh = SubResource("CylinderMesh_32")
+surface_material_override/0 = SubResource("StandardMaterial3D_9")
+
+[node name="MasArmL" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.000, -0.298, 0.954, 0.337, -0.899, -0.281, -0.942, -0.322, -0.101, -0.050, 9.350, 1.300)
+mesh = SubResource("CylinderMesh_33")
+surface_material_override/0 = SubResource("StandardMaterial3D_9")
+
+[node name="MasArmR" type="MeshInstance3D" parent="."]
+transform = Transform3D(-0.998, 0.062, 0.000, -0.060, -0.953, -0.298, 0.019, 0.297, -0.955, 0.300, 9.350, 1.300)
+mesh = SubResource("CylinderMesh_34")
+surface_material_override/0 = SubResource("StandardMaterial3D_9")
+
 [node name="MasClub" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 9.0, 1.6)
-mesh = SubResource("CylinderMesh_28")
+transform = Transform3D(-1.000, -0.000, 0.000, 0.000, -0.953, -0.303, -0.000, 0.303, -0.953, 0.250, 8.000, 0.875)
+mesh = SubResource("CylinderMesh_35")
 surface_material_override/0 = SubResource("StandardMaterial3D_14")
+
+[node name="MasTeePeg" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 7.375, 0.7)
+mesh = SubResource("CylinderMesh_36")
+surface_material_override/0 = SubResource("StandardMaterial3D_12")
+
+[node name="MasBall" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 7.45, 0.7)
+mesh = SubResource("SphereMesh_37")
+surface_material_override/0 = SubResource("StandardMaterial3D_12")
 
 [node name="BroadcastCam" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.966, 0.259, 0, -0.259, 0.966, 0, 12, 25)
