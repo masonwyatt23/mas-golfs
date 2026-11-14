@@ -241,27 +241,19 @@ leg_mesh = cyl(0.22, 0.22, 1.6, 8)
 club_mesh = cyl(0.05, 0.05, 3.4, 8)
 
 # --- Sky / environment ---------------------------------------------------------
-sky_mat = sub("ProceduralSkyMaterial", {
-    "sky_top_color": "Color(0.25, 0.45, 0.75, 1)",
-    "sky_horizon_color": "Color(0.95, 0.65, 0.35, 1)",
-    # The sky's ground is a gradient that solves the v19/v20 tension:
-    # ground_bottom (near field, bottom of frame) MATCHES the terrain
-    # grass (0.28,0.58,0.28) so there is no dark band where the terrain
-    # doesn't reach (camera z=25 to terrain back edge z=+8). ground_
-    # horizon (far field, where the hills sit) is DARKER (0.15,0.35,
-    # 0.15) so the bright unshaded terrain still reads as distinct
-    # rolling hills against it. v19 had the gradient backwards (dark
-    # bottom, bright horizon) which made the band; v20 matched both
-    # which erased the hills.
-    "ground_bottom_color": "Color(0.28, 0.58, 0.28, 1)",
-    "ground_horizon_color": "Color(0.15, 0.35, 0.15, 1)",
-    "sun_angle_max": "30.0",
-    "sun_curve": "0.08",
-})
-sky = sub("Sky", {"sky_material": f'SubResource("{sky_mat}")'})
+# v32: Sky3D replaces the ProceduralSkyMaterial + hand-placed Sun. Sky3D
+# (class_name Sky3D extends WorldEnvironment) auto-creates $SunLight
+# (DirectionalLight3D, shadow_enabled = true), $MoonLight, $SkyDome and
+# $TimeOfDay. It replaces the environment's sky with its own shader sky
+# when environment.sky is null (Sky3D.gd:479-485) — so the Environment
+# below has NO sky property; Sky3D creates it at runtime. The v30
+# post-processing (ACES, SSAO, SSIL, SDFGI, glow) stays in the
+# Environment and Sky3D uses it (it only creates a default Environment
+# when environment == null). current_time 17.5 = golden hour.
+# game_time_enabled = false freezes the sun at 17.5 (no drift during
+# the broadcast). The old Sun node is REMOVED — Sky3D brings its own.
 env = sub("Environment", {
     "background_mode": "2",
-    "sky": f'SubResource("{sky}")',
     "ambient_light_source": "2",
     # v2: ambient 1.0 -> 1.25 and exposure 1.0 -> 1.1 to lift the dark
     # ground read in the v1 frame; small, reversible, re-check on capture.
@@ -280,7 +272,6 @@ env = sub("Environment", {
     "sdfgi_enabled": "true",
     # Fog OFF: v12's depth fog washed the whole frame to tan, including
     # the near field — the begin/end distances did not behave as expected.
-    # The green sky-ground (above) is what hides the narrow-ground edge.
     "fog_enabled": "false",
     "fog_mode": "1",
     "fog_light_color": "Color(0.9, 0.65, 0.4, 1)",
@@ -297,21 +288,13 @@ env = sub("Environment", {
 # .obj + .mtl on first open. It is instanced below as "Terrain".
 
 node("Hole12", "Node3D", None)
-node("WorldEnvironment", "WorldEnvironment", ".", None,
-     [f'environment = SubResource("{env}")'])
-# Golden-hour sun: low, warm, from behind-left so the golfer is rim-lit.
-# v31: shadows ON again. v28/v29 turned them off after the terrain + Mas
-# went BLACK — the directional shadow map self-shadowed the terrain at
-# this low sun angle and shaded surfaces in shadow got no ambient. SDFGI
-# (v30) is the fix: it gives shadowed areas bounced light. Bias raised
-# (0.05 -> 0.1) and normal bias 0.1 to reduce self-shadowing acne.
-node("Sun", "DirectionalLight3D", ".",
-     "Transform3D(0.866, 0.353, 0.353, 0, 0.707, -0.707, -0.5, 0.612, 0.612, 0, 40, 20)",
-     ["light_color = Color(1, 0.85, 0.6, 1)",
-      "light_energy = 1.6",
-      "shadow_enabled = true",
-      "shadow_bias = 0.1",
-      "shadow_normal_bias = 0.1"])
+# v32: Sky3D (WorldEnvironment subclass) replaces WorldEnvironment + Sun.
+# It auto-creates $SunLight (shadows ON), $MoonLight, $SkyDome, $TimeOfDay.
+# current_time 17.5 = golden hour; game_time_enabled false freezes it.
+node("Sky3D", "Sky3D", ".", None,
+     [f'environment = SubResource("{env}")',
+      "current_time = 17.5",
+      "game_time_enabled = false"])
 node("BusClient", "Node", ".", None, ['script = ExtResource("1")'])
 node("Director", "Node", ".", None, ['script = ExtResource("2")'])
 
