@@ -1,10 +1,13 @@
-[gd_scene load_steps=42 format=3]
+[gd_scene load_steps=45 format=3]
 
 [ext_resource type="Script" path="res://scripts/bus_client.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/director.gd" id="2"]
 [ext_resource type="ArrayMesh" path="res://tools/wyatt-hole12-terrain.obj" id="3"]
 [ext_resource type="Texture2D" path="res://textures/Grass004_Color.jpg" id="4"]
 [ext_resource type="Texture2D" path="res://textures/Grass004_NormalGL.jpg" id="5"]
+[ext_resource type="PackedScene" path="res://models/pines/Pine_1.gltf" id="6"]
+[ext_resource type="PackedScene" path="res://models/pines/Pine_2.gltf" id="7"]
+[ext_resource type="PackedScene" path="res://models/pines/Pine_3.gltf" id="8"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
 albedo_color = Color(0.28, 0.58, 0.28, 1)
@@ -272,65 +275,29 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.9, 6.2, -166.0)
 mesh = SubResource("PlaneMesh_23")
 surface_material_override/0 = SubResource("StandardMaterial3D_14")
 
-[node name="PineTrunk0" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 3, -160)
-mesh = SubResource("CylinderMesh_24")
-surface_material_override/0 = SubResource("StandardMaterial3D_8")
+[node name="Pine0" type="Node3D" parent="."]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -22, 0.5, -160)
+instance = ExtResource("6")
 
-[node name="PineCanopy0" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 11, -160)
-mesh = SubResource("CylinderMesh_25")
-surface_material_override/0 = SubResource("StandardMaterial3D_9")
+[node name="Pine1" type="Node3D" parent="."]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -26, 0.5, -172)
+instance = ExtResource("7")
 
-[node name="PineTrunk1" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 3, -172)
-mesh = SubResource("CylinderMesh_24")
-surface_material_override/0 = SubResource("StandardMaterial3D_8")
+[node name="Pine2" type="Node3D" parent="."]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -20, 0.5, -182)
+instance = ExtResource("8")
 
-[node name="PineCanopy1" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 11, -172)
-mesh = SubResource("CylinderMesh_25")
-surface_material_override/0 = SubResource("StandardMaterial3D_9")
+[node name="Pine3" type="Node3D" parent="."]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 22, 0.5, -160)
+instance = ExtResource("6")
 
-[node name="PineTrunk2" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 3, -182)
-mesh = SubResource("CylinderMesh_24")
-surface_material_override/0 = SubResource("StandardMaterial3D_8")
+[node name="Pine4" type="Node3D" parent="."]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 26, 0.5, -172)
+instance = ExtResource("7")
 
-[node name="PineCanopy2" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 11, -182)
-mesh = SubResource("CylinderMesh_25")
-surface_material_override/0 = SubResource("StandardMaterial3D_9")
-
-[node name="PineTrunk3" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 3, -160)
-mesh = SubResource("CylinderMesh_24")
-surface_material_override/0 = SubResource("StandardMaterial3D_8")
-
-[node name="PineCanopy3" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 11, -160)
-mesh = SubResource("CylinderMesh_25")
-surface_material_override/0 = SubResource("StandardMaterial3D_9")
-
-[node name="PineTrunk4" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 3, -172)
-mesh = SubResource("CylinderMesh_24")
-surface_material_override/0 = SubResource("StandardMaterial3D_8")
-
-[node name="PineCanopy4" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 11, -172)
-mesh = SubResource("CylinderMesh_25")
-surface_material_override/0 = SubResource("StandardMaterial3D_9")
-
-[node name="PineTrunk5" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 3, -182)
-mesh = SubResource("CylinderMesh_24")
-surface_material_override/0 = SubResource("StandardMaterial3D_8")
-
-[node name="PineCanopy5" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 11, -182)
-mesh = SubResource("CylinderMesh_25")
-surface_material_override/0 = SubResource("StandardMaterial3D_9")
+[node name="Pine5" type="Node3D" parent="."]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 20, 0.5, -182)
+instance = ExtResource("8")
 
 [node name="Mas" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.3, 2)

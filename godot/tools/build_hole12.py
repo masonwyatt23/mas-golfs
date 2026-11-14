@@ -335,10 +335,20 @@ node("Flag", "MeshInstance3D", ".",
       f'surface_material_override/0 = SubResource("{red}")'])
 
 # Pines framing the green (both sides).
+# v34: Quaternius Stylized Nature MegaKit pines (CC0, glTF) replace the
+# cone pines. Pine_1/2/3 cycle across the 6 positions. The glTF trees
+# are ~7.3m tall (Y -0.24..7.1); at scale 2.0 they stand ~14.7 yd,
+# matching the old cone pines (~17 yd). Base sits at y=0.5 so the
+# trunk bottom (-0.24 * 2 = -0.48) lands at ~0.02, just above the
+# terrain (green is flat y=0). The glTFs are PackedScene ext_resources
+# (ids 6-8); their textures (Bark_NormalTree, Leaf_Pine_C) sit beside
+# them in res://models/pines/ so the relative URIs resolve.
 for i, (px, pz) in enumerate([(-22, -160), (-26, -172), (-20, -182),
                               (22, -160), (26, -172), (20, -182)]):
-    mesh_node(f"PineTrunk{i}", trunk_mesh, trunk_mat, px, 3, pz)
-    mesh_node(f"PineCanopy{i}", canopy_mesh, pine_mat, px, 11, pz)
+    _pine_id = ["6", "7", "8"][i % 3]
+    node(f"Pine{i}", "Node3D", ".",
+         f"Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, {px}, 0.5, {pz})",
+         [f'instance = ExtResource("{_pine_id}")'])
 
 # Mas — at address over the ball (v23). A golfer bent over a ball reads
 # instantly; the old upright capsule did not. Left-handed, facing -Z
@@ -424,12 +434,15 @@ node("TeeCam", "PhantomCamera3D", ".", t(0, 12, 25),
       "tween_on_load = false"])
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
-header = ['[gd_scene load_steps=%d format=3]' % (sub_id[0] + 6), "",
+header = ['[gd_scene load_steps=%d format=3]' % (sub_id[0] + 9), "",
           '[ext_resource type="Script" path="res://scripts/bus_client.gd" id="1"]',
           '[ext_resource type="Script" path="res://scripts/director.gd" id="2"]',
           '[ext_resource type="ArrayMesh" path="res://tools/wyatt-hole12-terrain.obj" id="3"]',
           '[ext_resource type="Texture2D" path="res://textures/Grass004_Color.jpg" id="4"]',
-          '[ext_resource type="Texture2D" path="res://textures/Grass004_NormalGL.jpg" id="5"]', ""]
+          '[ext_resource type="Texture2D" path="res://textures/Grass004_NormalGL.jpg" id="5"]',
+          '[ext_resource type="PackedScene" path="res://models/pines/Pine_1.gltf" id="6"]',
+          '[ext_resource type="PackedScene" path="res://models/pines/Pine_2.gltf" id="7"]',
+          '[ext_resource type="PackedScene" path="res://models/pines/Pine_3.gltf" id="8"]', ""]
 out_lines = header + subs + nodes_out
 with open(OUT, "w") as f:
     f.write("\n".join(out_lines))
