@@ -483,14 +483,25 @@ node("BroadcastCam", "Camera3D", ".",
 # is already at the follow position (no opening tween in the capture).
 node("PhantomCameraHost", "Node", "BroadcastCam",
      None, ['script = ExtResource("12")'])
-node("TeeCam", "Camera3D", ".", t(0, 12, 25),
+# v46: TeeCam rotation fix. v45 proved the manager now works, but
+# the framing went sky-heavy: TeeCam's look_at_mode=2 (look at Green)
+# gives only ~1.5 deg down-pitch (the Green is 172 yd away and nearly
+# level with the camera), so the horizon sits mid-frame and the sky
+# fills the top half. A look-at always centres its target, but the
+# broadcast composition needs the Green in the UPPER third, which is
+# what the BroadcastCam's fixed 15 deg pitch does. So TeeCam now uses
+# look_at_mode=0 (NONE) and carries the same 15 deg pitch transform
+# as BroadcastCam; follow_mode=2 still moves it to follow Mas, but
+# the rotation stays fixed at 15 deg down. That is the v27/v43
+# framing, now with a working follow.
+node("TeeCam", "Camera3D", ".",
+     "Transform3D(1, 0, 0, 0, 0.966, 0.259, 0, -0.259, 0.966, 0, 12, 25)",
      ['script = ExtResource("11")',
       "priority = 1",
       "follow_mode = 2",
       'follow_target = NodePath("../Mas")',
       "follow_offset = Vector3(0, 4.7, 23)",
-      "look_at_mode = 2",
-      'look_at_target = NodePath("../Green")',
+      "look_at_mode = 0",
       "tween_on_load = false"])
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)

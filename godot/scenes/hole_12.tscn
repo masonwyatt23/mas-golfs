@@ -382,12 +382,11 @@ current = true
 script = ExtResource("12")
 
 [node name="TeeCam" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 12, 25)
+transform = Transform3D(1, 0, 0, 0, 0.966, 0.259, 0, -0.259, 0.966, 0, 12, 25)
 script = ExtResource("11")
 priority = 1
 follow_mode = 2
 follow_target = NodePath("../Mas")
 follow_offset = Vector3(0, 4.7, 23)
-look_at_mode = 2
-look_at_target = NodePath("../Green")
+look_at_mode = 0
 tween_on_load = false
