@@ -293,11 +293,18 @@ env = sub("Environment", {
 # .obj + .mtl on first open. It is instanced below as "Terrain".
 
 node("Hole12", "Node3D", None)
-# v32: Sky3D (WorldEnvironment subclass) replaces WorldEnvironment + Sun.
-# It auto-creates $SunLight (shadows ON), $MoonLight, $SkyDome, $TimeOfDay.
-# current_time 17.5 = golden hour; game_time_enabled false freezes it.
-node("Sky3D", "Sky3D", ".", None,
+# v39: attach the addon scripts to BASE-type nodes instead of using
+# the class names. The diag proved load() returns valid GDScript but
+# ClassDB NEVER gets the addon class_names (not in -s mode, not in a
+# main-scene run, not after a .godot rebuild) — so type="Sky3D" /
+# type="PhantomCamera3D" can never instantiate headless. A
+# WorldEnvironment + Sky3D.gd IS a Sky3D; a Camera3D +
+# phantom_camera_3d.gd IS a PhantomCamera3D; a Node +
+# phantom_camera_host.gd IS a PhantomCameraHost. Script attachment
+# needs only the script resource, not the ClassDB.
+node("Sky3D", "WorldEnvironment", ".", None,
      [f'environment = SubResource("{env}")',
+      'script = ExtResource("10")',
       "current_time = 15.0",
       "game_time_enabled = false"])
 node("BusClient", "Node", ".", None, ['script = ExtResource("1")'])
@@ -434,9 +441,11 @@ node("BroadcastCam", "Camera3D", ".",
 # follow_offset is relative to Mas at (0, 7.3, 2): (0, 4.7, 23) puts
 # the camera at (0, 12, 25). tween_on_load = false so the first frame
 # is already at the follow position (no opening tween in the capture).
-node("PhantomCameraHost", "PhantomCameraHost", "BroadcastCam")
-node("TeeCam", "PhantomCamera3D", ".", t(0, 12, 25),
-     ["priority = 1",
+node("PhantomCameraHost", "Node", "BroadcastCam",
+     None, ['script = ExtResource("12")'])
+node("TeeCam", "Camera3D", ".", t(0, 12, 25),
+     ['script = ExtResource("11")',
+      "priority = 1",
       "follow_mode = 2",
       'follow_target = NodePath("../Mas")',
       "follow_offset = Vector3(0, 4.7, 23)",
@@ -445,7 +454,7 @@ node("TeeCam", "PhantomCamera3D", ".", t(0, 12, 25),
       "tween_on_load = false"])
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
-header = ['[gd_scene load_steps=%d format=3]' % (sub_id[0] + 10), "",
+header = ['[gd_scene load_steps=%d format=3]' % (sub_id[0] + 13), "",
           '[ext_resource type="Script" path="res://scripts/bus_client.gd" id="1"]',
           '[ext_resource type="Script" path="res://scripts/director.gd" id="2"]',
           '[ext_resource type="ArrayMesh" path="res://tools/wyatt-hole12-terrain.obj" id="3"]',
@@ -454,7 +463,10 @@ header = ['[gd_scene load_steps=%d format=3]' % (sub_id[0] + 10), "",
           '[ext_resource type="PackedScene" path="res://models/pines/Pine_1.gltf" id="6"]',
           '[ext_resource type="PackedScene" path="res://models/pines/Pine_2.gltf" id="7"]',
           '[ext_resource type="PackedScene" path="res://models/pines/Pine_3.gltf" id="8"]',
-          '[ext_resource type="Script" path="res://tools/capture_node.gd" id="9"]', ""]
+          '[ext_resource type="Script" path="res://tools/capture_node.gd" id="9"]',
+          '[ext_resource type="Script" path="res://addons/sky_3d/src/Sky3D.gd" id="10"]',
+          '[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="11"]',
+          '[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="12"]', ""]
 out_lines = header + subs + nodes_out
 with open(OUT, "w") as f:
     f.write("\n".join(out_lines))
