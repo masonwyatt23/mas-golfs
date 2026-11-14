@@ -250,9 +250,18 @@ env = sub("Environment", {
     # v2: ambient 1.0 -> 1.25 and exposure 1.0 -> 1.1 to lift the dark
     # ground read in the v1 frame; small, reversible, re-check on capture.
     "ambient_light_energy": "1.25",
-    "tonemap_mode": "2",
+    # v30 (post-processing pass): ACES tonemap (3) instead of Filmic (2) —
+    # better highlight rolloff for the golden-hour sun. SSAO + SSIL add
+    # contact shadows and bounced light. SDFGI is the specific fix for
+    # the black-terrain shadow failure (v2/v21/v28): it gives shadowed
+    # areas bounced light instead of black. These are all built into
+    # Godot 4.7 Forward+ — no addon needed. Glow was already on.
+    "tonemap_mode": "3",
     "tonemap_exposure": "1.1",
     "glow_enabled": "true",
+    "ssao_enabled": "true",
+    "ssil_enabled": "true",
+    "sdfgi_enabled": "true",
     # Fog OFF: v12's depth fog washed the whole frame to tan, including
     # the near field — the begin/end distances did not behave as expected.
     # The green sky-ground (above) is what hides the narrow-ground edge.
