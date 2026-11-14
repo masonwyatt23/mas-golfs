@@ -348,47 +348,50 @@ node("MasBody", "MeshInstance3D", ".", _torso_tf,
      [f'mesh = SubResource("{body_mesh}")',
       f'surface_material_override/0 = SubResource("{shirt}")'])
 # Head + cap at the top of the tilted torso.
-mesh_node("MasHead", head_mesh, skin, 0, 10.545, 1.405)
+# v27: head raised and moved back (+Z) so it peeks above the torso from
+# behind; the v23 head sat forward of the shoulders and hid behind them.
+mesh_node("MasHead", head_mesh, skin, 0, 10.6, 1.55)
 _cap_mesh = cyl(0.45, 0.45, 0.18, 16)
-_cap_tf = tr_basis(rx(-20), 0, 10.85, 1.32)
+_cap_tf = tr_basis(rx(-20), 0, 10.9, 1.5)
 node("MasCap", "MeshInstance3D", ".", _cap_tf,
      [f'mesh = SubResource("{_cap_mesh}")',
       f'surface_material_override/0 = SubResource("{shirt}")'])
-# Arms — from shoulders to the grip.
+# Arms — from shoulders to the grip (grip follows the ball to x=0.9).
 for _name, _a, _b in [
-        ("MasArmL", (-0.35, 10.15, 1.55), (0.25, 8.55, 1.05)),
-        ("MasArmR", (0.35, 10.15, 1.55), (0.25, 8.55, 1.05))]:
+        ("MasArmL", (-0.35, 10.15, 1.55), (0.9, 8.55, 1.05)),
+        ("MasArmR", (0.35, 10.15, 1.55), (0.9, 8.55, 1.05))]:
     _tf, _ln = cyl_between(_a, _b)
     _m = cyl(0.14, 0.14, _ln, 8)
     node(_name, "MeshInstance3D", ".", _tf,
          [f'mesh = SubResource("{_m}")',
           f'surface_material_override/0 = SubResource("{shirt}")'])
 # Club — from the grip down to the ball.
-_club_tf, _club_len = cyl_between((0.25, 8.55, 1.05), (0.25, 7.45, 0.7))
+_club_tf, _club_len = cyl_between((0.9, 8.55, 1.05), (0.9, 7.45, 0.7))
 _club_m = cyl(0.05, 0.05, _club_len, 8)
 node("MasClub", "MeshInstance3D", ".", _club_tf,
      [f'mesh = SubResource("{_club_m}")',
       f'surface_material_override/0 = SubResource("{club_mat}")'])
 # Ball on a tee peg, in front of Mas.
+# v27: ball moved to x=0.9 (outside the torso's right edge) so the club
+# sticks out beyond the torso silhouette and reads from behind.
 _tee_m = cyl(0.03, 0.03, 0.15, 8)
-node("MasTeePeg", "MeshInstance3D", ".", t(0.25, TEE_Y + 0.075, 0.7),
+node("MasTeePeg", "MeshInstance3D", ".", t(0.9, TEE_Y + 0.075, 0.7),
      [f'mesh = SubResource("{_tee_m}")',
       f'surface_material_override/0 = SubResource("{white}")'])
 _ball_m = sphere(0.07)
-node("MasBall", "MeshInstance3D", ".", t(0.25, TEE_Y + 0.15, 0.7),
+node("MasBall", "MeshInstance3D", ".", t(0.9, TEE_Y + 0.15, 0.7),
      [f'mesh = SubResource("{_ball_m}")',
       f'surface_material_override/0 = SubResource("{white}")'])
 
 # Broadcast camera — always behind the golfer, looking down the hole.
-# v26: offset 6 yd right (down-the-line view), aimed at a ground point
-# 20 yd past the tee (0,0,-20). v25 aimed AT Mas from 22 yd out, which
-# made him huge, cut off at the frame edge, and left the horizon high
-# with a mostly blue sky. Aiming at a point ~48 yd horizontally out
-# gives a ~14 deg pitch (the v22 framing) while the 6 yd offset shows
-# the address pose in partial profile — the ball/club sit on Mas's
-# right (+X) side, which faces this camera.
+# v27: REVERT to the v22 dead-behind camera (0,12,25), 15 deg pitch.
+# The offset cameras (v24-v26) kept breaking the framing — Mas at the
+# frame edge, too much blue sky, the green tiny. The v22 framing (Mas
+# centred, green in the upper third, warm horizon) is the right one;
+# the address pose now reads from behind instead, because the ball and
+# club sit at x=0.9, outside the torso silhouette. FOV 50.
 node("BroadcastCam", "Camera3D", ".",
-     look_at((6, 12, 28), (0, 0, -20)),
+     "Transform3D(1, 0, 0, 0, 0.966, 0.259, 0, -0.259, 0.966, 0, 12, 25)",
      ["fov = 50.0", "current = true"])
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
