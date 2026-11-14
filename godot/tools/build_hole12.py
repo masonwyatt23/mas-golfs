@@ -388,12 +388,21 @@ node("Flag", "MeshInstance3D", ".",
 # terrain (green is flat y=0). The glTFs are PackedScene ext_resources
 # (ids 6-8); their textures (Bark_NormalTree, Leaf_Pine_C) sit beside
 # them in res://models/pines/ so the relative URIs resolve.
+# v42 DIAGNOSTIC: the pines are not visible in v41 (no errors, .scn
+# files exist). One pine (Pine_1, scale 3.0) is moved to the tee at
+# (-6, 0.5, -6), right next to Mas and clearly in frame, to prove
+# whether the glTF renders at all and whether the leaf alpha (cutout)
+# works. If it shows, the green pines are a scale/placement/hiding
+# issue; if it does not, the glTF import is broken. REMOVE after diag.
 for i, (px, pz) in enumerate([(-22, -160), (-26, -172), (-20, -182),
                               (22, -160), (26, -172), (20, -182)]):
     _pine_id = ["6", "7", "8"][i % 3]
     node(f"Pine{i}", "Node3D", ".",
          f"Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, {px}, 0.5, {pz})",
          [f'instance = ExtResource("{_pine_id}")'])
+node("PineDiag", "Node3D", ".",
+     "Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, -6, 0.5, -6)",
+     ['instance = ExtResource("6")'])
 
 # Mas — at address over the ball (v23). A golfer bent over a ball reads
 # instantly; the old upright capsule did not. Left-handed, facing -Z

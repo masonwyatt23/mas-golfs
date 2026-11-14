@@ -326,6 +326,10 @@ instance = ExtResource("7")
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 20, 0.5, -182)
 instance = ExtResource("8")
 
+[node name="PineDiag" type="Node3D" parent="."]
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, -6, 0.5, -6)
+instance = ExtResource("6")
+
 [node name="Mas" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.3, 2)
 
