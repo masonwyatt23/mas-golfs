@@ -404,6 +404,24 @@ node("MasBall", "MeshInstance3D", ".", t(0.9, TEE_Y + 0.15, 0.7),
 node("BroadcastCam", "Camera3D", ".",
      "Transform3D(1, 0, 0, 0, 0.966, 0.259, 0, -0.259, 0.966, 0, 12, 25)",
      ["fov = 50.0", "current = true"])
+# v33: Phantom Camera (Cinemachine-style broadcast camera). The host is
+# a child of the Camera3D; it drives the Camera3D from the highest-
+# priority PhantomCamera3D in the scene. TeeCam follows Mas (the
+# golfer) with the dead-behind offset and looks at the Green — the same
+# framing as the hand-written camera above, but now the camera FOLLOWS
+# Mas when he moves (swing, ball flight) and can tween tee->green.
+# follow_offset is relative to Mas at (0, 7.3, 2): (0, 4.7, 23) puts
+# the camera at (0, 12, 25). tween_on_load = false so the first frame
+# is already at the follow position (no opening tween in the capture).
+node("PhantomCameraHost", "PhantomCameraHost", "BroadcastCam")
+node("TeeCam", "PhantomCamera3D", ".", t(0, 12, 25),
+     ["priority = 1",
+      "follow_mode = 2",
+      'follow_target = NodePath("../Mas")',
+      "follow_offset = Vector3(0, 4.7, 23)",
+      "look_at_mode = 2",
+      'look_at_target = NodePath("../Green")',
+      "tween_on_load = false"])
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 header = ['[gd_scene load_steps=%d format=3]' % (sub_id[0] + 6), "",

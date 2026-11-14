@@ -389,3 +389,15 @@ surface_material_override/0 = SubResource("StandardMaterial3D_13")
 transform = Transform3D(1, 0, 0, 0, 0.966, 0.259, 0, -0.259, 0.966, 0, 12, 25)
 fov = 50.0
 current = true
+
+[node name="PhantomCameraHost" type="PhantomCameraHost" parent="BroadcastCam"]
+
+[node name="TeeCam" type="PhantomCamera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 12, 25)
+priority = 1
+follow_mode = 2
+follow_target = NodePath("../Mas")
+follow_offset = Vector3(0, 4.7, 23)
+look_at_mode = 2
+look_at_target = NodePath("../Green")
+tween_on_load = false
