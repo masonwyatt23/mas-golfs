@@ -172,7 +172,7 @@ radial_segments = 8
 [sub_resource type="Environment" id="Environment_30"]
 background_mode = 2
 ambient_light_source = 2
-ambient_light_energy = 1.25
+ambient_light_energy = 2.0
 tonemap_mode = 3
 tonemap_exposure = 1.1
 glow_enabled = true
@@ -226,7 +226,7 @@ height = 0.14
 
 [node name="Sky3D" type="Sky3D" parent="."]
 environment = SubResource("Environment_30")
-current_time = 17.5
+current_time = 15.0
 game_time_enabled = false
 
 [node name="BusClient" type="Node" parent="."]

@@ -247,17 +247,22 @@ club_mesh = cyl(0.05, 0.05, 3.4, 8)
 # $TimeOfDay. It replaces the environment's sky with its own shader sky
 # when environment.sky is null (Sky3D.gd:479-485) — so the Environment
 # below has NO sky property; Sky3D creates it at runtime. The v30
-# post-processing (ACES, SSAO, SSIL, SDFGI, glow) stays in the
-# Environment and Sky3D uses it (it only creates a default Environment
-# when environment == null). current_time 17.5 = golden hour.
-# game_time_enabled = false freezes the sun at 17.5 (no drift during
+# v35: current_time 17.5 was BLACK — Sky3D's TimeOfDay defaults to
+# lat 16, lon 108, and at 17.5h the sun is at/below the horizon there:
+# dark sky, weak light, and every shaded surface (PBR terrain, Mas,
+# pines) rendered black (the v28 self-shadow failure, live for the
+# first time — v31/v32/v33 were never actually pulled by the Mac, so
+# their "no visible change" captures were v30). current_time 15.0 =
+# mid-afternoon, sun high, bright sky, short shadows. Ambient 1.25 ->
+# 2.0 as a safety net so shaded surfaces are never pitch black.
+# game_time_enabled = false freezes the sun at 15.0 (no drift during
 # the broadcast). The old Sun node is REMOVED — Sky3D brings its own.
 env = sub("Environment", {
     "background_mode": "2",
     "ambient_light_source": "2",
     # v2: ambient 1.0 -> 1.25 and exposure 1.0 -> 1.1 to lift the dark
     # ground read in the v1 frame; small, reversible, re-check on capture.
-    "ambient_light_energy": "1.25",
+    "ambient_light_energy": "2.0",
     # v30 (post-processing pass): ACES tonemap (3) instead of Filmic (2) —
     # better highlight rolloff for the golden-hour sun. SSAO + SSIL add
     # contact shadows and bounced light. SDFGI is the specific fix for
@@ -293,7 +298,7 @@ node("Hole12", "Node3D", None)
 # current_time 17.5 = golden hour; game_time_enabled false freezes it.
 node("Sky3D", "Sky3D", ".", None,
      [f'environment = SubResource("{env}")',
-      "current_time = 17.5",
+      "current_time = 15.0",
       "game_time_enabled = false"])
 node("BusClient", "Node", ".", None, ['script = ExtResource("1")'])
 node("Director", "Node", ".", None, ['script = ExtResource("2")'])
