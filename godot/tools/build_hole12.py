@@ -380,12 +380,16 @@ node("MasBall", "MeshInstance3D", ".", t(0.25, TEE_Y + 0.15, 0.7),
       f'surface_material_override/0 = SubResource("{white}")'])
 
 # Broadcast camera — always behind the golfer, looking down the hole.
-# v24: offset 7 yd to the right of the target line (down-the-line view)
-# and aimed at the green with look_at. A dead-behind camera hides the
-# address pose's arms/club/ball behind the torso (v23); the offset shows
-# Mas in partial profile so the pose reads. FOV 50.
+# v25: offset 4 yd right of the target line (down-the-line view) and
+# aimed AT Mas (0,8,0), not at the green. v24 aimed at the green
+# (197 yd out), which gave a ~3.5 deg pitch — too shallow, so the frame
+# was mostly blue sky and the green sat tiny at centre. Aiming at Mas
+# gives a ~10 deg pitch: Mas centred and readable, the green in the
+# upper third, the warm horizon band back. The 4 yd offset (not 7)
+# keeps Mas from drifting to the frame edge while still showing the
+# address pose in partial profile.
 node("BroadcastCam", "Camera3D", ".",
-     look_at((7, 12, 25), (0, 0, -172)),
+     look_at((4, 12, 22), (0, 8, 0)),
      ["fov = 50.0", "current = true"])
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
