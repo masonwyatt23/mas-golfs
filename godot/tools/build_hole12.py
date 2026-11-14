@@ -229,14 +229,15 @@ mesh_node("Tee", tee_mesh, fairway, 0, TEE_Y - 0.2 + 0.05, 0)
 # (v18 used PackedScene + instance=, which failed: "No loader found for
 # resource (expected type: PackedScene)" and a black frame.) Identity
 # transform: the OBJ is already in Godot scene units (yards, Y-up, tee
-# at origin). Its green .mtl material shades the slopes; the flat
-# feature discs are covered by the unshaded Tee/Green/Collar above.
-# The .mtl green is the terrain's own material; the grass override here
-# is a belt-and-braces unshaded green so the terrain reads even if the
-# .mtl import drops the material.
+# at origin). The terrain uses its own .mtl shaded green material (Kd
+# 0.28,0.58,0.28) — the slopes catch light and shadow, which is what
+# makes the elevation READ as 3D. (v20 put an unshaded grass override
+# on the Terrain node; unshaded + uniform color erased all depth, so
+# the hills vanished into the flat sky-ground.) The flat feature discs
+# are covered by the unshaded Tee/Green/Collar nodes, so the shaded
+# terrain's only flat spots are hidden.
 node("Terrain", "MeshInstance3D", ".", t(0, 0, 0),
-     ['mesh = ExtResource("3")',
-      f'surface_material_override/0 = SubResource("{grass}")'])
+     ['mesh = ExtResource("3")'])
 mesh_node("Collar", collar_mesh, collar_mat, 0, -0.15 + 0.05, GREEN_Z)
 mesh_node("Green", green_mesh, green_mat, 0, 0 + 0.05, GREEN_Z)
 mesh_node("Pond", pond_mesh, water, 0, POND_Y, (POND_Z0 + POND_Z1) / 2)

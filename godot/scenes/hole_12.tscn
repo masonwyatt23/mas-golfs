@@ -207,7 +207,6 @@ surface_material_override/0 = SubResource("StandardMaterial3D_2")
 [node name="Terrain" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 mesh = ExtResource("3")
-surface_material_override/0 = SubResource("StandardMaterial3D_1")
 
 [node name="Collar" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.09999999999999999, -172.0)
