@@ -155,12 +155,15 @@ club_mesh = cyl(0.05, 0.05, 3.4, 8)
 sky_mat = sub("ProceduralSkyMaterial", {
     "sky_top_color": "Color(0.25, 0.45, 0.75, 1)",
     "sky_horizon_color": "Color(0.95, 0.65, 0.35, 1)",
-    # The sky's ground is GREEN: the 120-wide ground tile cannot fill the
-    # frame at distance, and the sky's ground shows on the sides. Green
-    # sky-ground reads as the course extending to the horizon (the tile
-    # supplies near-field detail); the old warm horizon color left a
-    # black/tan trapezoid. Fog is OFF (v12): it washed the whole frame.
-    "ground_bottom_color": "Color(0.12, 0.30, 0.12, 1)",
+    # The sky's ground is GREEN and matches the terrain grass exactly:
+    # the terrain mesh only spans z +8..-311, so the near field between
+    # the camera (z=25) and the terrain's back edge (z=+8) shows the
+    # sky's ground. If the sky ground is darker than the terrain it
+    # reads as a big dark band across the bottom of the frame (v19).
+    # Matching the terrain grass (0.28,0.58,0.28) makes the ground read
+    # as one continuous course; the terrain's rolling hills still give
+    # the topography in the mid/background.
+    "ground_bottom_color": "Color(0.28, 0.58, 0.28, 1)",
     "ground_horizon_color": "Color(0.28, 0.58, 0.28, 1)",
     "sun_angle_max": "30.0",
     "sun_curve": "0.08",
