@@ -193,6 +193,13 @@ def main() -> int:
         f.write("Kd 0.28 0.58 0.28\n")
 
     # --- Write OBJ (Y-up, matches Godot) ------------------------------------
+    # v31: planar UVs so a PBR grass texture can tile on the terrain.
+    # u = x / TILE_YD, v = z / TILE_YD (texture repeats every TILE_YD yards).
+    # The mesh previously had no UVs, so a textured StandardMaterial3D
+    # could not map — the v28 shader worked around it with world-XZ in
+    # the shader. Planar UVs are cleaner: the standard material + normal
+    # map just work, and SDFGI (v30) gives the shadows bounced light.
+    TILE_YD = 4.0
     obj_path = os.path.join(outdir, "wyatt-hole12-terrain.obj")
     with open(obj_path, "w") as f:
         f.write("# Wyatt National Hole 12 terrain — LiDAR fallback mesh\n")
@@ -205,8 +212,12 @@ def main() -> int:
                 f.write(f"v {X[r, c]:.3f} {Y[r, c]:.3f} {Z[r, c]:.3f}\n")
         for r in range(n):
             for c in range(n):
+                f.write(f"vt {X[r, c] / TILE_YD:.4f} {Z[r, c] / TILE_YD:.4f}\n")
+        for r in range(n):
+            for c in range(n):
                 f.write(f"vn {N[r, c, 0]:.4f} {N[r, c, 1]:.4f} {N[r, c, 2]:.4f}\n")
-        # faces: two triangles per quad, CCW seen from above (+Y)
+        # faces: two triangles per quad, CCW seen from above (+Y).
+        # UV index == vertex index == normal index (same grid order).
         for r in range(n - 1):
             for c in range(n - 1):
                 a = r * n + c + 1
@@ -216,8 +227,8 @@ def main() -> int:
                 # faces: two triangles per quad, CCW seen from above (+Y).
                 # Grid: +row -> -x, +col -> -z, so (a, e, d0) / (a, b, e)
                 # wind upward; (a, d0, e) winds downward (verified Nov 13).
-                f.write(f"f {a}//{a} {e}//{e} {d0}//{d0}\n")
-                f.write(f"f {a}//{a} {b}//{b} {e}//{e}\n")
+                f.write(f"f {a}/{a}/{a} {e}/{e}/{e} {d0}/{d0}/{d0}\n")
+                f.write(f"f {a}/{a}/{a} {b}/{b}/{b} {e}/{e}/{e}\n")
 
     # --- Preview (grayscale heights, orientation check) -----------------------
     prev = ((Y - Y.min()) / (Y.max() - Y.min()) * 255).astype(np.uint8)

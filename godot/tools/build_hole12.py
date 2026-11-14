@@ -186,6 +186,22 @@ def mesh_node(name: str, mesh: str, material: str, x: float, y: float,
 # ground tiles specifically (not culling); if still black, the tiles are
 # not rendering at all. The tee/green prove shaded green CAN read.
 grass = mat((0.28, 0.58, 0.28), unshaded=True)  # green again (v14 magenta was the diagnostic; shading_mode is now truly 0=unshaded, so this renders flat green)
+# v31: PBR terrain material — the OBJ now has planar UVs (heightmap_to_mesh
+# v31, texture tiles every 4 yd), so a real grass texture maps. Grass004
+# (ambientCG, CC0, 2K) albedo + normal, roughness high (grass is matte).
+# SHADED (not unshaded): SDFGI (v30) is the fix for the v28 black-shadow
+# failure — bounced light in shadowed areas. If this still renders black,
+# SDFGI alone does not fix it and the sun angle/bias is next.
+terrain_pbr = sub("StandardMaterial3D", {
+    "albedo_color": "Color(1, 1, 1, 1)",
+    "albedo_texture": 'ExtResource("4")',
+    "normal_enabled": "true",
+    "normal_texture": 'ExtResource("5")',
+    "normal_scale": "1.0",
+    "roughness": "0.95",
+    "metallic": "0.0",
+    "texture_filter": "2",
+})
 fairway = mat((0.32, 0.62, 0.30), unshaded=True)
 green_mat = mat((0.35, 0.70, 0.32), unshaded=True)
 collar_mat = mat((0.22, 0.55, 0.22), unshaded=True)
@@ -284,16 +300,18 @@ node("Hole12", "Node3D", None)
 node("WorldEnvironment", "WorldEnvironment", ".", None,
      [f'environment = SubResource("{env}")'])
 # Golden-hour sun: low, warm, from behind-left so the golfer is rim-lit.
-# v29: shadows OFF again. v28 turned them on and the terrain + Mas went
-# BLACK — the same failure as v2 and v21. The directional shadow map
-# self-shadows the whole terrain at this low sun angle (the bias doesn't
-# fix it); shaded surfaces in shadow get no ambient here. Shadows stay
-# off until the lighting is rebuilt around a proper asset pipeline.
+# v31: shadows ON again. v28/v29 turned them off after the terrain + Mas
+# went BLACK — the directional shadow map self-shadowed the terrain at
+# this low sun angle and shaded surfaces in shadow got no ambient. SDFGI
+# (v30) is the fix: it gives shadowed areas bounced light. Bias raised
+# (0.05 -> 0.1) and normal bias 0.1 to reduce self-shadowing acne.
 node("Sun", "DirectionalLight3D", ".",
      "Transform3D(0.866, 0.353, 0.353, 0, 0.707, -0.707, -0.5, 0.612, 0.612, 0, 40, 20)",
      ["light_color = Color(1, 0.85, 0.6, 1)",
       "light_energy = 1.6",
-      "shadow_enabled = false"])
+      "shadow_enabled = true",
+      "shadow_bias = 0.1",
+      "shadow_normal_bias = 0.1"])
 node("BusClient", "Node", ".", None, ['script = ExtResource("1")'])
 node("Director", "Node", ".", None, ['script = ExtResource("2")'])
 
@@ -315,16 +333,13 @@ mesh_node("Tee", tee_mesh, fairway, 0, TEE_Y - 0.2 + 0.05, 0)
 # resource (expected type: PackedScene)" and a black frame.) Identity
 # transform: the OBJ is already in Godot scene units (yards, Y-up, tee
 # at origin).
-# v29: REVERT to the unshaded grass override (v19-v27). The v28 terrain
-# shader (Lambert + shadows) rendered the whole terrain BLACK, same as
-# the shaded .mtl in v21 — this scene's directional shadow map
-# self-shadows the terrain at the low golden-hour sun angle, and shaded
-# surfaces in shadow get no ambient. The unshaded grass is the
-# known-good baseline; the real fix is a proper asset/lighting pipeline
-# (see the asset research), not another material swap on this sun.
+# v31: PBR grass on the terrain (terrain_pbr, Grass004 albedo + normal,
+# planar UVs from heightmap_to_mesh v31) + shadows ON. SDFGI (v30) is
+# the fix for the v28 black-shadow failure — this is the test of it.
+# If the terrain renders black again, SDFGI alone does not fix it.
 node("Terrain", "MeshInstance3D", ".", t(0, 0, 0),
      ['mesh = ExtResource("3")',
-      f'surface_material_override/0 = SubResource("{grass}")'])
+      f'surface_material_override/0 = SubResource("{terrain_pbr}")'])
 mesh_node("Collar", collar_mesh, collar_mat, 0, -0.15 + 0.05, GREEN_Z)
 mesh_node("Green", green_mesh, green_mat, 0, 0 + 0.05, GREEN_Z)
 mesh_node("Pond", pond_mesh, water, 0, POND_Y, (POND_Z0 + POND_Z1) / 2)
@@ -408,10 +423,12 @@ node("BroadcastCam", "Camera3D", ".",
      ["fov = 50.0", "current = true"])
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
-header = ['[gd_scene load_steps=%d format=3]' % (sub_id[0] + 4), "",
+header = ['[gd_scene load_steps=%d format=3]' % (sub_id[0] + 6), "",
           '[ext_resource type="Script" path="res://scripts/bus_client.gd" id="1"]',
           '[ext_resource type="Script" path="res://scripts/director.gd" id="2"]',
-          '[ext_resource type="ArrayMesh" path="res://tools/wyatt-hole12-terrain.obj" id="3"]', ""]
+          '[ext_resource type="ArrayMesh" path="res://tools/wyatt-hole12-terrain.obj" id="3"]',
+          '[ext_resource type="Texture2D" path="res://textures/Grass004_Color.jpg" id="4"]',
+          '[ext_resource type="Texture2D" path="res://textures/Grass004_NormalGL.jpg" id="5"]', ""]
 out_lines = header + subs + nodes_out
 with open(OUT, "w") as f:
     f.write("\n".join(out_lines))
