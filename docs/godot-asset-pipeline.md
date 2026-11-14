@@ -13,6 +13,7 @@ push tool is text-only) — they live on the broadcast Mac in
 | What | Version | Source (free, $0) | Location on the Mac |
 |---|---|---|---|
 | Terrain3D | 1.1.0-stable | https://github.com/TokisanGames/Terrain3D/releases (release zip, has the prebuilt macOS .framework; the main-branch zip has NO binaries) | `godot/addons/terrain_3d/` (macOS binaries only; other platforms stripped to fit the 50 MB transfer limit) |
+| Phantom Camera | 0.11.0.4 | https://github.com/ramokz/phantom-camera (MIT) | `godot/addons/phantom_camera/` (pure GDScript, no binaries) |
 | Sky3D | 2.1.0 | https://github.com/TokisanGames/Sky3D/releases | `godot/addons/sky_3d/` |
 | Grass004 (fairway) | 2K JPG | https://ambientcg.com/view?id=Grass004 (CC0) | `godot/textures/Grass004_Color.jpg`, `Grass004_NormalGL.jpg` |
 | Grass006 (rough) | 2K JPG | https://ambientcg.com/view?id=Grass006 (CC0) | `godot/textures/Grass006_Color.jpg`, `Grass006_NormalGL.jpg` |
@@ -32,18 +33,56 @@ all five textures with no errors. Plugins are enabled in `project.godot`
    bunker. This replaces the OBJ terrain mesh in `hole_12.tscn` — the
    generator (`build_hole12.py`) will skip the Terrain mesh once
    Terrain3D owns it. This is editor work; verify with the frame
-   capture loop.
-2. **Sky3D:** add the Sky3D node, set golden-hour time, replace the
-   gradient sky. Keep the DirectionalLight3D sun; retune shadows with
-   Terrain3D's real normals + PBR (the fix for the black-terrain
+   capture loop. A headless setup script is being written (Nov 13).
+2. **Post-processing + Phantom Camera (the broadcast look):** enable
+   in the Environment — glow/bloom, SSAO, SSIL, **SDFGI** (the specific
+   fix for shadowed terrain going black — bounced light), ACES tonemap,
+   light volumetric fog. Add a PhantomCamera3D for the broadcast
+   (follow the golfer, tween tee→green, shake on impact). Phantom
+   Camera is installed + enabled; the post-processing tuning is next.
+3. **Sky3D:** add the Sky3D node, set golden-hour time (~17.5), replace
+   the gradient sky. Keep the DirectionalLight3D sun; retune shadows
+   with Terrain3D's real normals + PBR (the fix for the black-terrain
    shadow failure — see below).
-3. **Mixamo golfer:** needs Mason's free Adobe ID. Download a Mixamo
+4. **Mixamo golfer:** needs Mason's free Adobe ID. Download a Mixamo
    character (with skin, T-pose) + Golf Drive / Golf Putt / Golf Tee Up
    / Idle animations (without skin); import as Animation Libraries in
    Godot 4.7 (built-in ufbx); parent a club to the hand bone. This
    replaces the capsule Mas. Left-handed: mirror by scaling root X -1.
-4. **Trees:** Quaternius Stylized Nature MegaKit (CC0, itch.io $0) +
+5. **Golfer non-swing life:** Cinevva (https://app.cinevva.com/tools/animations)
+   — 260 CC0 motions, browser retarget, free GLB export, no sign-in.
+   Drop the Mixamo golfer in, pick idle/walk/celebrate/react clips,
+   export one GLB. Zero retargeting work.
+6. **Real swing data:** CMU Graphics Lab mocap, Subject #64 (30 golf
+   swings, 120 Hz, free) — the authentic alternative to Mixamo's
+   generic swing; needs BVH conversion + Blender retargeting. Mocai
+   (https://mocai.ai, free tier 1 min/mo, 15 s clips) turns Mason's own
+   swing video into a Mixamo-rigged FBX/GLB — the fast path to his swing.
+7. **Trees:** Quaternius Stylized Nature MegaKit (CC0, itch.io $0) +
    ProtonScatter, to replace the cone pines. Not yet downloaded.
+   Alternative for realistic trees: Modular Tree (MTree, GPLv3 Blender
+   addon) — generate realistic trees in Blender, export GLB.
+   Also Blender's built-in Sapling Tree Gen (free, ships with Blender).
+8. **Textures still missing:** a real sand texture and a mown-fairway
+   stripe texture were not found in ambientCG. Material Maker
+   (MIT, free) can author both procedurally and tileable.
+9. **Character realism ceiling:** Microsoft Rocketbox (MIT, 115 realistic
+   avatars + 417 animations + facial blendshapes) and Blender Studio
+   Human Base Meshes (CC0, 17 production-topology humans) are the
+   realistic-golfer-body candidates if Mixamo's generic human is not
+   enough. KayKit Character Animations (CC0, 161 clips) is a backup
+   animation source.
+
+## License rules (do not break)
+
+- **Do NOT commit Quaternius or Mixamo files to the public GitHub repo.**
+  Quaternius QAL v1.0 and Mixamo's terms both restrict redistributing
+  the asset files themselves as a standalone pack. Keep those files on
+  the Mac only (same as Terrain3D/Sky3D, which are already Mac-only
+  because they are binary).
+- **Cascadeur is NOT free for this project** — its free tier is
+  non-commercial and cannot export FBX. Do mocap cleanup in Blender.
+- Tripo free outputs are non-commercial — do not ship them.
 
 ## Known dead ends (do not retry)
 
@@ -53,8 +92,9 @@ all five textures with no errors. Plugins are enabled in `project.godot`
   bias + SDFGI/LightmapGI is the fix, not another material swap.
 - Poly Haven direct downloads: the `dl.polyhaven.org` URL pattern and
   the `api.polyhaven.org` endpoint did not return the files in Nov 2026
-  (404 / non-JSON). Use ambientCG (the `get?file=` pattern works) or
-  the Poly Haven site directly in a browser.
+  (404 / non-JSON, and the API returns Cloudflare error 522 from this VM).
+  Use ambientCG (the `get?file=` pattern works) or the Poly Haven site
+  directly in a browser.
 - AI 3D for the hero golfer: Meshy/Tripo generate props, not a reliable
   rigged human. The golfer comes from Mixamo (or MediaPipe/Mocai from
   Mason's swing video). Tripo free outputs are non-commercial — do not
