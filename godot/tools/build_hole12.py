@@ -275,19 +275,16 @@ node("Hole12", "Node3D", None)
 node("WorldEnvironment", "WorldEnvironment", ".", None,
      [f'environment = SubResource("{env}")'])
 # Golden-hour sun: low, warm, from behind-left so the golfer is rim-lit.
-# v28: shadows ON. The v2 frame rendered the whole ground black with
-# shadows on, but that was the flat unshaded ground + a bad bias; the
-# terrain now has a real shader (Lambert, receives shadows) and the bias
-# is tuned (0.05) with a normal bias (0.1) to avoid acne on the hills.
-# Shadows are the single biggest depth cue the scene has been missing —
-# the hills, the pines, and Mas all need to cast.
+# v29: shadows OFF again. v28 turned them on and the terrain + Mas went
+# BLACK — the same failure as v2 and v21. The directional shadow map
+# self-shadows the whole terrain at this low sun angle (the bias doesn't
+# fix it); shaded surfaces in shadow get no ambient here. Shadows stay
+# off until the lighting is rebuilt around a proper asset pipeline.
 node("Sun", "DirectionalLight3D", ".",
      "Transform3D(0.866, 0.353, 0.353, 0, 0.707, -0.707, -0.5, 0.612, 0.612, 0, 40, 20)",
      ["light_color = Color(1, 0.85, 0.6, 1)",
       "light_energy = 1.6",
-      "shadow_enabled = true",
-      "shadow_bias = 0.05",
-      "shadow_normal_bias = 0.1"])
+      "shadow_enabled = false"])
 node("BusClient", "Node", ".", None, ['script = ExtResource("1")'])
 node("Director", "Node", ".", None, ['script = ExtResource("2")'])
 
@@ -309,20 +306,16 @@ mesh_node("Tee", tee_mesh, fairway, 0, TEE_Y - 0.2 + 0.05, 0)
 # resource (expected type: PackedScene)" and a black frame.) Identity
 # transform: the OBJ is already in Godot scene units (yards, Y-up, tee
 # at origin).
-# v28: the terrain uses the terrain shader (terrain.gdshader) with the
-# grass detail texture — real grass grain, mowing stripes on the
-# fairway, a lighter green, and Lambert lighting so the elevation reads
-# through light and shadow. This replaces the unshaded grass override
-# (v19-v27), which was flat green with no texture and no depth. The
-# shaded .mtl went black in v21; the shader is the controlled path
-# (it sets ALBEDO and lets Godot's lighting + shadows do the rest).
-terrain_mat = sub("ShaderMaterial", {
-    "shader": 'ExtResource("4")',
-    "shader_parameter/grass_tex": 'ExtResource("5")',
-})
+# v29: REVERT to the unshaded grass override (v19-v27). The v28 terrain
+# shader (Lambert + shadows) rendered the whole terrain BLACK, same as
+# the shaded .mtl in v21 — this scene's directional shadow map
+# self-shadows the terrain at the low golden-hour sun angle, and shaded
+# surfaces in shadow get no ambient. The unshaded grass is the
+# known-good baseline; the real fix is a proper asset/lighting pipeline
+# (see the asset research), not another material swap on this sun.
 node("Terrain", "MeshInstance3D", ".", t(0, 0, 0),
      ['mesh = ExtResource("3")',
-      f'surface_material_override/0 = SubResource("{terrain_mat}")'])
+      f'surface_material_override/0 = SubResource("{grass}")'])
 mesh_node("Collar", collar_mesh, collar_mat, 0, -0.15 + 0.05, GREEN_Z)
 mesh_node("Green", green_mesh, green_mat, 0, 0 + 0.05, GREEN_Z)
 mesh_node("Pond", pond_mesh, water, 0, POND_Y, (POND_Z0 + POND_Z1) / 2)
@@ -406,12 +399,10 @@ node("BroadcastCam", "Camera3D", ".",
      ["fov = 50.0", "current = true"])
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
-header = ['[gd_scene load_steps=%d format=3]' % (sub_id[0] + 6), "",
+header = ['[gd_scene load_steps=%d format=3]' % (sub_id[0] + 4), "",
           '[ext_resource type="Script" path="res://scripts/bus_client.gd" id="1"]',
           '[ext_resource type="Script" path="res://scripts/director.gd" id="2"]',
-          '[ext_resource type="ArrayMesh" path="res://tools/wyatt-hole12-terrain.obj" id="3"]',
-          '[ext_resource type="Shader" path="res://tools/terrain.gdshader" id="4"]',
-          '[ext_resource type="Texture2D" path="res://tools/grass-detail.png" id="5"]', ""]
+          '[ext_resource type="ArrayMesh" path="res://tools/wyatt-hole12-terrain.obj" id="3"]', ""]
 out_lines = header + subs + nodes_out
 with open(OUT, "w") as f:
     f.write("\n".join(out_lines))
