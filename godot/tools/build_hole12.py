@@ -275,14 +275,19 @@ node("Hole12", "Node3D", None)
 node("WorldEnvironment", "WorldEnvironment", ".", None,
      [f'environment = SubResource("{env}")'])
 # Golden-hour sun: low, warm, from behind-left so the golfer is rim-lit.
-# Shadows OFF for now — the v2 frame rendered the whole ground black and
-# the prime suspect is the directional shadow map acne-ing the flat
-# ground plane. Re-enable with a tuned bias once the ground reads green.
+# v28: shadows ON. The v2 frame rendered the whole ground black with
+# shadows on, but that was the flat unshaded ground + a bad bias; the
+# terrain now has a real shader (Lambert, receives shadows) and the bias
+# is tuned (0.05) with a normal bias (0.1) to avoid acne on the hills.
+# Shadows are the single biggest depth cue the scene has been missing —
+# the hills, the pines, and Mas all need to cast.
 node("Sun", "DirectionalLight3D", ".",
      "Transform3D(0.866, 0.353, 0.353, 0, 0.707, -0.707, -0.5, 0.612, 0.612, 0, 40, 20)",
      ["light_color = Color(1, 0.85, 0.6, 1)",
       "light_energy = 1.6",
-      "shadow_enabled = false"])
+      "shadow_enabled = true",
+      "shadow_bias = 0.05",
+      "shadow_normal_bias = 0.1"])
 node("BusClient", "Node", ".", None, ['script = ExtResource("1")'])
 node("Director", "Node", ".", None, ['script = ExtResource("2")'])
 
@@ -303,15 +308,21 @@ mesh_node("Tee", tee_mesh, fairway, 0, TEE_Y - 0.2 + 0.05, 0)
 # (v18 used PackedScene + instance=, which failed: "No loader found for
 # resource (expected type: PackedScene)" and a black frame.) Identity
 # transform: the OBJ is already in Godot scene units (yards, Y-up, tee
-# at origin). The terrain uses an UNSHADED grass override (v19's
-# approach): the shaded .mtl rendered the whole terrain black (v21) —
-# shaded surfaces go black under this sun, and the terrain's slopes
-# don't save it. Unshaded bright green + the terrain's real elevation
-# is what makes the hills read. (v20's matched sky ground erased the
-# hills because unshaded + uniform color = no depth cue.)
+# at origin).
+# v28: the terrain uses the terrain shader (terrain.gdshader) with the
+# grass detail texture — real grass grain, mowing stripes on the
+# fairway, a lighter green, and Lambert lighting so the elevation reads
+# through light and shadow. This replaces the unshaded grass override
+# (v19-v27), which was flat green with no texture and no depth. The
+# shaded .mtl went black in v21; the shader is the controlled path
+# (it sets ALBEDO and lets Godot's lighting + shadows do the rest).
+terrain_mat = sub("ShaderMaterial", {
+    "shader": 'ExtResource("4")',
+    "shader_parameter/grass_tex": 'ExtResource("5")',
+})
 node("Terrain", "MeshInstance3D", ".", t(0, 0, 0),
      ['mesh = ExtResource("3")',
-      f'surface_material_override/0 = SubResource("{grass}")'])
+      f'surface_material_override/0 = SubResource("{terrain_mat}")'])
 mesh_node("Collar", collar_mesh, collar_mat, 0, -0.15 + 0.05, GREEN_Z)
 mesh_node("Green", green_mesh, green_mat, 0, 0 + 0.05, GREEN_Z)
 mesh_node("Pond", pond_mesh, water, 0, POND_Y, (POND_Z0 + POND_Z1) / 2)
@@ -395,10 +406,12 @@ node("BroadcastCam", "Camera3D", ".",
      ["fov = 50.0", "current = true"])
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
-header = ['[gd_scene load_steps=%d format=3]' % (sub_id[0] + 4), "",
+header = ['[gd_scene load_steps=%d format=3]' % (sub_id[0] + 6), "",
           '[ext_resource type="Script" path="res://scripts/bus_client.gd" id="1"]',
           '[ext_resource type="Script" path="res://scripts/director.gd" id="2"]',
-          '[ext_resource type="ArrayMesh" path="res://tools/wyatt-hole12-terrain.obj" id="3"]', ""]
+          '[ext_resource type="ArrayMesh" path="res://tools/wyatt-hole12-terrain.obj" id="3"]',
+          '[ext_resource type="Shader" path="res://tools/terrain.gdshader" id="4"]',
+          '[ext_resource type="Texture2D" path="res://tools/grass-detail.png" id="5"]', ""]
 out_lines = header + subs + nodes_out
 with open(OUT, "w") as f:
     f.write("\n".join(out_lines))
