@@ -9,8 +9,8 @@ import unittest
 
 from sim import constants as C
 from sim import putting
-from sim.twins import (
 from sim.tests._markers import slow
+from sim.twins import (
     BAND_DRIVING_YD, BAND_PCT_POINTS, BAND_SCORING_STROKES,
     StatProfile, TwinAlreadyExists, TwinProfile, TwinRegistry,
     approve_twin, benchmark_for_handicap, build_twin, calibrate_twin,
