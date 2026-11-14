@@ -144,6 +144,33 @@ def cyl_between(a, b):
     return tf, length
 
 
+def look_at(eye, target, up=(0, 1, 0)):
+    """Transform3D for a camera at eye looking at target. The camera
+    looks along its -Z axis. Used for the broadcast camera so it can sit
+    offset from the target line (down-the-line view) and still frame the
+    green — a dead-behind camera hides the address pose's arms/club/ball
+    behind the torso (v23)."""
+    import math
+    ex, ey, ez = eye
+    tx, ty, tz = target
+    fx, fy, fz = tx - ex, ty - ey, tz - ez
+    fl = math.sqrt(fx * fx + fy * fy + fz * fz)
+    fx, fy, fz = fx / fl, fy / fl, fz / fl
+    zx, zy, zz = -fx, -fy, -fz  # camera +Z points back from the target
+    ux, uy, uz = up
+    xx = uy * zz - uz * zy
+    xy = uz * zx - ux * zz
+    xz = ux * zy - uy * zx
+    xl = math.sqrt(xx * xx + xy * xy + xz * xz)
+    xx, xy, xz = xx / xl, xy / xl, xz / xl
+    yx = zy * xz - zz * xy
+    yy = zz * xx - zx * xz
+    yz = zx * xy - zy * xx
+    return (f"Transform3D({xx:.3f}, {xy:.3f}, {xz:.3f}, "
+            f"{yx:.3f}, {yy:.3f}, {yz:.3f}, "
+            f"{zx:.3f}, {zy:.3f}, {zz:.3f}, {ex}, {ey}, {ez})")
+
+
 def mesh_node(name: str, mesh: str, material: str, x: float, y: float,
               z: float) -> None:
     node(name, "MeshInstance3D", ".", t(x, y, z), [
@@ -353,12 +380,12 @@ node("MasBall", "MeshInstance3D", ".", t(0.25, TEE_Y + 0.15, 0.7),
       f'surface_material_override/0 = SubResource("{white}")'])
 
 # Broadcast camera — always behind the golfer, looking down the hole.
-# v3: the v2 camera at (0,14,38) put Mas 36 yd out — tiny in the frame.
-# Middle distance (0,12,25), FOV 50, tilt down 15 deg: Mas reads as a
-# golfer (not a speck, not blocking the hole) and the green sits in the
-# upper third. The Mac frame capture is the real verdict, not arithmetic.
+# v24: offset 7 yd to the right of the target line (down-the-line view)
+# and aimed at the green with look_at. A dead-behind camera hides the
+# address pose's arms/club/ball behind the torso (v23); the offset shows
+# Mas in partial profile so the pose reads. FOV 50.
 node("BroadcastCam", "Camera3D", ".",
-     "Transform3D(1, 0, 0, 0, 0.966, 0.259, 0, -0.259, 0.966, 0, 12, 25)",
+     look_at((7, 12, 25), (0, 0, -172)),
      ["fov = 50.0", "current = true"])
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
