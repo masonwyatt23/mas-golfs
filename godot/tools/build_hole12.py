@@ -302,6 +302,12 @@ node("Sky3D", "Sky3D", ".", None,
       "game_time_enabled = false"])
 node("BusClient", "Node", ".", None, ['script = ExtResource("1")'])
 node("Director", "Node", ".", None, ['script = ExtResource("2")'])
+# v38: Capture node — captures a frame when run with --capture, does
+# nothing otherwise (so the broadcast runs normally). Running the scene
+# directly as the main scene is the ONLY way the addon global classes
+# (Sky3D, PhantomCamera) resolve; the -s script path never populates
+# the ClassDB with them.
+node("Capture", "Node", ".", None, ['script = ExtResource("9")'])
 
 # Ground + hole features.
 # TERRAIN (v18): the LiDAR heightfield mesh replaces the flat ground tile.
@@ -439,7 +445,7 @@ node("TeeCam", "PhantomCamera3D", ".", t(0, 12, 25),
       "tween_on_load = false"])
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
-header = ['[gd_scene load_steps=%d format=3]' % (sub_id[0] + 9), "",
+header = ['[gd_scene load_steps=%d format=3]' % (sub_id[0] + 10), "",
           '[ext_resource type="Script" path="res://scripts/bus_client.gd" id="1"]',
           '[ext_resource type="Script" path="res://scripts/director.gd" id="2"]',
           '[ext_resource type="ArrayMesh" path="res://tools/wyatt-hole12-terrain.obj" id="3"]',
@@ -447,7 +453,8 @@ header = ['[gd_scene load_steps=%d format=3]' % (sub_id[0] + 9), "",
           '[ext_resource type="Texture2D" path="res://textures/Grass004_NormalGL.jpg" id="5"]',
           '[ext_resource type="PackedScene" path="res://models/pines/Pine_1.gltf" id="6"]',
           '[ext_resource type="PackedScene" path="res://models/pines/Pine_2.gltf" id="7"]',
-          '[ext_resource type="PackedScene" path="res://models/pines/Pine_3.gltf" id="8"]', ""]
+          '[ext_resource type="PackedScene" path="res://models/pines/Pine_3.gltf" id="8"]',
+          '[ext_resource type="Script" path="res://tools/capture_node.gd" id="9"]', ""]
 out_lines = header + subs + nodes_out
 with open(OUT, "w") as f:
     f.write("\n".join(out_lines))

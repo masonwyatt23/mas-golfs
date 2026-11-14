@@ -1,4 +1,4 @@
-[gd_scene load_steps=45 format=3]
+[gd_scene load_steps=46 format=3]
 
 [ext_resource type="Script" path="res://scripts/bus_client.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/director.gd" id="2"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://models/pines/Pine_1.gltf" id="6"]
 [ext_resource type="PackedScene" path="res://models/pines/Pine_2.gltf" id="7"]
 [ext_resource type="PackedScene" path="res://models/pines/Pine_3.gltf" id="8"]
+[ext_resource type="Script" path="res://tools/capture_node.gd" id="9"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
 albedo_color = Color(0.28, 0.58, 0.28, 1)
@@ -234,6 +235,9 @@ script = ExtResource("1")
 
 [node name="Director" type="Node" parent="."]
 script = ExtResource("2")
+
+[node name="Capture" type="Node" parent="."]
+script = ExtResource("9")
 
 [node name="Tee" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.1499999999999995, 0)
