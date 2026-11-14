@@ -1,7 +1,8 @@
-[gd_scene load_steps=34 format=3]
+[gd_scene load_steps=35 format=3]
 
 [ext_resource type="Script" path="res://scripts/bus_client.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/director.gd" id="2"]
+[ext_resource type="PackedScene" path="res://tools/wyatt-hole12-terrain.obj" id="3"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
 albedo_color = Color(0.28, 0.58, 0.28, 1)
@@ -198,23 +199,21 @@ script = ExtResource("1")
 [node name="Director" type="Node" parent="."]
 script = ExtResource("2")
 
-[node name="Ground" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, -170)
-mesh = SubResource("BoxMesh_15")
-surface_material_override/0 = SubResource("StandardMaterial3D_1")
-
 [node name="Tee" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.1499999999999995, 0)
 mesh = SubResource("BoxMesh_16")
 surface_material_override/0 = SubResource("StandardMaterial3D_2")
 
+[node name="Terrain" parent="." instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
 [node name="Collar" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, -172.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.09999999999999999, -172.0)
 mesh = SubResource("CylinderMesh_18")
 surface_material_override/0 = SubResource("StandardMaterial3D_4")
 
 [node name="Green" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -172.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, -172.0)
 mesh = SubResource("CylinderMesh_17")
 surface_material_override/0 = SubResource("StandardMaterial3D_3")
 
@@ -224,7 +223,7 @@ mesh = SubResource("PlaneMesh_19")
 surface_material_override/0 = SubResource("StandardMaterial3D_6")
 
 [node name="Bunker" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, -186.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.09999999999999999, -186.0)
 mesh = SubResource("CylinderMesh_20")
 surface_material_override/0 = SubResource("StandardMaterial3D_5")
 

@@ -178,12 +178,31 @@ def main() -> int:
     N = np.stack([-gx, np.ones_like(Y), -gy], axis=-1)
     N /= np.linalg.norm(N, axis=-1, keepdims=True)
 
+    # --- Material (.mtl): grass green diffuse. Godot's OBJ importer turns
+    # Kd into a StandardMaterial3D albedo (shaded). The terrain is sloped,
+    # not flat, so it shades like the pines' canopies (which read fine) —
+    # unlike the flat ground tile, whose horizontal top face went black.
+    # If the terrain still reads too dark on the Mac frame, the fallback is
+    # to override the material unshaded in the .tscn (see build_hole12.py).
+    mtl_path = os.path.join(outdir, "wyatt-hole12-terrain.mtl")
+    with open(mtl_path, "w") as f:
+        f.write("# Wyatt National Hole 12 terrain material\n")
+        f.write("newmtl terrain_grass\n")
+        f.write("Kd 0.28 0.58 0.28\n")
+        f.write("Ka 0.28 0.58 0.28\n")
+        f.write("Ks 0.0\n")
+        f.write("Ns 0.0\n")
+        f.write("d 1.0\n")
+        f.write("illum 1\n")
+
     # --- Write OBJ (Y-up, matches Godot) ------------------------------------
     obj_path = os.path.join(outdir, "wyatt-hole12-terrain.obj")
     with open(obj_path, "w") as f:
         f.write("# Wyatt National Hole 12 terrain — LiDAR fallback mesh\n")
         f.write(f"# source md5 {md5}; grid {n}x{n}; step {STEP}; "
                 f"scale {SCALE_YD:.4f} yd/px; vert_scale {VERT_SCALE}\n")
+        f.write("mtllib wyatt-hole12-terrain.mtl\n")
+        f.write("usemtl terrain_grass\n")
         for r in range(n):
             for c in range(n):
                 f.write(f"v {X[r, c]:.3f} {Y[r, c]:.3f} {Z[r, c]:.3f}\n")
