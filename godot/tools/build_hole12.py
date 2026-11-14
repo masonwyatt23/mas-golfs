@@ -82,8 +82,20 @@ def capsule(r: float, h: float) -> str:
 
 
 def node(name: str, ntype: str, parent: str | None, transform: str | None = None,
-         extra: list[str] | None = None) -> None:
-    if parent is None:
+         extra: list[str] | None = None, instance: str | None = None) -> None:
+    # v43: instance= puts instance=ExtResource(...) in the node HEADER.
+    # A PackedScene instance MUST be declared that way — as a separate
+    # property line (instance = ExtResource(...)) it is silently ignored
+    # (Node3D has no "instance" property), so the node stays an empty
+    # Node3D with no children. That is why the pines never rendered
+    # (v34-v42): the .scn files were fine, the instances were empty.
+    # An instanced node has no type= (the type comes from the scene).
+    if instance is not None:
+        if parent is None:
+            nodes_out.append(f'[node name="{name}" instance=ExtResource("{instance}")]')
+        else:
+            nodes_out.append(f'[node name="{name}" parent="{parent}" instance=ExtResource("{instance}")]')
+    elif parent is None:
         nodes_out.append(f'[node name="{name}" type="{ntype}"]')
     else:
         nodes_out.append(f'[node name="{name}" type="{ntype}" parent="{parent}"]')
@@ -388,21 +400,17 @@ node("Flag", "MeshInstance3D", ".",
 # terrain (green is flat y=0). The glTFs are PackedScene ext_resources
 # (ids 6-8); their textures (Bark_NormalTree, Leaf_Pine_C) sit beside
 # them in res://models/pines/ so the relative URIs resolve.
-# v42 DIAGNOSTIC: the pines are not visible in v41 (no errors, .scn
-# files exist). One pine (Pine_1, scale 3.0) is moved to the tee at
-# (-6, 0.5, -6), right next to Mas and clearly in frame, to prove
-# whether the glTF renders at all and whether the leaf alpha (cutout)
-# works. If it shows, the green pines are a scale/placement/hiding
-# issue; if it does not, the glTF import is broken. REMOVE after diag.
+# v43: instance goes in the node HEADER (instance=ExtResource(...)),
+# not as a property line — as a property it is silently ignored and
+# the node stays an empty Node3D. That is why no pine ever rendered
+# (v34-v42) despite valid .scn files. The PineDiag diagnostic node is
+# removed (it proved the instances were empty, not the glTFs broken).
 for i, (px, pz) in enumerate([(-22, -160), (-26, -172), (-20, -182),
                               (22, -160), (26, -172), (20, -182)]):
     _pine_id = ["6", "7", "8"][i % 3]
     node(f"Pine{i}", "Node3D", ".",
          f"Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, {px}, 0.5, {pz})",
-         [f'instance = ExtResource("{_pine_id}")'])
-node("PineDiag", "Node3D", ".",
-     "Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, -6, 0.5, -6)",
-     ['instance = ExtResource("6")'])
+         instance=_pine_id)
 
 # Mas — at address over the ball (v23). A golfer bent over a ball reads
 # instantly; the old upright capsule did not. Left-handed, facing -Z

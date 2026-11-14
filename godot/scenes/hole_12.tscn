@@ -302,33 +302,23 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.9, 6.2, -166.0)
 mesh = SubResource("PlaneMesh_24")
 surface_material_override/0 = SubResource("StandardMaterial3D_15")
 
-[node name="Pine0" type="Node3D" parent="."]
+[node name="Pine0" parent="." instance=ExtResource("6")]
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -22, 0.5, -160)
-instance = ExtResource("6")
 
-[node name="Pine1" type="Node3D" parent="."]
+[node name="Pine1" parent="." instance=ExtResource("7")]
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -26, 0.5, -172)
-instance = ExtResource("7")
 
-[node name="Pine2" type="Node3D" parent="."]
+[node name="Pine2" parent="." instance=ExtResource("8")]
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -20, 0.5, -182)
-instance = ExtResource("8")
 
-[node name="Pine3" type="Node3D" parent="."]
+[node name="Pine3" parent="." instance=ExtResource("6")]
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 22, 0.5, -160)
-instance = ExtResource("6")
 
-[node name="Pine4" type="Node3D" parent="."]
+[node name="Pine4" parent="." instance=ExtResource("7")]
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 26, 0.5, -172)
-instance = ExtResource("7")
 
-[node name="Pine5" type="Node3D" parent="."]
+[node name="Pine5" parent="." instance=ExtResource("8")]
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 20, 0.5, -182)
-instance = ExtResource("8")
-
-[node name="PineDiag" type="Node3D" parent="."]
-transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, -6, 0.5, -6)
-instance = ExtResource("6")
 
 [node name="Mas" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.3, 2)
