@@ -155,16 +155,17 @@ club_mesh = cyl(0.05, 0.05, 3.4, 8)
 sky_mat = sub("ProceduralSkyMaterial", {
     "sky_top_color": "Color(0.25, 0.45, 0.75, 1)",
     "sky_horizon_color": "Color(0.95, 0.65, 0.35, 1)",
-    # The sky's ground is GREEN and matches the terrain grass exactly:
-    # the terrain mesh only spans z +8..-311, so the near field between
-    # the camera (z=25) and the terrain's back edge (z=+8) shows the
-    # sky's ground. If the sky ground is darker than the terrain it
-    # reads as a big dark band across the bottom of the frame (v19).
-    # Matching the terrain grass (0.28,0.58,0.28) makes the ground read
-    # as one continuous course; the terrain's rolling hills still give
-    # the topography in the mid/background.
+    # The sky's ground is a gradient that solves the v19/v20 tension:
+    # ground_bottom (near field, bottom of frame) MATCHES the terrain
+    # grass (0.28,0.58,0.28) so there is no dark band where the terrain
+    # doesn't reach (camera z=25 to terrain back edge z=+8). ground_
+    # horizon (far field, where the hills sit) is DARKER (0.15,0.35,
+    # 0.15) so the bright unshaded terrain still reads as distinct
+    # rolling hills against it. v19 had the gradient backwards (dark
+    # bottom, bright horizon) which made the band; v20 matched both
+    # which erased the hills.
     "ground_bottom_color": "Color(0.28, 0.58, 0.28, 1)",
-    "ground_horizon_color": "Color(0.28, 0.58, 0.28, 1)",
+    "ground_horizon_color": "Color(0.15, 0.35, 0.15, 1)",
     "sun_angle_max": "30.0",
     "sun_curve": "0.08",
 })
@@ -229,15 +230,15 @@ mesh_node("Tee", tee_mesh, fairway, 0, TEE_Y - 0.2 + 0.05, 0)
 # (v18 used PackedScene + instance=, which failed: "No loader found for
 # resource (expected type: PackedScene)" and a black frame.) Identity
 # transform: the OBJ is already in Godot scene units (yards, Y-up, tee
-# at origin). The terrain uses its own .mtl shaded green material (Kd
-# 0.28,0.58,0.28) — the slopes catch light and shadow, which is what
-# makes the elevation READ as 3D. (v20 put an unshaded grass override
-# on the Terrain node; unshaded + uniform color erased all depth, so
-# the hills vanished into the flat sky-ground.) The flat feature discs
-# are covered by the unshaded Tee/Green/Collar nodes, so the shaded
-# terrain's only flat spots are hidden.
+# at origin). The terrain uses an UNSHADED grass override (v19's
+# approach): the shaded .mtl rendered the whole terrain black (v21) —
+# shaded surfaces go black under this sun, and the terrain's slopes
+# don't save it. Unshaded bright green + the terrain's real elevation
+# is what makes the hills read. (v20's matched sky ground erased the
+# hills because unshaded + uniform color = no depth cue.)
 node("Terrain", "MeshInstance3D", ".", t(0, 0, 0),
-     ['mesh = ExtResource("3")'])
+     ['mesh = ExtResource("3")',
+      f'surface_material_override/0 = SubResource("{grass}")'])
 mesh_node("Collar", collar_mesh, collar_mat, 0, -0.15 + 0.05, GREEN_Z)
 mesh_node("Green", green_mesh, green_mat, 0, 0 + 0.05, GREEN_Z)
 mesh_node("Pond", pond_mesh, water, 0, POND_Y, (POND_Z0 + POND_Z1) / 2)
